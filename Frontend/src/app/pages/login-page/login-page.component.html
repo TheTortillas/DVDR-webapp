@@ -1,0 +1,73 @@
+<main class="flex justify-center py-10">
+  <div class="bg-white sm:w-1/3 border border-gray-400 rounded-lg p-12 shadow">
+    <h3 class="title-font text-sm text-gray-900 mt-4 mb-2">
+      Accede con tu cuenta
+    </h3>
+    <br />
+    <mat-divider></mat-divider>
+    <br />
+    <form class="" action="#" [formGroup]="form">
+      <!-- Pedimos el correo -->
+      <div class="email-container">
+        <label for="email" class="block mb-2 text-xl font-medium text-gray-900"
+          >Correo:</label
+        >
+        <mat-form-field class="w-full">
+          <mat-label>Ingresa tu correo electónico</mat-label>
+          <input
+            matInput
+            placeholder="nombre@ejemplo.com"
+            [formControl]="email"
+            (blur)="updateErrorMessage()"
+            required
+          />
+          @if (email.invalid && email.touched) {
+          <mat-error>{{ errorMessage() }}</mat-error>
+          }
+        </mat-form-field>
+      </div>
+
+      <!-- Pedimos el password -->
+      <div class="password-container">
+        <label for="email" class="block mb-2 text-xl font-medium text-gray-900"
+          >Contraseña:</label
+        >
+        <mat-form-field class="w-full">
+          <mat-label>Ingresa tu contraseña</mat-label>
+          <input
+            matInput
+            [formControl]="password"
+            [type]="hide() ? 'password' : 'text'"
+          />
+          <button
+            mat-icon-button
+            matSuffix
+            (click)="clickEvent($event)"
+            [attr.aria-label]="'Hide password'"
+            [attr.aria-pressed]="hide()"
+          >
+            <mat-icon>{{ hide() ? "visibility_off" : "visibility" }}</mat-icon>
+          </button>
+        </mat-form-field>
+      </div>
+      <div class="forgot-password-button flex justify-center">
+        <a mat-button routerLink="../forgot-password" target="_blank"
+          >¿Olvidaste tu contraseña? Da click aquí</a
+        >
+      </div>
+      <br />
+      <mat-divider></mat-divider>
+      <br />
+    </form>
+    <div class="next-button">
+      <a mat-flat-button extended routerLink="../login" class="w-full">
+        <div
+          class="content-center"
+          style="display: inline-flex; align-items: right; max-width: 100px"
+        >
+          Ingresar
+        </div>
+      </a>
+    </div>
+  </div>
+</main>

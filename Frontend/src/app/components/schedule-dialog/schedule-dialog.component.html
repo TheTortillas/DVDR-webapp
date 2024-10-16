@@ -1,0 +1,63 @@
+<h2 mat-dialog-title>Cronograma</h2>
+<mat-dialog-content class="flex flex-wrap">
+  <!-- INPUT DEL RANGO DE APLICACIÓN DEL CURSO -->
+  <div class="fechas-container py-5">
+    <label for="fechas" class="flex mb-2 text-x font-medium text-gray-900"
+      >Fechas de aplicación</label
+    >
+    <mat-form-field class="w-full">
+      <mat-label>Ingresa el periodo de aplicación de tu curso</mat-label>
+      <mat-date-range-input [rangePicker]="picker">
+        <input
+          matStartDate
+          placeholder="Fecha de inicio"
+          formControlName="fechaInicio"
+        />
+        <input
+          matEndDate
+          placeholder="Fecha final"
+          formControlName="fechaFin"
+        />
+      </mat-date-range-input>
+      <mat-hint>DD/MM/YYYY – DD/MM/YYYY</mat-hint>
+      <mat-datepicker-toggle
+        matIconSuffix
+        [for]="picker"
+      ></mat-datepicker-toggle>
+      <mat-date-range-picker #picker></mat-date-range-picker>
+    </mat-form-field>
+  </div>
+
+  <!-- CHECKBOXES PARA DÍAS DE LA SEMANA -->
+  <div class="dias-container py-5">
+    <label for="dias" class="flex mb-2 text-x font-medium text-gray-900"
+      >¿Qué días se dará el curso?</label
+    >
+    <div class="flex flex-wrap gap-4 mt-4">
+      <mat-checkbox>Lunes</mat-checkbox>
+      <mat-checkbox>Martes</mat-checkbox>
+      <mat-checkbox>Miércoles</mat-checkbox>
+      <mat-checkbox>Jueves</mat-checkbox>
+      <mat-checkbox>Viernes</mat-checkbox>
+      <mat-checkbox>Sábado</mat-checkbox>
+      <mat-checkbox>Domingo</mat-checkbox>
+    </div>
+  </div>
+
+  <!-- INPUT PARA DURACIÓN TOTAL DEL CURSO EN HORAS -->
+  <div class="duracion-container py-5">
+    <label for="duracion" class="flex mb-2 text-x font-medium text-gray-900"
+      >Duración total del curso (en horas)</label
+    >
+    <mat-form-field class="w-full">
+      <input matInput placeholder="Ex. 40" type="number" id="duracionTotal" />
+    </mat-form-field>
+  </div>
+
+  <!-- INPUT PARA DURACIÓN DIARIA DEL CURSO EN HORAS -->
+  <div></div>
+</mat-dialog-content>
+<mat-dialog-actions>
+  <button mat-stroked-button mat-dialog-close>Cancelar</button>
+  <button mat-stroked-button cdkFocusInitial>Generar cronograma</button>
+</mat-dialog-actions>

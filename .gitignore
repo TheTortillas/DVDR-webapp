@@ -42,4 +42,4 @@ testem.log
 Thumbs.db
 
 # Ignorar environments.ts
-/Frontend/src/app/environments/environment.ts
+#/Frontend/src/app/environments/environment.ts

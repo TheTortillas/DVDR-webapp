@@ -1,0 +1,101 @@
+<main class="flex justify-center py-10">
+  <div class="sm:w-5/6">
+    <div class="bg-white border border-gray-400 rounded-lg p-8 shadow">
+      <button
+        mat-raised-button
+        (click)="isLinear = !isLinear"
+        id="toggle-linear"
+      >
+        {{ !isLinear ? "Enable linear mode" : "Disable linear mode" }}
+      </button>
+
+      <!-- STEPPER DE LOS PASOS PARA REGISTRAR EL CURSO -->
+      <div class="bg-white">
+        <mat-stepper [linear]="isLinear" #stepper>
+          <!-- PASO 1: REGISTAR INFORMACIÓN GENERAL -->
+          <mat-step [stepControl]="firstFormGroup">
+            <form [formGroup]="firstFormGroup">
+              <ng-template matStepLabel>Información general</ng-template>
+              <app-general-information></app-general-information>
+              <div>
+                <button mat-button matStepperNext>Siguiente</button>
+              </div>
+            </form>
+          </mat-step>
+          <mat-step [stepControl]="secondFormGroup">
+            <form [formGroup]="secondFormGroup">
+              <ng-template matStepLabel>Subir documentación</ng-template>
+              <mat-form-field>
+                <mat-label>Documentación</mat-label>
+                <input
+                  matInput
+                  formControlName="secondCtrl"
+                  placeholder="Subir archivo"
+                  required
+                />
+              </mat-form-field>
+              <div>
+                <button mat-button matStepperPrevious>Anterior</button>
+                <button mat-button matStepperNext>Siguiente</button>
+              </div>
+            </form>
+          </mat-step>
+          <mat-step [stepControl]="thirdFormGroup">
+            <form [formGroup]="thirdFormGroup">
+              <ng-template matStepLabel>Solicitar registro</ng-template>
+              <mat-form-field>
+                <mat-label>Registro</mat-label>
+                <input
+                  matInput
+                  formControlName="thirdCtrl"
+                  placeholder="Detalles del registro"
+                  required
+                />
+              </mat-form-field>
+              <div>
+                <button mat-button matStepperPrevious>Anterior</button>
+                <button mat-button matStepperNext>Siguiente</button>
+              </div>
+            </form>
+          </mat-step>
+          <mat-step [stepControl]="fourthFormGroup">
+            <form [formGroup]="fourthFormGroup">
+              <ng-template matStepLabel>Solicitar autorización</ng-template>
+              <mat-form-field>
+                <mat-label>Autorización</mat-label>
+                <input
+                  matInput
+                  formControlName="fourthCtrl"
+                  placeholder="Detalles de la autorización"
+                  required
+                />
+              </mat-form-field>
+              <div>
+                <button mat-button matStepperPrevious>Anterior</button>
+                <button mat-button matStepperNext>Siguiente</button>
+              </div>
+            </form>
+          </mat-step>
+          <mat-step [stepControl]="fifthFormGroup">
+            <form [formGroup]="fifthFormGroup">
+              <ng-template matStepLabel>Descargar Constancias</ng-template>
+              <mat-form-field>
+                <mat-label>Constancias</mat-label>
+                <input
+                  matInput
+                  formControlName="fifthCtrl"
+                  placeholder="Detalles de la autorización"
+                  required
+                />
+              </mat-form-field>
+              <div>
+                <button mat-button matStepperPrevious>Anterior</button>
+                <button mat-button matStepperNext>Siguiente</button>
+              </div>
+            </form>
+          </mat-step>
+        </mat-stepper>
+      </div>
+    </div>
+  </div>
+</main>

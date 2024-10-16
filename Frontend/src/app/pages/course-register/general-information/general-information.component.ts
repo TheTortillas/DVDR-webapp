@@ -19,11 +19,14 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { ScheduleDialogComponent } from '../../../components/schedule-dialog/schedule-dialog.component';
 import { MatDialog, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
+import { InstructorRegisterComponent } from '../../instructor-register/instructor-register.component';
 
 @Component({
   selector: 'app-general-information',
   standalone: true,
-  imports: [MatDialogModule, FormsModule, MatTableModule, MatIconModule, MatSelectModule, MatCheckboxModule, MatSlideToggleModule, ReactiveFormsModule, CommonModule, MatButtonModule, MatDatepickerModule, MatFormFieldModule, MatInputModule, RouterLink, MatDivider, MatRadioModule],
+  imports: [MatDialogModule, FormsModule, MatTableModule, MatIconModule, MatSelectModule, MatCheckboxModule, 
+    MatSlideToggleModule, ReactiveFormsModule, CommonModule, MatButtonModule, MatDatepickerModule, MatFormFieldModule, 
+    MatInputModule, RouterLink, MatDivider, MatRadioModule, InstructorRegisterComponent],
   templateUrl: './general-information.component.html',
   styleUrl: './general-information.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -32,6 +35,9 @@ export class GeneralInformationComponent {
   //-------------------------------------- TIPO SERVICIO ---------------------------------------
   typeService: number = 0;
 
+  onOtroServicioChange(event: any) {
+    this.typeService = event.value;
+  }
   //-------------------------------------- CATEGORÍA ---------------------------------------
   categories: string[] = [
     'Ingeniería y Ciencias Físico-Matemáticas',
@@ -169,19 +175,6 @@ export class GeneralInformationComponent {
     this.dataSource.data = this.seleccionados; // Update the dataSource
   }
 
-  //-------------------------------------- DIALOG CRONOGRAMA  ---------------------------------------
-  readonly dialog = inject(MatDialog);
-
-  constructor(){  }
-
-  openDialog(enterAnimationDuration: string, exitAnimationDuration: string): void {
-    this.dialog.open(ScheduleDialogComponent, {
-      width: '600px',
-      disableClose:true,
-      enterAnimationDuration,
-      exitAnimationDuration,
-    });
-  }
   
 }
 

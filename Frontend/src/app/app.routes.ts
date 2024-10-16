@@ -5,6 +5,7 @@ import { LoginPageComponent } from './pages/login-page/login-page.component';
 import { ContactUsPageComponent } from './pages/contact-us-page/contact-us-page.component';
 import { CourseRegisterComponent } from './pages/course-register/course-register.component';
 import { PruebaTablaComponent } from './pages/prueba-tabla/prueba-tabla.component';
+import { InstructorRegisterComponent } from './pages/instructor-register/instructor-register.component';
 
 export const routes: Routes = [
 
@@ -32,6 +33,11 @@ export const routes: Routes = [
     {
         path: 'prueba-tabla',
         component: PruebaTablaComponent
+    },
+
+    {
+        path: 'instructor-register',
+        component: InstructorRegisterComponent
     },
 
     {

@@ -1,0 +1,23 @@
+<div class="w-full py-1">
+  <div>
+    <img
+      src="/img/plecas-sistema/Subir-documentación.png"
+      alt="Banner"
+      class="w-full h-full object-cover"
+    />
+  </div>
+
+  <div class="xl:p-10 bg-white">
+    <input
+      #csvInput
+      hidden="true"
+      type="file"
+      onclick="this.value=null"
+      (change)="csvInputChange($event)"
+      accept=".pdf"
+    />
+    <button mat-flat-button (click)="csvInput.click()">
+      <mat-icon>cloud_upload</mat-icon>Rífate un CV (PDF)
+    </button>
+  </div>
+</div>

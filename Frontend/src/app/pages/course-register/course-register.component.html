@@ -17,80 +17,55 @@
             <form [formGroup]="firstFormGroup">
               <ng-template matStepLabel>Información general</ng-template>
               <app-general-information></app-general-information>
-              <div>
+              <div class="flex justify-end">
                 <button mat-button matStepperNext>Siguiente</button>
               </div>
             </form>
           </mat-step>
+
+          <!-- PASO 2: SUBIR DOCUMENTACIÓN -->
           <mat-step [stepControl]="secondFormGroup">
             <form [formGroup]="secondFormGroup">
               <ng-template matStepLabel>Subir documentación</ng-template>
-              <mat-form-field>
-                <mat-label>Documentación</mat-label>
-                <input
-                  matInput
-                  formControlName="secondCtrl"
-                  placeholder="Subir archivo"
-                  required
-                />
-              </mat-form-field>
+              <app-upload-documentation></app-upload-documentation>
               <div>
                 <button mat-button matStepperPrevious>Anterior</button>
                 <button mat-button matStepperNext>Siguiente</button>
               </div>
             </form>
           </mat-step>
+
+          <!-- PASO 3: SOLICITAR REGISTRO -->
           <mat-step [stepControl]="thirdFormGroup">
             <form [formGroup]="thirdFormGroup">
               <ng-template matStepLabel>Solicitar registro</ng-template>
-              <mat-form-field>
-                <mat-label>Registro</mat-label>
-                <input
-                  matInput
-                  formControlName="thirdCtrl"
-                  placeholder="Detalles del registro"
-                  required
-                />
-              </mat-form-field>
+              <app-request-registration></app-request-registration>
               <div>
                 <button mat-button matStepperPrevious>Anterior</button>
                 <button mat-button matStepperNext>Siguiente</button>
               </div>
             </form>
           </mat-step>
+
+          <!-- PASO 4: SOLICITAR AUTORIZACIÓN -->
           <mat-step [stepControl]="fourthFormGroup">
             <form [formGroup]="fourthFormGroup">
               <ng-template matStepLabel>Solicitar autorización</ng-template>
-              <mat-form-field>
-                <mat-label>Autorización</mat-label>
-                <input
-                  matInput
-                  formControlName="fourthCtrl"
-                  placeholder="Detalles de la autorización"
-                  required
-                />
-              </mat-form-field>
+              <app-request-authorization></app-request-authorization>
               <div>
                 <button mat-button matStepperPrevious>Anterior</button>
                 <button mat-button matStepperNext>Siguiente</button>
               </div>
             </form>
           </mat-step>
+
+          <!-- PASO 5: DESCARGAR CONSTANCIAS -->
           <mat-step [stepControl]="fifthFormGroup">
             <form [formGroup]="fifthFormGroup">
               <ng-template matStepLabel>Descargar Constancias</ng-template>
-              <mat-form-field>
-                <mat-label>Constancias</mat-label>
-                <input
-                  matInput
-                  formControlName="fifthCtrl"
-                  placeholder="Detalles de la autorización"
-                  required
-                />
-              </mat-form-field>
+              <app-download-certificates></app-download-certificates>
               <div>
                 <button mat-button matStepperPrevious>Anterior</button>
-                <button mat-button matStepperNext>Siguiente</button>
               </div>
             </form>
           </mat-step>

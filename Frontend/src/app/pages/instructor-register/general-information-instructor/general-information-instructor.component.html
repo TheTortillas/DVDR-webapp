@@ -1,0 +1,191 @@
+<section class="">
+  <div class="bg-white rounded-lg p-8">
+    <form class="" action="#" [formGroup]="form">
+      <h4 class="">Nombre completo</h4>
+      <!-- NOMBRE + APELLIDO PATERNO + APELLIDO MATERNO -->
+
+      <div class="flex flex-end sm:w-full">
+        <div class="instructor-first-last-name-container px-2 w-full md:w-1/3">
+          <label
+            for="apellldo-paterno-instructor"
+            class="flex mb-2 text-xl font-medium text-gray-900"
+            >Apellido Paterno</label
+          >
+          <mat-form-field appearance="fill" class="w-full">
+            <mat-label>Ingresa tu apellido paterno</mat-label>
+            <input matInput placeholder="Ex. Pérez" />
+          </mat-form-field>
+        </div>
+        <div class="instructor-second-last-name-container px-2 w-full md:w-1/3">
+          <label
+            for="apellldo-materno-instructor"
+            class="flex mb-2 text-xl font-medium text-gray-900"
+            >Apellido Materno</label
+          >
+          <mat-form-field appearance="fill" class="w-full">
+            <mat-label>Ingresa tu apellido materno</mat-label>
+            <input matInput placeholder="Ex. Sánchez" />
+          </mat-form-field>
+        </div>
+        <div class="instructor-name-container px-2 w-full md:w-1/3">
+          <label
+            for="nombre-instructor"
+            class="flex mb-2 text-xl font-medium text-gray-900"
+            >Nombre(s):</label
+          >
+          <mat-form-field appearance="fill" class="w-full">
+            <mat-label>Ingresa tu(s) nombre(s)</mat-label>
+            <input matInput placeholder="Ex. José Antonio" />
+          </mat-form-field>
+        </div>
+      </div>
+      <mat-divider class="py-3"></mat-divider>
+      <h4 class="">Domicilio</h4>
+
+      <!-- CALLE + NÚMERO -->
+      <div class="w-full">
+        <div class="">
+          <div class="flex flex-end w-full">
+            <div class="street-container px-2 w-full md:w-2/3">
+              <label
+                for="calle-domicilio"
+                class="flex mb-2 text-xl font-medium text-gray-900"
+                >Calle</label
+              >
+              <mat-form-field appearance="fill" class="w-full">
+                <mat-label>Ingresa el nombre de tu calle</mat-label>
+                <input matInput placeholder="Ex. Calle Reforma" />
+              </mat-form-field>
+            </div>
+            <div class="number-container px-2 w-full md:w-1/3">
+              <label
+                for="numero-domicilio"
+                class="flex mb-2 text-xl font-medium text-gray-900"
+                >No.</label
+              >
+              <mat-form-field appearance="fill" class="w-full">
+                <mat-label>No. de domicilio</mat-label>
+                <input matInput placeholder="Ex. #4" />
+              </mat-form-field>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex flex-end w-full">
+          <div class="colony-container px-2 w-full md:w-2/3">
+            <label
+              for="colonia-domicilio"
+              class="flex mb-2 text-xl font-medium text-gray-900"
+              >Colonia</label
+            >
+            <mat-form-field appearance="fill" class="w-full">
+              <mat-label>Ingresa el nombre de tu colonia</mat-label>
+              <input matInput placeholder="Ex. Altavista" />
+            </mat-form-field>
+          </div>
+          <div class="zip-container px-2 w-full md:w-1/3">
+            <label
+              for="cp-domicilio"
+              class="flex mb-2 text-xl font-medium text-gray-900"
+              >CP</label
+            >
+            <mat-form-field appearance="fill" class="w-full">
+              <mat-label>Código Postal</mat-label>
+              <input
+                matInput
+                #postalCode
+                maxlength="5"
+                placeholder="Ex. 94105"
+              />
+              <mat-hint align="end">{{ postalCode.value.length }} / 5</mat-hint>
+            </mat-form-field>
+          </div>
+        </div>
+
+        <!-- MUNICIPIO + ESTADO -->
+        <div class="">
+          <div class="flex flex-end w-full">
+            <div class="city-container px-2 w-full md:w-1/2">
+              <label
+                for="municipio-domicilio"
+                class="flex mb-2 text-xl font-medium text-gray-900"
+                >Municipio / Estado</label
+              >
+              <mat-form-field appearance="fill" class="w-full">
+                <mat-label
+                  >Ingresa el nombre de tu Municipio / Alcaldía
+                </mat-label>
+                <input matInput placeholder="Ex. Miguel Hidalgo" />
+              </mat-form-field>
+            </div>
+            <div class="state-container px-2 w-full md:w-1/2">
+              <label
+                for="estado-domicilio"
+                class="flex mb-2 text-xl font-medium text-gray-900"
+                >Estado</label
+              >
+              <mat-form-field appearance="fill" class="w-full">
+                <mat-label>Ingresa el nombre de tu Estado</mat-label>
+                <input matInput placeholder="Ex. Ciudad de México" />
+              </mat-form-field>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <mat-divider class="py-3"></mat-divider>
+      <h4 class="">Contacto</h4>
+      <div class="w-full">
+        <div class="email-container px-2">
+          <label
+            for="email"
+            class="block mb-2 text-xl font-medium text-gray-900"
+            >Correo:</label
+          >
+          <mat-form-field class="w-full">
+            <mat-label>Ingresa tu correo electónico</mat-label>
+            <input
+              matInput
+              placeholder="nombre@ejemplo.com"
+              [formControl]="email"
+              (blur)="updateErrorMessage()"
+              required
+            />
+            @if (email.invalid && email.touched) {
+            <mat-error>{{ errorMessage() }}</mat-error>
+            }
+          </mat-form-field>
+        </div>
+        <div class="flex flex-end w-full">
+          <div class="city-container px-2 w-full md:w-1/2">
+            <label
+              for="municipio-domicilio"
+              class="flex mb-2 text-xl font-medium text-gray-900"
+              >Teléfono particular</label
+            >
+            <mat-form-field appearance="fill" class="w-full">
+              <mat-label>Ingrese su télefono particular</mat-label>
+              <span matTextPrefix>+52 &nbsp;</span>
+              <input type="tel" matInput placeholder="555-555-1234" />
+              <mat-icon matSuffix>local_phone</mat-icon>
+            </mat-form-field>
+          </div>
+          <div class="state-container px-2 w-full md:w-1/2">
+            <label
+              for="estado-domicilio"
+              class="flex mb-2 text-xl font-medium text-gray-900"
+              >Celular</label
+            >
+
+            <mat-form-field appearance="fill" class="w-full">
+              <mat-label>Ingrese su número de teléfono celular</mat-label>
+              <span matTextPrefix>+52 &nbsp;</span>
+              <input type="tel" matInput placeholder="555-555-1234" />
+              <mat-icon matSuffix>phone_android</mat-icon>
+            </mat-form-field>
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
+</section>

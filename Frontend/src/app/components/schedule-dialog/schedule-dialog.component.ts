@@ -12,7 +12,7 @@ import {provideNativeDateAdapter} from '@angular/material/core';
 import {provideMomentDateAdapter} from '@angular/material-moment-adapter'; //ng add @angular/material-moment-adapter
 import {DateAdapter, MAT_DATE_LOCALE} from '@angular/material/core';
 import {MatDatepickerIntl, MatDatepickerModule} from '@angular/material/datepicker';
-import {MatTabsModule} from '@angular/material/tabs';
+import {MatTabGroup, MatTabsModule} from '@angular/material/tabs';
 
 import 'moment/locale/es';
 import {
@@ -26,6 +26,7 @@ import {
 } from '@angular/material/dialog';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { PeriodicScheduleComponent } from "./periodic-schedule/periodic-schedule.component";
+import { CustomScheduleComponent } from "./custom-schedule/custom-schedule.component";
 
 
 @Component({
@@ -34,7 +35,7 @@ import { PeriodicScheduleComponent } from "./periodic-schedule/periodic-schedule
   imports: [MatNativeDateModule, MatDatepickerModule, MatFormFieldModule, MatInputModule,
     FormsModule, ReactiveFormsModule, CommonModule, MatButtonModule, MatDialogModule, RouterLink,
     MatDialogModule, MatDialogContent, MatDialogActions, MatDialogTitle, MatDialogClose, MatTabsModule,
-    MatCheckboxModule, PeriodicScheduleComponent],
+    MatTabGroup, MatCheckboxModule, PeriodicScheduleComponent, CustomScheduleComponent],
   templateUrl: './schedule-dialog.component.html',
   styleUrl: './schedule-dialog.component.scss',
   providers: [

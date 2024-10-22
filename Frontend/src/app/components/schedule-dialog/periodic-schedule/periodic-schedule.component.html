@@ -1,17 +1,30 @@
+<!-- INPUT PARA DURACIÓN TOTAL DEL CURSO EN HORAS -->
+<div class="duracion-container mb-4 mt-4">
+  <label for="duracion" class="flex mb-2 text-x font-medium text-gray-900"
+    >Duración total del curso (en horas)</label
+  >
+  <mat-form-field class="w-full">
+    <mat-label>¿Cuántas horas durará el curso?</mat-label>
+    <input
+      matInput
+      placeholder="Ex. 40"
+      type="number"
+      id="duracionTotal"
+      min="0"
+    />
+  </mat-form-field>
+</div>
+
 <!-- INPUT DEL RANGO DE APLICACIÓN DEL CURSO -->
-<div class="fechas-container py-5">
+<div class="fechas-container mb-4 mt-2">
   <label for="fechas" class="flex mb-2 text-x font-medium text-gray-900"
     >Fechas de aplicación</label
   >
   <mat-form-field class="w-full">
     <mat-label>Ingresa el periodo de aplicación de tu curso</mat-label>
     <mat-date-range-input [rangePicker]="picker">
-      <input
-        matStartDate
-        placeholder="Fecha de inicio"
-        formControlName="fechaInicio"
-      />
-      <input matEndDate placeholder="Fecha final" formControlName="fechaFin" />
+      <input matStartDate placeholder="Fecha de inicio" />
+      <input matEndDate placeholder="Fecha final" />
     </mat-date-range-input>
     <mat-hint>DD/MM/YYYY – DD/MM/YYYY</mat-hint>
     <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
@@ -33,23 +46,6 @@
     <mat-checkbox>Sábado</mat-checkbox>
     <mat-checkbox>Domingo</mat-checkbox>
   </div>
-</div>
-
-<!-- INPUT PARA DURACIÓN TOTAL DEL CURSO EN HORAS -->
-<div class="duracion-container py-5">
-  <label for="duracion" class="flex mb-2 text-x font-medium text-gray-900"
-    >Duración total del curso (en horas)</label
-  >
-  <mat-form-field class="w-full">
-    <mat-label>¿Cuántas horas durará el curso?</mat-label>
-    <input
-      matInput
-      placeholder="Ex. 40"
-      type="number"
-      id="duracionTotal"
-      min="0"
-    />
-  </mat-form-field>
 </div>
 
 <!-- INPUT PARA DURACIÓN DIARIA DEL CURSO EN HORAS -->

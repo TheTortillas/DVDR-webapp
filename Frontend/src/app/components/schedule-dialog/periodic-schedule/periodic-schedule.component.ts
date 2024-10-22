@@ -17,9 +17,11 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 @Component({
   selector: 'app-periodic-schedule',
   standalone: true,
-  imports: [MatNativeDateModule, MatDatepickerModule, MatFormFieldModule, MatInputModule, FormsModule, ReactiveFormsModule, CommonModule, MatButtonModule, RouterLink, MatCheckboxModule],
+  imports: [MatNativeDateModule, MatDatepickerModule, FormsModule,ReactiveFormsModule, 
+    CommonModule, MatButtonModule, RouterLink, MatCheckboxModule, MatFormFieldModule, MatInputModule],
   templateUrl: './periodic-schedule.component.html',
-  styleUrl: './periodic-schedule.component.scss'
+  styleUrl: './periodic-schedule.component.scss',
+  providers: [provideNativeDateAdapter()],
 })
 export class PeriodicScheduleComponent {
 

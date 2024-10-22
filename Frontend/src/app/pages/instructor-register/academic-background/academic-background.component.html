@@ -1,0 +1,43 @@
+<div class="">
+  <h3 class="py-3">Ingresa tu historial académico</h3>
+  <button mat-flat-button class="w-1/4" (click)="openDialog('0ms', '0ms')">
+    <mat-icon>add_circle</mat-icon> Añadir evidencia
+  </button>
+
+  <div class="overflow-x-auto">
+    <table mat-table [dataSource]="dataSource" class="mat-elevation-z8 w-full">
+      <!-- Nivel Escolar Column -->
+      <ng-container matColumnDef="nivelEscolar">
+        <th mat-header-cell *matHeaderCellDef>Nivel Escolar</th>
+        <td mat-cell *matCellDef="let element">{{ element.nivelEscolar }}</td>
+      </ng-container>
+
+      <!-- Periodo Column -->
+      <ng-container matColumnDef="periodo">
+        <th mat-header-cell *matHeaderCellDef>Periodo</th>
+        <td mat-cell *matCellDef="let element">{{ element.periodo }}</td>
+      </ng-container>
+
+      <!-- Institución Column -->
+      <ng-container matColumnDef="institucion">
+        <th mat-header-cell *matHeaderCellDef>Institución</th>
+        <td mat-cell *matCellDef="let element">{{ element.institucion }}</td>
+      </ng-container>
+
+      <!-- Título Otorgado Column -->
+      <ng-container matColumnDef="tituloOtorgado">
+        <th mat-header-cell *matHeaderCellDef>Título Otorgado</th>
+        <td mat-cell *matCellDef="let element">{{ element.tituloOtorgado }}</td>
+      </ng-container>
+
+      <!-- Evidencia Column -->
+      <ng-container matColumnDef="evidencia">
+        <th mat-header-cell *matHeaderCellDef>Evidencia</th>
+        <td mat-cell *matCellDef="let element">{{ element.evidencia }}</td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+    </table>
+  </div>
+</div>

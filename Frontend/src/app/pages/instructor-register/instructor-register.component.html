@@ -1,1 +1,60 @@
-<p>instructor-register works!</p>
+<main class="flex justify-center py-10">
+  <div class="sm:w-3/4 bg-white rounded-lg border border-gray-400 shadow p-8">
+    <h2 class="flex justify-center">Registro de Instructor / Aval</h2>
+
+    <mat-stepper #stepper>
+      <mat-step
+        [stepControl]="firstFormGroup"
+        errorMessage="Llene todos los campos requeridos"
+      >
+        <form [formGroup]="firstFormGroup">
+          <ng-template matStepLabel>Datos Generales</ng-template>
+          <app-general-information-instructor></app-general-information-instructor>
+          <div>
+            <button mat-button matStepperNext>Siguiente</button>
+          </div>
+        </form>
+      </mat-step>
+      <mat-step
+        [stepControl]="secondFormGroup"
+        errorMessage="Address is required."
+      >
+        <form [formGroup]="secondFormGroup">
+          <ng-template matStepLabel>Formación Académica</ng-template>
+
+          <app-academic-background></app-academic-background>
+
+          <div>
+            <button mat-button matStepperPrevious>Anterior</button>
+            <button mat-button matStepperNext>Siguiente</button>
+          </div>
+        </form>
+      </mat-step>
+      <!-- TERCER -->
+      <mat-step
+        [stepControl]="thirdFormGroup"
+        errorMessage="Address is required."
+      >
+        <form [formGroup]="thirdFormGroup">
+          <ng-template matStepLabel>Experiencia Laboral</ng-template>
+
+          <app-work-experience></app-work-experience>
+
+          <div>
+            <button mat-button matStepperPrevious>Anterior</button>
+            <button mat-button matStepperNext>Siguiente</button>
+          </div>
+        </form>
+      </mat-step>
+      <!-- FINAL -->
+      <mat-step>
+        <ng-template matStepLabel>Done</ng-template>
+        <p>You are now done.</p>
+        <div>
+          <button mat-button matStepperPrevious>Anterior</button>
+          <!-- <button mat-button (click)="stepper.reset()">Reset</button> -->
+        </div>
+      </mat-step>
+    </mat-stepper>
+  </div>
+</main>

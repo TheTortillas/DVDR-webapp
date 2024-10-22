@@ -22,7 +22,7 @@ import { MatDialog, MatDialogModule, MatDialogRef } from '@angular/material/dial
 import { InstructorRegisterComponent } from '../../instructor-register/instructor-register.component';
 
 @Component({
-  selector: 'app-general-information',
+  selector: 'app-general-information-instructor',
   standalone: true,
   imports: [MatDialogModule, FormsModule, MatTableModule, MatIconModule, MatSelectModule, MatCheckboxModule, 
     MatSlideToggleModule, ReactiveFormsModule, CommonModule, MatButtonModule, MatDatepickerModule, MatFormFieldModule, 

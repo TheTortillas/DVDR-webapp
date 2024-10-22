@@ -1,0 +1,112 @@
+<h2 mat-dialog-title>Experiencia Laboral</h2>
+<mat-dialog-content class="flex justify-center">
+  <div class="py-2">
+    <label for="organizacion" class="flex mb-2 text-x font-medium text-gray-900"
+      >Organización</label
+    >
+    <mat-form-field class="w-full">
+      <mat-label>Ingresa el nombre de la organización</mat-label>
+      <input matInput placeholder="Ex. Empresa Y" />
+    </mat-form-field>
+  </div>
+
+  <div class="fechas-container py-2">
+    <label for="fechas" class="flex text-x mb-2 font-medium text-gray-900"
+      >Periodo</label
+    >
+    <div class="flex gap-4">
+      <div class="flex-1 w-1/2">
+        <mat-form-field class="w-full">
+          <mat-label>Mes y año de inicio</mat-label>
+          <input matInput [matDatepicker]="startDp" [formControl]="startDate" />
+          <mat-hint>MM/YYYY</mat-hint>
+          <mat-datepicker-toggle
+            matIconSuffix
+            [for]="startDp"
+          ></mat-datepicker-toggle>
+          <mat-datepicker
+            #startDp
+            startView="multi-year"
+            (monthSelected)="setMonthAndYear($event, startDp, startDate)"
+            panelClass="example-month-picker"
+          >
+          </mat-datepicker>
+        </mat-form-field>
+      </div>
+      <div class="flex-1 w-1/2">
+        <mat-form-field class="w-full">
+          <mat-label>Mes y año de fin</mat-label>
+          <input matInput [matDatepicker]="endDp" [formControl]="endDate" />
+          <mat-hint>MM/YYYY</mat-hint>
+          <mat-datepicker-toggle
+            matIconSuffix
+            [for]="endDp"
+          ></mat-datepicker-toggle>
+          <mat-datepicker
+            #endDp
+            startView="multi-year"
+            (monthSelected)="setMonthAndYear($event, endDp, endDate)"
+            panelClass="example-month-picker"
+          >
+          </mat-datepicker>
+        </mat-form-field>
+      </div>
+    </div>
+  </div>
+
+  <div class="py-2">
+    <label for="puesto" class="flex mb-2 text-x font-medium text-gray-900"
+      >Puesto</label
+    >
+    <mat-form-field class="w-full">
+      <mat-label>Ingresa el puesto desempeñado</mat-label>
+      <input matInput placeholder="Ex. Desarrollador" />
+    </mat-form-field>
+  </div>
+
+  <div class="py-2">
+    <label for="actividad" class="flex mb-2 text-x font-medium text-gray-900"
+      >Actividad</label
+    >
+    <mat-form-field class="w-full">
+      <mat-label>Ingresa la actividad realizada</mat-label>
+      <input matInput placeholder="Ex. Desarrollo de software" />
+    </mat-form-field>
+  </div>
+
+  <div>
+    <label for="evidencia" class="flex text-x font-medium text-gray-900"
+      >Adjunta tu evidencia</label
+    >
+
+    <!-- Chips to display selected PDFs -->
+    <mat-chip-grid #chipGrid class="flex">
+      <mat-chip *ngFor="let file of selectedFiles" (removed)="removeFile(file)">
+        {{ file.name }}
+        <mat-icon matChipRemove>cancel</mat-icon>
+      </mat-chip>
+    </mat-chip-grid>
+
+    <div class="xl:p-2 bg-white">
+      <input
+        [matChipInputFor]="chipGrid"
+        #onInput
+        hidden="true"
+        type="file"
+        onclick="this.value=null"
+        (change)="onInputChange($event)"
+        accept=".pdf"
+      />
+      <button mat-flat-button (click)="onInput.click()">
+        <mat-icon>cloud_upload</mat-icon>Adjuntar documento (PDF)
+      </button>
+    </div>
+  </div>
+</mat-dialog-content>
+
+<div>
+  <div mat-dialog-actions>
+    <button mat-stroked-button mat-dialog-close>Cancelar</button>
+    <button mat-stroked-button cdkFocusInitial>Añadir experiencia</button>
+  </div>
+</div>

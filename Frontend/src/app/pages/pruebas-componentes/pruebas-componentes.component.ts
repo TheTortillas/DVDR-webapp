@@ -7,14 +7,14 @@ import { MatNativeDateModule } from '@angular/material/core';
 import { FormGroup, FormControl, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 
 @Component({
-  selector: 'app-prueba-tabla',
+  selector: 'app-pruebas-componentes',
   standalone: true,
   imports: [MatFormFieldModule, MatInputModule, MatDatepickerModule, MatNativeDateModule, FormsModule, ReactiveFormsModule],
-  templateUrl: './prueba-tabla.component.html',
-  styleUrl: './prueba-tabla.component.scss',
+  templateUrl: './pruebas-componentes.component.html',
+  styleUrl: './pruebas-componentes.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class PruebaTablaComponent {
+export class PruebasComponentesComponent {
  
 //-------------------------------------- CRONOGRAMA  ---------------------------------------
    

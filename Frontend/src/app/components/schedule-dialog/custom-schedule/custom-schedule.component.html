@@ -15,16 +15,37 @@
   </mat-form-field>
 </div>
 
-<div>
-  <label for="dia" class="flex mb-2 text-x font-medium text-gray-900"
-    >Selecciona el día</label
-  >
-  <mat-form-field>
-    <mat-label>Día de aplicación</mat-label>
-    <input matInput [matDatepicker]="dp" />
-    <mat-datepicker-toggle matIconSuffix [for]="dp"></mat-datepicker-toggle>
-    <mat-datepicker #dp></mat-datepicker>
-  </mat-form-field>
+<div class="flex flex-wrap gap-4 py-5">
+  <div>
+    <label for="dia" class="flex mb-2 text-x font-medium text-gray-900"
+      >Selecciona el día</label
+    >
+    <mat-form-field>
+      <mat-label>Día de aplicación</mat-label>
+      <input matInput [matDatepicker]="dp" />
+      <mat-datepicker-toggle matIconSuffix [for]="dp"></mat-datepicker-toggle>
+      <mat-datepicker #dp></mat-datepicker>
+    </mat-form-field>
+  </div>
+  <div>
+    <label for="hora-inicio" class="flex mb-2 text-x font-medium text-gray-900"
+      >Hora de Inicio</label
+    >
+    <mat-form-field class="example-full-width">
+      <mat-label></mat-label>
+      <input matInput placeholder="Ex. 1:30 p.m." />
+    </mat-form-field>
+  </div>
+
+  <div>
+    <label for="hora-Fin" class="flex mb-2 text-x font-medium text-gray-900"
+      >Hora de Inicio</label
+    >
+    <mat-form-field class="example-full-width">
+      <mat-label></mat-label>
+      <input matInput placeholder="Ex. 3:00 p.m." />
+    </mat-form-field>
+  </div>
 </div>
 
 <!-- TABLA PARA MOSTRAR EL HORARIO PERSONALIZADO -->

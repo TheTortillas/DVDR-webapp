@@ -25,7 +25,8 @@ readonly dialog = inject(MatDialog);
 
   openDialog(enterAnimationDuration: string, exitAnimationDuration: string): void {
     this.dialog.open(ScheduleDialogComponent, {
-      width: '800px',
+      width: '90%',
+      height: '80%',
       disableClose:true,
       enterAnimationDuration,
       exitAnimationDuration,

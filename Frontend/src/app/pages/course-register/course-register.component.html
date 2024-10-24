@@ -36,7 +36,7 @@
           </mat-step>
 
           <!-- PASO 3: SOLICITAR REGISTRO -->
-          <mat-step [stepControl]="thirdFormGroup">
+          <!-- <mat-step [stepControl]="thirdFormGroup">
             <form [formGroup]="thirdFormGroup">
               <ng-template matStepLabel>Solicitar registro</ng-template>
               <app-request-registration></app-request-registration>
@@ -45,11 +45,11 @@
                 <button mat-button matStepperNext>Siguiente</button>
               </div>
             </form>
-          </mat-step>
+          </mat-step> -->
 
           <!-- PASO 4: SOLICITAR AUTORIZACIÓN -->
-          <mat-step [stepControl]="fourthFormGroup">
-            <form [formGroup]="fourthFormGroup">
+          <mat-step [stepControl]="thirdFormGroup">
+            <form [formGroup]="thirdFormGroup">
               <ng-template matStepLabel>Solicitar autorización</ng-template>
               <app-request-authorization></app-request-authorization>
               <div>
@@ -60,8 +60,8 @@
           </mat-step>
 
           <!-- PASO 5: DESCARGAR CONSTANCIAS -->
-          <mat-step [stepControl]="fifthFormGroup">
-            <form [formGroup]="fifthFormGroup">
+          <mat-step [stepControl]="fourthFormGroup">
+            <form [formGroup]="fourthFormGroup">
               <ng-template matStepLabel>Descargar Constancias</ng-template>
               <app-download-certificates></app-download-certificates>
               <div>

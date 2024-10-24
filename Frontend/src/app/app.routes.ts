@@ -4,8 +4,9 @@ import { PageNotFoundComponent } from './pages/page-not-found/page-not-found.com
 import { LoginPageComponent } from './pages/login-page/login-page.component';
 import { ContactUsPageComponent } from './pages/contact-us-page/contact-us-page.component';
 import { CourseRegisterComponent } from './pages/course-register/course-register.component';
-import { PruebaTablaComponent } from './pages/prueba-tabla/prueba-tabla.component';
+import { PruebasComponentesComponent } from './pages/pruebas-componentes/pruebas-componentes.component';
 import { InstructorRegisterComponent } from './pages/instructor-register/instructor-register.component';
+import { ProfileComponent } from './pages/profile/profile.component';
 
 export const routes: Routes = [
 
@@ -31,8 +32,13 @@ export const routes: Routes = [
 
 
     {
-        path: 'prueba-tabla',
-        component: PruebaTablaComponent
+        path: 'pruebas-compoenentes',
+        component: PruebasComponentesComponent
+    },
+
+    {
+        path: 'profile',
+        component: ProfileComponent
     },
 
     {

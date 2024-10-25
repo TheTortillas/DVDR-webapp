@@ -37,7 +37,7 @@ export class AcademicBackgroundComponent {
 
   openDialog(enterAnimationDuration: string, exitAnimationDuration: string): void {
     this.dialog.open(EvidenceDialogComponent, {
-      width: '800px',
+      width: '100%',
       disableClose:true,
       enterAnimationDuration,
       exitAnimationDuration,

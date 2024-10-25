@@ -7,6 +7,7 @@ import { CourseRegisterComponent } from './pages/course-register/course-register
 import { PruebasComponentesComponent } from './pages/pruebas-componentes/pruebas-componentes.component';
 import { InstructorRegisterComponent } from './pages/instructor-register/instructor-register.component';
 import { ProfileComponent } from './pages/profile/profile.component';
+import { AuthComponent } from './pages/auth/auth.component';
 
 export const routes: Routes = [
 
@@ -25,26 +26,42 @@ export const routes: Routes = [
         component: ContactUsPageComponent
     }, 
     
-    {
-        path: 'course-register',
-        component: CourseRegisterComponent
-    },
-
 
     {
         path: 'pruebas-compoenentes',
         component: PruebasComponentesComponent
     },
 
-    {
-        path: 'profile',
-        component: ProfileComponent
-    },
 
     {
-        path: 'instructor-register',
-        component: InstructorRegisterComponent
+        path: 'auth',
+        component: AuthComponent,
+        children: [
+            {
+                path: '',
+                redirectTo: 'profile',
+                pathMatch: 'full',
+            },
+ 
+            {
+                path: 'instructor-register',
+                component: InstructorRegisterComponent
+            },
+            
+            {
+                path: 'profile',
+                component: ProfileComponent
+            },
+
+            {
+                path: 'course-register',
+                component: CourseRegisterComponent
+            }
+        ]
+        //guards
     },
+
+
 
     {
         path:'',

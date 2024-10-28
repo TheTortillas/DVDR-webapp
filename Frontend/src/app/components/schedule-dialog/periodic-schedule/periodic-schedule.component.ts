@@ -13,11 +13,13 @@ import {provideMomentDateAdapter} from '@angular/material-moment-adapter'; //ng 
 import {DateAdapter, MAT_DATE_LOCALE} from '@angular/material/core';
 import {MatDatepickerIntl, MatDatepickerModule} from '@angular/material/datepicker';
 import { MatCheckboxModule } from '@angular/material/checkbox';
+import {MatSelectModule} from '@angular/material/select';
+
 
 @Component({
   selector: 'app-periodic-schedule',
   standalone: true,
-  imports: [MatNativeDateModule, MatDatepickerModule, FormsModule,ReactiveFormsModule, 
+  imports: [MatNativeDateModule, MatDatepickerModule, FormsModule,ReactiveFormsModule, MatSelectModule,
     CommonModule, MatButtonModule, RouterLink, MatCheckboxModule, MatFormFieldModule, MatInputModule],
   templateUrl: './periodic-schedule.component.html',
   styleUrl: './periodic-schedule.component.scss',

@@ -32,6 +32,85 @@
   </mat-form-field>
 </div>
 
+<!-- INPUT PARA HORA -->
+<div class="mt-12 mb-4">
+  <!-- INPUT PARA HORA DE ENTRADA -->
+  <div class="hora-entrada-container mt-4 w-full">
+    <label for="horaEntrada" class="flex mb-2 text-x font-medium text-gray-900"
+      >Hora de entrada</label
+    >
+    <div class="flex space-x-2">
+      <mat-form-field class="w-1/3">
+        <mat-label>Horas</mat-label>
+        <input
+          matInput
+          placeholder="Entre 1 y 12"
+          type="number"
+          id="horaEntradaHoras"
+          min="1"
+          max="12"
+        />
+      </mat-form-field>
+      <mat-form-field class="w-1/3">
+        <mat-label>Minutos</mat-label>
+        <input
+          matInput
+          placeholder="Entre 0 y 59"
+          type="number"
+          id="horaEntradaMinutos"
+          min="0"
+          max="59"
+        />
+      </mat-form-field>
+      <mat-form-field class="w-1/3">
+        <mat-label>AM/PM</mat-label>
+        <mat-select id="horaEntradaAmPm">
+          <mat-option value="AM">a.m.</mat-option>
+          <mat-option value="PM">p.m.</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+  </div>
+
+  <!-- INPUT PARA HORA DE SALIDA -->
+  <div class="hora-salida-container mb-4 w-full">
+    <label for="horaSalida" class="flex mb-2 text-x font-medium text-gray-900"
+      >Hora de salida</label
+    >
+    <div class="flex space-x-2">
+      <mat-form-field class="w-1/3">
+        <mat-label>Horas</mat-label>
+        <input
+          matInput
+          placeholder="Entre 1 y 12"
+          type="number"
+          id="horaSalidaHoras"
+          min="1"
+          max="12"
+        />
+      </mat-form-field>
+      <mat-form-field class="w-1/3">
+        <mat-label>Minutos</mat-label>
+        <input
+          matInput
+          placeholder="Entre 0 y 59"
+          type="number"
+          id="horaSalidaMinutos"
+          min="0"
+          max="59"
+        />
+      </mat-form-field>
+      <mat-form-field class="w-1/3">
+        <mat-label>AM/PM</mat-label>
+        <mat-select id="horaSalidaAmPm">
+          <mat-option value="AM">a.m.</mat-option>
+          <mat-option value="PM">p.m.</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+  </div>
+</div>
+
 <!-- CHECKBOXES PARA DÍAS DE LA SEMANA -->
 <div class="dias-container py-5">
   <label for="dias" class="flex mb-2 text-x font-medium text-gray-900"

@@ -28,7 +28,7 @@ export const routes: Routes = [
     
 
     {
-        path: 'pruebas-compoenentes',
+        path: 'pruebas-componentes',
         component: PruebasComponentesComponent
     },
 

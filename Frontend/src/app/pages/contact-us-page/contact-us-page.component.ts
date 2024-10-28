@@ -9,6 +9,8 @@ import {MatInputModule} from '@angular/material/input';
 import {MatDividerModule} from '@angular/material/divider';
 import { BackButtonComponent } from "../../components/back-button/back-button.component";
 
+import Swal from 'sweetalert2'
+
 @Component({
   selector: 'app-contact-us-page',
   standalone: true,
@@ -18,5 +20,12 @@ import { BackButtonComponent } from "../../components/back-button/back-button.co
   styleUrl: './contact-us-page.component.scss'
 })
 export class ContactUsPageComponent {
-  
+  onSubmit() {
+    Swal.fire({
+      title: 'Mensaje Enviado',
+      text: 'Pronto nos contactaremos contigo',
+      icon: 'success',
+      confirmButtonText: 'OK'
+    });
+  }
 }

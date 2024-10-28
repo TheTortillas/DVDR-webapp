@@ -75,11 +75,11 @@
                 <mat-divider></mat-divider>
                 <br />
                 <div class="next-button">
-                  <a
+                  <button
                     mat-flat-button
                     extended
-                    routerLink="../login"
                     class="w-full"
+                    (click)="onSubmit()"
                   >
                     <div
                       class="content-center"
@@ -92,7 +92,7 @@
                       Enviar
                       <mat-icon style="margin-left: 8px">send</mat-icon>
                     </div>
-                  </a>
+                  </button>
                 </div>
               </div>
             </form>

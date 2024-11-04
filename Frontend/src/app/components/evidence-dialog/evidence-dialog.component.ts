@@ -97,7 +97,8 @@ export class EvidenceDialogComponent {
   onInputChange(event: any) {
     const file = event.target.files[0];  // Captura el archivo seleccionado (solo uno porque es un input único)
     if (file) {
-      this.selectedFiles.push(file);  // Agrega el archivo a la lista de seleccionados
+      //this.selectedFiles.push(file);  // Agrega el archivo a la lista de seleccionados
+      this.selectedFiles = [file];  // Agrega el archivo a la lista de seleccionados
     }
   }
 

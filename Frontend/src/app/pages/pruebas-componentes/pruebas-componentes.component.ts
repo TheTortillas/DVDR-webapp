@@ -1,60 +1,64 @@
-import {ChangeDetectionStrategy, Component} from '@angular/core';
-import {MatDatepickerModule} from '@angular/material/datepicker';
-import {MatInputModule} from '@angular/material/input';
-import {MatFormFieldModule} from '@angular/material/form-field';
-import {provideNativeDateAdapter} from '@angular/material/core';
-import { MatNativeDateModule } from '@angular/material/core';
-import { FormGroup, FormControl, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { AfterViewInit, Component, ViewChild, inject, DestroyRef } from '@angular/core';
+import { BreakpointObserver, BreakpointState } from '@angular/cdk/layout';
+import { MatSidenav, MatSidenavModule } from '@angular/material/sidenav';
+import { Router, RouterModule, NavigationEnd } from '@angular/router';
+import { delay, filter } from 'rxjs/operators';
+import { CommonModule } from '@angular/common';
+import { MatToolbarModule } from '@angular/material/toolbar';
+import { MatIconModule } from '@angular/material/icon';
+import { MatDividerModule } from '@angular/material/divider';
+import { MatButtonModule } from '@angular/material/button';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-pruebas-componentes',
   standalone: true,
-  imports: [MatFormFieldModule, MatInputModule, MatDatepickerModule, MatNativeDateModule, FormsModule, ReactiveFormsModule],
   templateUrl: './pruebas-componentes.component.html',
   styleUrl: './pruebas-componentes.component.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [
+    CommonModule,
+    RouterModule,
+    MatSidenavModule,
+    MatToolbarModule,
+    MatIconModule,
+    MatDividerModule,
+    MatButtonModule,
+  ],
 })
-export class PruebasComponentesComponent {
- 
-//-------------------------------------- CRONOGRAMA  ---------------------------------------
-   
-cronograma = new FormGroup({
-  fechaInicio: new FormControl('', Validators.required),
-  fechaFin: new FormControl('', Validators.required),
-  horasTotales: new FormControl('', [Validators.required, Validators.min(1)]),
-  horaInicio: new FormControl('', Validators.required),
-  horaFin: new FormControl('', Validators.required),
-  dias: new FormGroup({
-    lunes: new FormControl(false),
-    martes: new FormControl(false),
-    miercoles: new FormControl(false),
-    jueves: new FormControl(false),
-    viernes: new FormControl(false),
-    sabado: new FormControl(false),
-    domingo: new FormControl(false),
-  })
-});
+export class PruebasComponentesComponent implements AfterViewInit {
+  @ViewChild(MatSidenav)
+  sidenav!: MatSidenav;
 
-// Evento para actualizar fecha y forzar la detección de cambios
-onFechaChange(controlName: string, event: any) {
-const fecha = event.target.value;
-this.cronograma.get(controlName)?.setValue(fecha);
-this.cronograma.get(controlName)?.updateValueAndValidity();  // Forzar detección de cambios
-}
+  private observer = inject(BreakpointObserver);
+  private router = inject(Router);
+  private destroyRef = inject(DestroyRef);
 
-generarCronograma() {
-  const formValues = this.cronograma.value;
-  console.log(formValues);
+  ngAfterViewInit() {
+    this.observer
+      .observe(['(max-width: 800px)'])
+      .pipe(
+        delay(1),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe((res: BreakpointState) => {
+        if (res.matches) {
+          this.sidenav.mode = 'over';
+          this.sidenav.close();
+        } else {
+          this.sidenav.mode = 'side';
+          this.sidenav.open();
+        }
+      });
 
-  // Ahora puedes usar estas variables en tu lógica
-  const fechaInicio = formValues.fechaInicio;
-  const fechaFin = formValues.fechaFin;
-  const horasTotales = formValues.horasTotales;
-  const horaInicio = formValues.horaInicio;
-  const horaFin = formValues.horaFin;
-  const diasSeleccionados = formValues.dias;
-
-  console.log(fechaInicio, fechaFin, horasTotales, horaInicio, horaFin, diasSeleccionados);
-}
-
+    this.router.events
+      .pipe(
+        filter((e) => e instanceof NavigationEnd),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe(() => {
+        if (this.sidenav.mode === 'over') {
+          this.sidenav.close();
+        }
+      });
+  }
 }

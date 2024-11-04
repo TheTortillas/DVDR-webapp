@@ -8,16 +8,342 @@
   </div>
 
   <div class="xl:p-10 bg-white">
-    <input
-      #csvInput
-      hidden="true"
-      type="file"
-      onclick="this.value=null"
-      (change)="csvInputChange($event)"
-      accept=".pdf"
-    />
-    <button mat-flat-button (click)="csvInput.click()">
-      <mat-icon>cloud_upload</mat-icon>Rífate un CV (PDF)
-    </button>
+    <section class="text-gray-600 body-font">
+      <div class="container px-5 py-5 mx-auto">
+        <div class="flex flex-wrap">
+          <!-- CARD DE FORMATO DE REGISTRO -->
+          <div
+            class="card lg:w-1/4 md:w-1/2 p-4 w-full rounded-lg max-w-md shadow"
+          >
+            <a
+              class="block relative h-48 rounded overflow-hidden"
+              href="assets/01 FS20H 2024-2.docx"
+              download="01 FS20H 2024-2.docx"
+            >
+              <img
+                matTooltip="Presiona aquí para descargar el formato "
+                matTooltipPosition="above"
+                alt="ecommerce"
+                class="object-cover object-center w-full h-full block"
+                src="https://dummyimage.com/420x260"
+              />
+            </a>
+            <div class="mt-4 text-center">
+              <label
+                for="FRCFV"
+                class="flex mb-2 text-xl font-medium text-gray-900 text-center"
+              >
+                Formato de registro de cursos de formación a lo largo de la vida
+              </label>
+
+              <input
+                #csvInput1
+                hidden="true"
+                type="file"
+                onclick="this.value=null"
+                (change)="onInputChange($event, 1)"
+                accept=".pdf"
+              />
+              <button
+                mat-flat-button
+                (click)="csvInput.click()"
+                class="flex justify-center mx-auto"
+              >
+                <mat-icon>cloud_upload</mat-icon>Subir (PDF)
+              </button>
+            </div>
+          </div>
+
+          <!-- CARD DE FORMATO DE LISTA DE COTEJO PARA FORMATO DE REGISTRO DE CURSOS DE FORMACIÓN A LO LARGO DE LA VIDA -->
+          <div
+            class="card lg:w-1/4 md:w-1/2 p-4 w-full rounded-lg max-w-md shadow"
+          >
+            <a
+              class="block relative h-48 rounded overflow-hidden"
+              href="assets/01 LC20H 2024-2.xlsx"
+              download="01 LC20H 2024-2.xlsx"
+            >
+              <img
+                matTooltip="Presiona aquí para descargar el formato "
+                matTooltipPosition="above"
+                alt="ecommerce"
+                class="object-cover object-center w-full h-full block"
+                src="https://dummyimage.com/421x261"
+              />
+            </a>
+            <div class="mt-4 text-center">
+              <label
+                for="LCFRCFV"
+                class="flex mb-2 text-xl font-medium text-gray-900"
+              >
+                Lista de cotejo para formato de registro de cursos de formación
+                a lo largo de la vida</label
+              >
+              <input
+                #csvInput
+                hidden="true"
+                type="file"
+                onclick="this.value=null"
+                (change)="fileInputChange($event)"
+                accept=".pdf"
+              />
+              <button
+                mat-flat-button
+                (click)="csvInput.click()"
+                class="flex justify-center mx-auto"
+              >
+                <mat-icon>cloud_upload</mat-icon>Subir (PDF)
+              </button>
+            </div>
+          </div>
+
+          <!-- FORMATO DE LISTA DE COTEJO PARA CURSOS EN MODALIDAD NO ESCOLARIZADA -->
+          <div
+            class="card lg:w-1/4 md:w-1/2 p-4 w-full rounded-lg max-w-md shadow"
+          >
+            <a
+              class="block relative h-48 rounded overflow-hidden"
+              href="assets/01 LC20H 2024-2.xlsx"
+              download="01 LC20H 2024-2.xlsx"
+            >
+              <img
+                matTooltip="Presiona aquí para descargar el formato "
+                matTooltipPosition="above"
+                alt="ecommerce"
+                class="object-cover object-center w-full h-full block"
+                src="https://dummyimage.com/422x262"
+              />
+            </a>
+            <div class="mt-4 text-center">
+              <label
+                for="LCCME"
+                class="flex mb-2 text-xl font-medium text-gray-900"
+              >
+                Lista de cotejo para cursos en modalidad no escolarizada</label
+              >
+              <input
+                #csvInput
+                hidden="true"
+                type="file"
+                onclick="this.value=null"
+                (change)="fileInputChange($event)"
+                accept=".pdf"
+              />
+              <button
+                mat-flat-button
+                (click)="csvInput.click()"
+                class="flex justify-center mx-auto"
+              >
+                <mat-icon>cloud_upload</mat-icon>Subir (PDF)
+              </button>
+            </div>
+          </div>
+
+          <!-- FORMATO DE PROTESTA DE AUTORÍA -->
+          <div
+            class="card lg:w-1/4 md:w-1/2 p-4 w-full rounded-lg max-w-md shadow"
+          >
+            <a
+              class="block relative h-48 rounded overflow-hidden"
+              href="assets/02 FPA20H 2024.docx"
+              download="02 FPA20H 2024.docx"
+            >
+              <img
+                matTooltip="Presiona aquí para descargar el formato "
+                matTooltipPosition="above"
+                alt="ecommerce"
+                class="object-cover object-center w-full h-full block"
+                src="https://dummyimage.com/423x263"
+              />
+            </a>
+            <div class="mt-4 text-center">
+              <label
+                for="FPA"
+                class="flex mb-2 text-xl font-medium text-gray-900"
+              >
+                Formato de protesta de autoría</label
+              >
+              <input
+                #csvInput
+                hidden="true"
+                type="file"
+                onclick="this.value=null"
+                (change)="fileInputChange($event)"
+                accept=".pdf"
+              />
+              <button
+                mat-flat-button
+                (click)="csvInput.click()"
+                class="flex justify-center mx-auto"
+              >
+                <mat-icon>cloud_upload</mat-icon>Subir (PDF)
+              </button>
+            </div>
+          </div>
+
+          <!-- CRONOGRAMA DE ACTIVIDADES  -->
+          <div
+            class="card lg:w-1/4 md:w-1/2 p-4 w-full rounded-lg max-w-md shadow"
+          >
+            <a
+              class="block relative h-48 rounded overflow-hidden"
+              href="assets/03 CR20H 2024 .docx"
+              download="03 CR20H 2024 .docx"
+            >
+              <img
+                matTooltip="Presiona aquí para descargar el formato "
+                matTooltipPosition="above"
+                alt="ecommerce"
+                class="object-cover object-center w-full h-full block"
+                src="https://dummyimage.com/424x264"
+              />
+            </a>
+            <div class="mt-4 text-center">
+              <label
+                for="CA"
+                class="flex mb-2 text-xl font-medium text-gray-900"
+              >
+                Cronograma de actividades</label
+              >
+              <input
+                #csvInput
+                hidden="true"
+                type="file"
+                onclick="this.value=null"
+                (change)="fileInputChange($event)"
+                accept=".pdf"
+              />
+              <button
+                mat-flat-button
+                (click)="csvInput.click()"
+                class="flex justify-center mx-auto"
+              >
+                <mat-icon>cloud_upload</mat-icon>Subir (PDF)
+              </button>
+            </div>
+          </div>
+
+          <!-- FORMATO DE CURRICULUM VITAE -->
+          <div
+            class="card lg:w-1/4 md:w-1/2 p-4 w-full rounded-lg max-w-md shadow"
+          >
+            <a
+              class="block relative h-48 rounded overflow-hidden"
+              href="assets/04 CV20H 2024.docx"
+              download="04 CV20H 2024.docx"
+            >
+              <img
+                matTooltip="Presiona aquí para descargar el formato "
+                matTooltipPosition="above"
+                alt="ecommerce"
+                class="object-cover object-center w-full h-full block"
+                src="https://dummyimage.com/425x265"
+              />
+            </a>
+            <div class="mt-4 text-center">
+              <label
+                for="FCV"
+                class="flex mb-2 text-xl font-medium text-gray-900"
+              >
+                Formato de curriculum vitae</label
+              >
+              <input
+                #csvInput
+                hidden="true"
+                type="file"
+                onclick="this.value=null"
+                (change)="fileInputChange($event)"
+                accept=".pdf"
+              />
+              <button
+                mat-flat-button
+                (click)="csvInput.click()"
+                class="flex justify-center mx-auto"
+              >
+                <mat-icon>cloud_upload</mat-icon>Subir (PDF)
+              </button>
+            </div>
+          </div>
+
+          <!-- EJEMPLO DE CARTA AVAL -->
+          <div
+            class="card lg:w-1/4 md:w-1/2 p-4 w-full rounded-lg max-w-md shadow"
+          >
+            <a
+              class="block relative h-48 rounded overflow-hidden"
+              href="assets/05 CA-ejemplo.pdf"
+              download="05 CA-ejemplo.pdf"
+            >
+              <img
+                matTooltip="Presiona aquí para descargar el formato "
+                matTooltipPosition="above"
+                alt="ecommerce"
+                class="object-cover object-center w-full h-full block"
+                src="https://dummyimage.com/427x267"
+              />
+            </a>
+            <div class="mt-4 text-center">
+              <label
+                for="ECA"
+                class="flex mb-2 text-xl font-medium text-gray-900"
+              >
+                Ejemplo de carta aval</label
+              >
+              <input
+                #csvInput
+                hidden="true"
+                type="file"
+                onclick="this.value=null"
+                (change)="fileInputChange($event)"
+                accept=".pdf"
+              />
+              <button
+                mat-flat-button
+                (click)="csvInput.click()"
+                class="flex justify-center mx-auto"
+              >
+                <mat-icon>cloud_upload</mat-icon>Subir (PDF)
+              </button>
+            </div>
+          </div>
+
+          <!-- PROCEDIMENTO PARA REGISTRAR CURSOS DE HASTA 20 HORAS -->
+          <div
+            class="card lg:w-1/4 md:w-1/2 p-4 w-full rounded-lg max-w-md shadow"
+          >
+            <a class="block relative h-48 rounded overflow-hidden">
+              <img
+                alt="ecommerce"
+                class="object-cover object-center w-full h-full block"
+                src="https://dummyimage.com/428x268"
+              />
+            </a>
+            <div class="mt-4 text-center">
+              <label
+                for="FCV"
+                class="flex mb-2 text-xl font-medium text-gray-900"
+              >
+                Procedimiento para registrar cursos de hasta 20 horas</label
+              >
+              <input
+                #csvInput
+                hidden="true"
+                type="file"
+                onclick="this.value=null"
+                (change)="fileInputChange($event)"
+                accept=".pdf"
+              />
+              <button
+                mat-flat-button
+                (click)="csvInput.click()"
+                class="flex justify-center mx-auto"
+              >
+                <mat-icon>cloud_upload</mat-icon>Subir (PDF)
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
   </div>
 </div>

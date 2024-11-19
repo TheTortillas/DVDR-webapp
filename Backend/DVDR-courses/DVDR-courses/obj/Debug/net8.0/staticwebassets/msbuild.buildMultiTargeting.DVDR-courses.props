@@ -1,0 +1,3 @@
+﻿<Project>
+  <Import Project="..\build\DVDR-courses.props" />
+</Project>

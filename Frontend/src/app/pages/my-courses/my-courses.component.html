@@ -1,0 +1,71 @@
+<main class="flex justify-center py-10">
+  <div class="sm:w-5/6">
+    <div class="bg-white border border-gray-400 rounded-lg p-8 shadow">
+      <div class="space-x-40 text-center">
+        <h1 class="heading">Mis registros</h1>
+      </div>
+
+      <mat-accordion>
+        <ng-container *ngFor="let course of courses">
+          <mat-expansion-panel
+            (opened)="panelOpenState.set(true)"
+            (closed)="panelOpenState.set(false)"
+          >
+            <mat-expansion-panel-header>
+              <mat-panel-title>{{ course.title }}</mat-panel-title>
+              <mat-panel-description>
+                Currently I am {{ panelOpenState() ? "open" : "closed" }}
+              </mat-panel-description>
+            </mat-expansion-panel-header>
+            <table mat-table [dataSource]="course.dataSource">
+              <ng-container matColumnDef="no">
+                <th mat-header-cell *matHeaderCellDef>No.</th>
+                <td mat-cell *matCellDef="let element; let i = index">
+                  {{ i + 1 }}
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="clave">
+                <th mat-header-cell *matHeaderCellDef>CLAVE</th>
+                <td mat-cell *matCellDef="let element">{{ element.clave }}</td>
+              </ng-container>
+
+              <ng-container matColumnDef="periodo">
+                <th mat-header-cell *matHeaderCellDef>Periodo</th>
+                <td mat-cell *matCellDef="let element">
+                  {{ element.periodo }}
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="participantes">
+                <th mat-header-cell *matHeaderCellDef>No. de participantes</th>
+                <td mat-cell *matCellDef="let element">
+                  {{ element.participantes }}
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="constancias">
+                <th mat-header-cell *matHeaderCellDef>No. de constancias</th>
+                <td mat-cell *matCellDef="let element">
+                  {{ element.constancias }}
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="estatus">
+                <th mat-header-cell *matHeaderCellDef>Estatus</th>
+                <td mat-cell *matCellDef="let element">
+                  {{ element.estatus }}
+                </td>
+              </ng-container>
+
+              <!-- Mostrar nombres de las columnas -->
+              <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+              <!-- Mostrar contenido de cada fila -->
+              <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+            </table>
+          </mat-expansion-panel>
+        </ng-container>
+      </mat-accordion>
+    </div>
+  </div>
+</main>

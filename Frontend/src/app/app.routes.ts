@@ -8,6 +8,9 @@ import { PruebasComponentesComponent } from './pages/pruebas-componentes/pruebas
 import { InstructorRegisterComponent } from './pages/instructor-register/instructor-register.component';
 import { ProfileComponent } from './pages/profile/profile.component';
 import { AuthComponent } from './pages/auth/auth.component';
+import { RequestApertureComponent } from './pages/request-aperture/request-aperture.component';
+import { MyCoursesComponent } from './pages/my-courses/my-courses.component';
+import { ApertureInfoComponent } from './pages/request-aperture/aperture-info/aperture-info.component';
 
 export const routes: Routes = [
 
@@ -56,7 +59,30 @@ export const routes: Routes = [
             {
                 path: 'course-register',
                 component: CourseRegisterComponent
-            }
+            },
+
+            {
+                path: 'request-aperture',
+                component:RequestApertureComponent,
+                children: [
+                    {
+                        path: '',
+                        redirectTo: 'request-aperture',
+                        pathMatch: 'full',
+                    },
+
+                    {
+                        path: 'aperture-info',
+                        component: ApertureInfoComponent
+                    }
+
+                ]
+            },
+
+            {
+                path: 'my-courses',
+                component:MyCoursesComponent
+            },
         ]
         //guards
     },

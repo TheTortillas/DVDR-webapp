@@ -11,14 +11,14 @@
 
       <!-- STEPPER DE LOS PASOS PARA REGISTRAR EL CURSO -->
       <div class="bg-white">
-        <mat-stepper [linear]="isLinear" #stepper>
+        <mat-stepper [linear]="isLinear" #stepper [animationDuration]="'200'">
           <!-- PASO 1: REGISTAR INFORMACIÓN GENERAL -->
           <mat-step [stepControl]="firstFormGroup">
             <form [formGroup]="firstFormGroup">
               <ng-template matStepLabel>Información general</ng-template>
               <app-general-information-instructor></app-general-information-instructor>
               <div class="flex justify-end">
-                <button mat-button matStepperNext>Siguiente</button>
+                <button mat-flat-button matStepperNext>Siguiente</button>
               </div>
             </form>
           </mat-step>
@@ -28,9 +28,13 @@
             <form [formGroup]="secondFormGroup">
               <ng-template matStepLabel>Subir documentación</ng-template>
               <app-upload-documentation></app-upload-documentation>
-              <div>
-                <button mat-button matStepperPrevious>Anterior</button>
-                <button mat-button matStepperNext>Siguiente</button>
+
+              <div class="flex justify-start">
+                <button mat-flat-button matStepperPrevious>Anterior</button>
+              </div>
+
+              <div class="flex justify-end">
+                <button mat-flat-button matStepperNext>Enviar</button>
               </div>
             </form>
           </mat-step>
@@ -48,7 +52,7 @@
           </mat-step> -->
 
           <!-- PASO 4: SOLICITAR AUTORIZACIÓN -->
-          <mat-step [stepControl]="thirdFormGroup">
+          <!-- <mat-step [stepControl]="thirdFormGroup">
             <form [formGroup]="thirdFormGroup">
               <ng-template matStepLabel>Solicitar autorización</ng-template>
               <app-request-authorization></app-request-authorization>
@@ -57,10 +61,10 @@
                 <button mat-button matStepperNext>Siguiente</button>
               </div>
             </form>
-          </mat-step>
+          </mat-step> -->
 
           <!-- PASO 5: DESCARGAR CONSTANCIAS -->
-          <mat-step [stepControl]="fourthFormGroup">
+          <!-- <mat-step [stepControl]="fourthFormGroup">
             <form [formGroup]="fourthFormGroup">
               <ng-template matStepLabel>Descargar Constancias</ng-template>
               <app-download-certificates></app-download-certificates>
@@ -68,7 +72,7 @@
                 <button mat-button matStepperPrevious>Anterior</button>
               </div>
             </form>
-          </mat-step>
+          </mat-step> -->
         </mat-stepper>
       </div>
     </div>

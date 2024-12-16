@@ -29,5 +29,11 @@ namespace DVDR_courses.Controllers
             })
             .ToArray();
         }
+
+        [HttpPost]
+        public JsonResult Post([FromBody] WeatherForecast weatherForecast)
+        {
+            return new JsonResult(weatherForecast);
+        }
     }
 }

@@ -19,5 +19,21 @@
       }
     ],
     "EndpointName": "GetWeatherForecast"
+  },
+  {
+    "ContainingType": "DVDR_courses.Controllers.WeatherForecastController",
+    "Method": "Post",
+    "RelativePath": "WeatherForecast",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "weatherForecast",
+        "Type": "DVDR_courses.WeatherForecast",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
   }
 ]

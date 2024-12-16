@@ -1,8 +1,48 @@
-.card {
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+mat-icon {
+    font-size: 24px;
+    cursor: pointer;
+    transition: color 0.3s ease;
+  
+    &.hover-blue:hover {
+      color: #1976d2; // Azul de Material Design
+    }
+  
+    &.hover-red:hover {
+      color: #d32f2f; // Rojo de Material Design
+    }
+  
+    &.disabled-icon {
+      color: rgba(0, 0, 0, 0.26); // Icono desactivado
+      pointer-events: none; // Deshabilita interacción
+    }
   }
   
-  .card:hover {
-    transform: translateY(-10px);
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+  .mat-column-icon {
+    word-wrap: break-word !important;
+    white-space: unset !important;
+    flex: 0 0 15% !important;
+    width: 15% !important;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+  
+    word-break: break-word;
+  
+    -ms-hyphens: auto;
+    -moz-hyphens: auto;
+    -webkit-hyphens: auto;
+    hyphens: auto;
+  }
+
+  .mat-column-files {
+    word-wrap: break-word !important;
+    white-space: unset !important;
+    flex: 0 0 30% !important;
+    width: 30% !important;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    word-break: break-word;
+    -ms-hyphens: auto;
+    -moz-hyphens: auto;
+    -webkit-hyphens: auto;
+    hyphens: auto;
   }

@@ -14,7 +14,7 @@ import Swal from 'sweetalert2'
 @Component({
   selector: 'app-contact-us-page',
   standalone: true,
-  imports: [MatIconModule, MatButtonModule, FormsModule, ReactiveFormsModule, MatFormFieldModule, MatInputModule, FormsModule, ReactiveFormsModule, MatDividerModule, RouterLink, BackButtonComponent],
+  imports: [MatIconModule, MatButtonModule, FormsModule, ReactiveFormsModule, MatFormFieldModule, MatInputModule, FormsModule, ReactiveFormsModule, MatDividerModule],
   changeDetection: ChangeDetectionStrategy.OnPush, //Este no sé pa' qué es
   templateUrl: './contact-us-page.component.html',
   styleUrl: './contact-us-page.component.scss'

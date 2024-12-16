@@ -2,91 +2,95 @@ import { Component } from '@angular/core';
 import { MatButton } from '@angular/material/button';
 import { MatChip, MatChipsModule } from '@angular/material/chips';
 import { MatIcon } from '@angular/material/icon';
+import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { CommonModule } from '@angular/common';
+
+// Interface para las filas de la tabla
+interface DocumentRow {
+  id: number;
+  name: string;
+  downloadLink: string;
+}
 
 @Component({
   selector: 'app-upload-documentation',
   standalone: true,
-  imports: [MatButton, MatIcon, MatTooltipModule, MatChipsModule, MatChip],
+  imports: [
+    MatIcon,
+    MatTooltipModule,
+    MatChipsModule,
+    MatChip,
+    MatTableModule,
+    CommonModule,
+  ],
   templateUrl: './upload-documentation.component.html',
-  styleUrl: './upload-documentation.component.scss'
+  styleUrl: './upload-documentation.component.scss',
 })
 export class UploadDocumentationComponent {
-
   // Variables para almacenar los archivos seleccionados
-  file1: File | null = null;
-  file2: File | null = null;
-  file3: File | null = null;
-  file4: File | null = null;
-  file5: File | null = null;
-  file6: File | null = null;
-  file7: File | null = null;
-  file8: File | null = null;
+  fileMap: { [key: number]: File | null } = {};
+
+  // DataSource para la tabla
+  displayedColumns: string[] = ['icon', 'name', 'files'];
+  dataSource = new MatTableDataSource<DocumentRow>([
+    {
+      id: 1,
+      name: 'Formato de registro de cursos de formación a lo largo de la vida',
+      downloadLink: 'assets/01 FS20H 2024-2.docx',
+    },
+    {
+      id: 2,
+      name: 'Lista de cotejo para formato de registro de cursos',
+      downloadLink: 'assets/01 LC20H 2024-2.xlsx',
+    },
+    {
+      id: 3,
+      name: 'Lista de cotejo para cursos en modalidad no escolarizada',
+      downloadLink: 'assets/01 LC20H 2024-2.xlsx',
+    },
+    {
+      id: 4,
+      name: 'Formato de protesta de autoría',
+      downloadLink: 'assets/02 FPA20H 2024.docx',
+    },
+    {
+      id: 5,
+      name: 'Cronograma de actividades',
+      downloadLink: 'assets/03 CR20H 2024 .docx',
+    },
+    {
+      id: 6,
+      name: 'Formato de curriculum vitae',
+      downloadLink: 'assets/04 CV20H 2024.docx',
+    },
+    {
+      id: 7,
+      name: 'Ejemplo de carta aval',
+      downloadLink: 'assets/05 CA-ejemplo.pdf',
+    },
+    {
+      id: 8,
+      name: 'Procedimiento para registrar cursos de hasta 20 horas',
+      downloadLink: '',
+    },
+  ]);
 
   // Método que se ejecuta cuando el input cambia (cuando el usuario selecciona un archivo)
   onInputChange(event: any, fileIndex: number) {
-    const file = event.target.files[0];  // Captura el archivo seleccionado (solo uno porque es un input único)
+    const file = event.target.files[0]; // Captura el archivo seleccionado (solo uno porque es un input único)
     if (file) {
-      switch (fileIndex) {
-        case 1:
-          this.file1 = file;
-          break;
-        case 2:
-          this.file2 = file;
-          break;
-        case 3:
-          this.file3 = file;
-          break;
-        case 4:
-          this.file4 = file;
-          break;
-        case 5:
-          this.file5 = file;
-          break;
-        case 6:
-          this.file6 = file;
-          break;
-        case 7:
-          this.file7 = file;
-          break;
-        case 8:
-          this.file8 = file;
-          break;
-      }
+      this.fileMap[fileIndex] = file;
     }
   }
 
   // Método para eliminar un archivo de la lista
   removeFile(fileIndex: number) {
-    switch (fileIndex) {
-      case 1:
-        this.file1 = null;
-        break;
-      case 2:
-        this.file2 = null;
-        break;
-      case 3:
-        this.file3 = null;
-        break;
-      case 4:
-        this.file4 = null;
-        break;
-      case 5:
-        this.file5 = null;
-        break;
-      case 6:
-        this.file6 = null;
-        break;
-      case 7:
-        this.file7 = null;
-        break;
-      case 8:
-        this.file8 = null;
-        break;
-    }
+    this.fileMap[fileIndex] = null;
   }
 
-  fileInputChange(fileInputEvent: any) {
-    console.log(fileInputEvent.target.files[0]);
+  // Obtener archivo seleccionado
+  getFile(fileIndex: number): File | null {
+    return this.fileMap[fileIndex] || null;
   }
 }

@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("DVDR-courses")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+3f28b04013d73cb696b4e3db2fc59380f28d684c")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+9bcf333e4b30dd74768ac20526f8715ff292ba82")]
 [assembly: System.Reflection.AssemblyProductAttribute("DVDR-courses")]
 [assembly: System.Reflection.AssemblyTitleAttribute("DVDR-courses")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

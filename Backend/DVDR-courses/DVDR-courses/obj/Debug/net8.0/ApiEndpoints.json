@@ -1,5 +1,44 @@
 [
   {
+    "ContainingType": "DVDR_courses.Controllers.DataController",
+    "Method": "GetCategories",
+    "RelativePath": "api/Data/AcademicCategories",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": [],
+    "EndpointName": "GetCategories"
+  },
+  {
+    "ContainingType": "DVDR_courses.Controllers.UserManagementController",
+    "Method": "RefreshToken",
+    "RelativePath": "api/UserManagement/RefreshToken",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": [],
+    "EndpointName": "PostRefreshToken"
+  },
+  {
+    "ContainingType": "DVDR_courses.Controllers.UserManagementController",
+    "Method": "SignIn",
+    "RelativePath": "api/UserManagement/SignIn",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "usr",
+        "Type": "DVDR_courses.DTOs.UserSignIn",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [],
+    "EndpointName": "PostSignIn"
+  },
+  {
     "ContainingType": "DVDR_courses.Controllers.WeatherForecastController",
     "Method": "Get",
     "RelativePath": "WeatherForecast",

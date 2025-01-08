@@ -1,4 +1,10 @@
-import { AfterViewInit, Component, ViewChild, inject, DestroyRef } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  ViewChild,
+  inject,
+  DestroyRef,
+} from '@angular/core';
 import { BreakpointObserver, BreakpointState } from '@angular/cdk/layout';
 import { MatSidenav, MatSidenavModule } from '@angular/material/sidenav';
 import { Router, RouterModule, NavigationEnd } from '@angular/router';
@@ -36,10 +42,7 @@ export class PruebasComponentesComponent implements AfterViewInit {
   ngAfterViewInit() {
     this.observer
       .observe(['(max-width: 800px)'])
-      .pipe(
-        delay(1),
-        takeUntilDestroyed(this.destroyRef)
-      )
+      .pipe(delay(1), takeUntilDestroyed(this.destroyRef))
       .subscribe((res: BreakpointState) => {
         if (res.matches) {
           this.sidenav.mode = 'over';

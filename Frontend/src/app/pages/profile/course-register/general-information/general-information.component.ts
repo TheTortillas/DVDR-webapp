@@ -5,7 +5,13 @@ import {
   OnInit,
 } from '@angular/core';
 //import { StepperIndicatorComponent } from "../../components/stepper-indicator/stepper-indicator.component";
-import { FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  FormGroup,
+  FormsModule,
+  ReactiveFormsModule,
+  Validators,
+  FormBuilder,
+} from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 
@@ -35,6 +41,9 @@ import {
   MatDialogRef,
 } from '@angular/material/dialog';
 import { InstructorRegisterComponent } from '../../instructor-register/instructor-register.component';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { DataService } from '../../../../core/services/data.service';
 
 @Component({
   selector: 'app-general-information-instructor',
@@ -56,13 +65,20 @@ import { InstructorRegisterComponent } from '../../instructor-register/instructo
     RouterLink,
     MatDivider,
     MatRadioModule,
-    InstructorRegisterComponent,
   ],
   templateUrl: './general-information.component.html',
   styleUrl: './general-information.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class GeneralInformationComponent {
+export class GeneralInformationComponent implements OnInit {
+  constructor(private dataService: DataService) {}
+
+  ngOnInit() {
+    this.dataService.getCategoriasAcademicas().subscribe((data: any) => {
+      this.categories = data;
+    });
+  }
+
   //-------------------------------------- TIPO SERVICIO ---------------------------------------
   typeService: number = 0;
 
@@ -70,16 +86,7 @@ export class GeneralInformationComponent {
     this.typeService = event.value;
   }
   //-------------------------------------- CATEGORÍA ---------------------------------------
-  categories: string[] = [
-    'Ingeniería y Ciencias Físico-Matemáticas',
-    'Ciencias Médico Biológicas',
-    'Ciencias Sociales y Administrativas',
-    'Desarrollo Humano',
-    'Idiomas',
-    'Multidisciplinarios',
-    'Educación',
-    'TIC',
-  ];
+  categories: string[] = [];
   selectedCategory: string = '';
 
   onCategoryChange(event: any) {
@@ -104,53 +111,56 @@ export class GeneralInformationComponent {
   }
 
   //-------------------------------------- UNIDAD  RESPONSABLE ---------------------------------------
-  unidadTipo: string = '';
-  unidadOptions: string[] = [];
-  selectedUnidadOption: string = '';
-  dvdrsOptions: string[] = [
-    'Centro de Vinculación y Desarrollo Regional Unidad Tampico',
-    'Centro de Vinculación y Desarrollo Regional Culiacán',
-    'Centro de Vinculación y Desarrollo Regional Unidad Cajeme',
-    'Centro de Vinculación y Desarrollo Regional Unidad Cancún',
-    'Centro de Vinculación y Desarrollo Regional Unidad Campeche',
-    'Centro de Vinculación y Desarrollo Regional Durango',
-    'Centro de Vinculación y Desarrollo Regional Unidad Los Mochis',
-    'Centro de Desarrollo y Vinculación Regional Unidad Mazatlán',
-    'Centro de Vinculación y Desarrollo Regional Unidad Morelia',
-    'Centro de Vinculación y Desarrollo Regional Unidad Tlaxcala',
-    'Centro de Vinculación y Desarrollo Regional Unidad Oaxaca',
-    'Centro de Vinculación y Desarrollo Regional Unidad Tijuana',
-  ];
+  // unidadTipo: string = '';
+  // unidadOptions: string[] = [];
+  // selectedUnidadOption: string = '';
+  // dvdrsOptions: string[] = [
+  //   'Centro de Vinculación y Desarrollo Regional Unidad Tampico',
+  //   'Centro de Vinculación y Desarrollo Regional Culiacán',
+  //   'Centro de Vinculación y Desarrollo Regional Unidad Cajeme',
+  //   'Centro de Vinculación y Desarrollo Regional Unidad Cancún',
+  //   'Centro de Vinculación y Desarrollo Regional Unidad Campeche',
+  //   'Centro de Vinculación y Desarrollo Regional Durango',
+  //   'Centro de Vinculación y Desarrollo Regional Unidad Los Mochis',
+  //   'Centro de Desarrollo y Vinculación Regional Unidad Mazatlán',
+  //   'Centro de Vinculación y Desarrollo Regional Unidad Morelia',
+  //   'Centro de Vinculación y Desarrollo Regional Unidad Tlaxcala',
+  //   'Centro de Vinculación y Desarrollo Regional Unidad Oaxaca',
+  //   'Centro de Vinculación y Desarrollo Regional Unidad Tijuana',
+  // ];
 
-  cittasOptions: string[] = [
-    'Centro de Innovación e Integración de Tecnologías Avanzadas Chihuahua',
-    'Centro de Innovación e Integración de Tecnologías Avanzadas Puebla',
-    'Centro de Innovación e Integración de Tecnologías Avanzadas Veracruz',
-  ];
+  // cittasOptions: string[] = [
+  //   'Centro de Innovación e Integración de Tecnologías Avanzadas Chihuahua',
+  //   'Centro de Innovación e Integración de Tecnologías Avanzadas Puebla',
+  //   'Centro de Innovación e Integración de Tecnologías Avanzadas Veracruz',
+  // ];
 
-  // Esta función actualiza las opciones del segundo select
-  onUnidadChange(event: any) {
-    this.unidadTipo = event.value;
-    if (this.unidadTipo === 'DVDR') {
-      this.unidadOptions = this.dvdrsOptions;
-    } else if (this.unidadTipo === 'CITTA') {
-      this.unidadOptions = this.cittasOptions;
-    } else {
-      this.unidadOptions = [];
-    }
-  }
+  // // Esta función actualiza las opciones del segundo select
+  // onUnidadChange(event: any) {
+  //   this.unidadTipo = event.value;
+  //   if (this.unidadTipo === 'DVDR') {
+  //     this.unidadOptions = this.dvdrsOptions;
+  //   } else if (this.unidadTipo === 'CITTA') {
+  //     this.unidadOptions = this.cittasOptions;
+  //   } else {
+  //     this.unidadOptions = [];
+  //   }
+  // }
 
-  onunidadOptionChange(event: any) {
-    this.selectedUnidadOption = event.value;
-    //console.log(this.unidadTipo + ": " +this.selectedUnidadOption);
-  }
+  // onunidadOptionChange(event: any) {
+  //   this.selectedUnidadOption = event.value;
+  //   //console.log(this.unidadTipo + ": " +this.selectedUnidadOption);
+  // }
 
-  //-------------------------------------- ESCOLARIDAD ---------------------------------------
-  escolaridadOptions: string[] = ['Escolarizada', 'No Escolarizada', 'Mixta'];
-  selectedEscolaridadOption: string = '';
+  //-------------------------------------- DURACIÓN TOTAL ---------------------------------------
+  duracionTotal: number | null = null;
 
-  onEscolaridadChange(event: any) {
-    this.selectedEscolaridadOption = event.value;
+  //-------------------------------------- MODALIDAD ---------------------------------------
+  modalidadOptions: string[] = ['Escolarizada', 'No Escolarizada', 'Mixta'];
+  selectedModalidadadOption: string = '';
+
+  onModalidadChange(event: any) {
+    this.selectedModalidadadOption = event.value;
   }
 
   //-------------------------------------- OFERTA EDUCATIVA ---------------------------------------

@@ -7,23 +7,29 @@
     <mat-divider></mat-divider>
     <br />
     <form class="" action="#" [formGroup]="form">
-      <!-- Pedimos el correo -->
-      <div class="email-container">
-        <label for="email" class="block mb-2 text-xl font-medium text-gray-900"
-          >Correo:</label
+      <!-- Pedimos el nombre de usuario -->
+      <div class="username-container">
+        <label
+          for="username"
+          class="block mb-2 text-xl font-medium text-gray-900"
+          >Nombre de usuario:</label
         >
         <mat-form-field class="w-full">
-          <mat-label>Ingresa tu correo electónico</mat-label>
+          <mat-label>Ingresa tu nombre de usuario</mat-label>
           <input
             matInput
-            placeholder="nombre@ejemplo.com"
-            [formControl]="email"
+            placeholder="Nombre de usuario"
+            formControlName="username"
             (blur)="updateErrorMessage()"
             required
           />
-          @if (email.invalid && email.touched) {
-          <mat-error>{{ errorMessage() }}</mat-error>
-          }
+          <mat-error
+            *ngIf="
+              form.get('username')?.invalid && form.get('username')?.touched
+            "
+          >
+            {{ errorMessage() }}
+          </mat-error>
         </mat-form-field>
       </div>
 
@@ -34,12 +40,11 @@
           class="block mb-2 text-xl font-medium text-gray-900"
           >Contraseña:</label
         >
-        <!-- ...existing code... -->
         <mat-form-field class="w-full mb-4">
           <mat-label>Ingresa tu contraseña</mat-label>
           <input
             matInput
-            [formControl]="password"
+            formControlName="password"
             [type]="hide() ? 'password' : 'text'"
             required
           />
@@ -52,10 +57,19 @@
           >
             <mat-icon>{{ hide() ? "visibility_off" : "visibility" }}</mat-icon>
           </button>
-          <mat-error *ngIf="password.invalid && password.touched">
+          <mat-error
+            *ngIf="
+              form.get('password')?.invalid && form.get('password')?.touched
+            "
+          >
             La contraseña es requerida
           </mat-error>
-          <mat-error *ngIf="password.hasError('minlength') && password.touched">
+          <mat-error
+            *ngIf="
+              form.get('password')?.hasError('minlength') &&
+              form.get('password')?.touched
+            "
+          >
             La contraseña debe tener al menos 8 caracteres
           </mat-error>
         </mat-form-field>
@@ -70,14 +84,15 @@
       <br />
     </form>
     <div class="next-button">
-      <a mat-flat-button extended routerLink="../auth/profile" class="w-full">
-        <div
-          class="content-center"
-          style="display: inline-flex; align-items: right; max-width: 100px"
-        >
-          Ingresar
-        </div>
-      </a>
+      <button
+        mat-flat-button
+        color="primary"
+        type="submit"
+        class="w-full"
+        (click)="signIn()"
+      >
+        Ingresar
+      </button>
     </div>
   </div>
 </main>

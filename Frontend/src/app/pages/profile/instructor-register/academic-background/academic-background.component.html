@@ -1,8 +1,10 @@
-<div class="">
-  <h3 class="py-3">Ingresa tu historial académico</h3>
-  <button mat-flat-button class="w-1/4" (click)="openDialog('0ms', '0ms')">
-    <mat-icon>add_circle</mat-icon> Añadir evidencia
-  </button>
+<div class="p-8">
+  <div class="flex justify-between items-center mb-4">
+    <h3 class="">Ingresa tu historial académico</h3>
+    <button mat-flat-button class="w-1/4" (click)="openDialog('0ms', '0ms')">
+      <mat-icon>add_circle</mat-icon> Añadir evidencia
+    </button>
+  </div>
 
   <div class="overflow-x-auto">
     <table mat-table [dataSource]="dataSource" class="mat-elevation-z8 w-full">

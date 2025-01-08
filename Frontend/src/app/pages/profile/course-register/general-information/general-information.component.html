@@ -14,7 +14,7 @@
         <label
           for="nombre-curso"
           class="flex mb-2 text-xl font-medium text-gray-900"
-          >Nombre:</label
+          >Nombre de la acción de formación:</label
         >
         <mat-form-field appearance="fill" class="w-full">
           <mat-label>Ingresa el nombre de tu curso o diplomado aquí</mat-label>
@@ -106,7 +106,7 @@
     <mat-divider></mat-divider>
 
     <!-- NOMBRE DE LA UNIDAD -->
-    <div class="unity-name-container py-5">
+    <!-- <div class="unity-name-container py-5">
       <label
         for="nombre-unidad"
         class="flex mb-2 text-xl font-medium text-gray-900"
@@ -129,22 +129,42 @@
         </mat-select>
       </mat-form-field>
     </div>
+    <mat-divider></mat-divider> -->
+
+    <!-- Duración total del curso -->
+    <div class="duration-container py-5">
+      <label
+        for="duracion-total"
+        class="flex mb-2 text-xl font-medium text-gray-900"
+      >
+        Duración total del curso (horas):
+      </label>
+      <mat-form-field appearance="fill" class="w-full">
+        <mat-label>Ingresa la duración total del curso</mat-label>
+        <input
+          matInput
+          type="number"
+          min="20"
+          [(ngModel)]="duracionTotal"
+          placeholder="Ej. 40"
+          required
+        />
+        <mat-error *ngIf="duracionTotal && duracionTotal < 20">
+          La duración debe ser un valor entero y no menor a 20 horas.
+        </mat-error>
+      </mat-form-field>
+    </div>
     <mat-divider></mat-divider>
 
-    <!-- ESCOLARIDAD -->
-    <div class="schedule-container py-5">
-      <label
-        for="escolaridad"
-        class="flex mb-2 text-xl font-medium text-gray-900"
-        >Escolaridad</label
+    <!-- MODALIDAD -->
+    <div class="modality-container py-5">
+      <label for="modality" class="flex mb-2 text-xl font-medium text-gray-900"
+        >Modalidad</label
       >
       <mat-form-field class="w-full">
-        <mat-label>Seleccionar tipo de escolaridad</mat-label>
-        <mat-select (selectionChange)="onEscolaridadChange($event)">
-          <mat-option
-            *ngFor="let option of escolaridadOptions"
-            [value]="option"
-          >
+        <mat-label>Seleccionar tipo de modalidad</mat-label>
+        <mat-select (selectionChange)="onModalidadChange($event)">
+          <mat-option *ngFor="let option of modalidadOptions" [value]="option">
             {{ option }}
           </mat-option>
         </mat-select>
@@ -174,35 +194,28 @@
     <mat-divider></mat-divider>
 
     <!-- NOMBRE DE LA SEDE  -->
-    <div class="sede-container py-5">
-      <label for="sede" class="flex mb-2 text-xl font-medium text-gray-900"
-        >Sede:</label
+
+    <div class="plataforma-container py-5">
+      <label
+        for="plataforma-ed"
+        class="flex mb-2 text-xl font-medium text-gray-900"
+        >Plataforma educativa</label
       >
-      <mat-form-field appearance="fill" class="w-full">
-        <mat-label>Ingresa el nombre de la sede</mat-label>
-        <input matInput placeholder="Ex. CECyT 5" />
-      </mat-form-field>
-      <div class="sede-container py-5">
-        <label
-          for="plataforma-ed"
-          class="flex mb-2 text-xl font-medium text-gray-900"
-          >Plataforma educativa</label
+      <div class="flex flex-wrap gap-4 mt-4 mb-5">
+        <mat-checkbox>Zoom</mat-checkbox>
+        <mat-checkbox>Meet</mat-checkbox>
+        <mat-checkbox>Moodle</mat-checkbox>
+        <mat-checkbox>Teams</mat-checkbox>
+        <mat-checkbox (change)="onOtroChange($event)">Otro:</mat-checkbox>
+        <mat-form-field
+          appearance="fill"
+          class="w-1/2"
+          *ngIf="otroSeleccionado"
         >
-        <div class="flex flex-wrap gap-4 mt-4">
-          <mat-checkbox>Zoom</mat-checkbox>
-          <mat-checkbox>Meet</mat-checkbox>
-          <mat-checkbox>Moodle</mat-checkbox>
-          <mat-checkbox>Teams</mat-checkbox>
-          <mat-checkbox (change)="onOtroChange($event)">Otro:</mat-checkbox>
-          <mat-form-field
-            appearance="fill"
-            class="w-1/2"
-            *ngIf="otroSeleccionado"
-          >
-            <input matInput placeholder="Especificar" />
-          </mat-form-field>
-        </div>
+          <input matInput placeholder="Especificar" />
+        </mat-form-field>
       </div>
+
       <mat-divider></mat-divider>
 
       <!-- AÑADIR AUTORES / COAUTORES / INSTRUCTORES  -->

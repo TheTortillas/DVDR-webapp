@@ -1,1 +1,49 @@
-<p>aperture-info works!</p>
+<div class="xl:p-10 bg-white">
+  <div class="flex flex-wrap gap-4 py-5">
+    <!-- COSTO UNITARIO DEL CURSO -->
+    <div class="currency-container flex-1">
+      <label
+        for="costo-unitario"
+        class="flex mb-2 text-xl font-medium text-gray-900"
+        >Costo unitario del curso</label
+      >
+      <mat-form-field class="w-full">
+        <mat-label>Costo en pesos</mat-label>
+        <span matTextPrefix class=""><mat-icon> attach_money</mat-icon></span>
+
+        <input matInput type="number" placeholder="Ex. 2500" min="0" />
+        <span matTextSuffix="" class="">MXN &nbsp;</span>
+      </mat-form-field>
+    </div>
+
+    <!-- PARTICIPANTES DEL CURSO -->
+    <div class="Participants-container flex-1">
+      <label
+        for="Participants"
+        class="flex mb-2 text-xl font-medium text-gray-900"
+        >No. de participantes inscritos</label
+      >
+      <mat-form-field class="w-full">
+        <mat-label>No. de asistentes al curso</mat-label>
+        <input
+          matInput
+          placeholder="Ex. 10"
+          type="number"
+          id="duracionTotal"
+          min="0"
+        />
+      </mat-form-field>
+    </div>
+  </div>
+  <mat-divider></mat-divider>
+
+  <!-- GENERAR CRONOGRAMA -->
+  <div class="people-container py-5">
+    <label for="people" class="flex mb-2 text-xl font-medium text-gray-900"
+      >Generar cronograma</label
+    >
+    <button mat-flat-button class="w-full" (click)="openDialog('0ms', '0ms')">
+      Seleccionar fechas
+    </button>
+  </div>
+</div>

@@ -66,13 +66,8 @@ export class UploadDocumentationComponent {
     },
     {
       id: 7,
-      name: 'Ejemplo de carta aval',
+      name: 'Carta aval',
       downloadLink: 'assets/05 CA-ejemplo.pdf',
-    },
-    {
-      id: 8,
-      name: 'Procedimiento para registrar cursos de hasta 20 horas',
-      downloadLink: '',
     },
   ]);
 

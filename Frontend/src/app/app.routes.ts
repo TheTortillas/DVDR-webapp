@@ -11,15 +11,12 @@ import { AuthComponent } from './pages/auth/auth.component';
 import { RequestApertureComponent } from './pages/profile/request-aperture/request-aperture.component';
 import { MyCoursesComponent } from './pages/profile/my-courses/my-courses.component';
 import { ApertureInfoComponent } from './pages/profile/request-aperture/aperture-info/aperture-info.component';
+import { DashboardComponent } from './pages/profile/dashboard/dashboard.component';
+import { AuthGuard } from './core/guards/auth.guard';
 export const routes: Routes = [
   {
     path: 'home',
     component: HomeComponent,
-  },
-
-  {
-    path: 'login',
-    component: LoginPageComponent,
   },
 
   {
@@ -28,7 +25,7 @@ export const routes: Routes = [
   },
 
   {
-    path: 'pruebas-componentes',
+    path: 'pruebas',
     component: PruebasComponentesComponent,
   },
 
@@ -37,49 +34,71 @@ export const routes: Routes = [
     component: AuthComponent,
     children: [
       {
+        path: 'login',
+        component: LoginPageComponent,
+        //canActivate: [AuthGuard],
+      },
+      {
         path: '',
-        redirectTo: 'profile',
+        redirectTo: 'home',
         pathMatch: 'full',
       },
 
       {
+        path: '**',
+        redirectTo: 'home',
+        pathMatch: 'full',
+      },
+    ],
+  },
+
+  {
+    path: 'profile',
+    component: ProfileComponent,
+    canActivate: [AuthGuard],
+    children: [
+      {
+        path: 'dashboard',
+        component: DashboardComponent,
+      },
+      {
         path: 'instructor-register',
         component: InstructorRegisterComponent,
       },
-
-      {
-        path: 'profile',
-        component: ProfileComponent,
-      },
-
       {
         path: 'course-register',
         component: CourseRegisterComponent,
       },
-
+      {
+        path: 'my-courses',
+        component: MyCoursesComponent,
+      },
       {
         path: 'request-aperture',
         component: RequestApertureComponent,
         children: [
           {
+            path: 'aperture-info',
+            component: ApertureInfoComponent,
+          },
+          {
             path: '',
             redirectTo: 'request-aperture',
             pathMatch: 'full',
           },
-
-          {
-            path: 'aperture-info',
-            component: ApertureInfoComponent,
-          },
         ],
       },
-
       {
-        path: 'my-courses',
-        component: MyCoursesComponent,
+        path: '',
+        redirectTo: 'dashboard',
+        pathMatch: 'full',
+      },
+      {
+        path: '**',
+        redirectTo: 'dashboard',
+        pathMatch: 'full',
       },
     ],
-    //guards
   },
 
   {
@@ -90,6 +109,7 @@ export const routes: Routes = [
 
   {
     path: '**',
-    component: PageNotFoundComponent,
+    redirectTo: 'home',
+    pathMatch: 'full',
   },
 ];

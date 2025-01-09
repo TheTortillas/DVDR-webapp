@@ -9,51 +9,39 @@
       >
         <form [formGroup]="firstFormGroup">
           <ng-template matStepLabel>Datos Generales</ng-template>
-          <app-general-information-instructor></app-general-information-instructor>
-          <div>
-            <button mat-button matStepperNext>Siguiente</button>
+          <app-general-information-instructor
+            [formGroup]="firstFormGroup"
+          ></app-general-information-instructor>
+          <div class="flex justify-end">
+            <button mat-flat-button matStepperNext>Siguiente</button>
           </div>
         </form>
       </mat-step>
       <mat-step
         [stepControl]="secondFormGroup"
-        errorMessage="Address is required."
+        errorMessage="Llene todos los campos requeridos"
       >
         <form [formGroup]="secondFormGroup">
           <ng-template matStepLabel>Formación Académica</ng-template>
-
           <app-academic-background></app-academic-background>
-
-          <div>
-            <button mat-button matStepperPrevious>Anterior</button>
-            <button mat-button matStepperNext>Siguiente</button>
+          <div class="stepper-buttons">
+            <button mat-flat-button matStepperPrevious>Anterior</button>
+            <button mat-flat-button matStepperNext>Siguiente</button>
           </div>
         </form>
       </mat-step>
-      <!-- TERCER -->
       <mat-step
         [stepControl]="thirdFormGroup"
-        errorMessage="Address is required."
+        errorMessage="Llene todos los campos requeridos"
       >
         <form [formGroup]="thirdFormGroup">
           <ng-template matStepLabel>Experiencia Laboral</ng-template>
-
           <app-work-experience></app-work-experience>
-
-          <div>
-            <button mat-button matStepperPrevious>Anterior</button>
-            <button mat-button matStepperNext>Siguiente</button>
+          <div class="stepper-buttons">
+            <button mat-flat-button matStepperPrevious>Anterior</button>
+            <button mat-flat-button matStepperNext>Enviar</button>
           </div>
         </form>
-      </mat-step>
-      <!-- FINAL -->
-      <mat-step>
-        <ng-template matStepLabel>Done</ng-template>
-        <p>You are now done.</p>
-        <div>
-          <button mat-button matStepperPrevious>Anterior</button>
-          <!-- <button mat-button (click)="stepper.reset()">Reset</button> -->
-        </div>
       </mat-step>
     </mat-stepper>
   </div>

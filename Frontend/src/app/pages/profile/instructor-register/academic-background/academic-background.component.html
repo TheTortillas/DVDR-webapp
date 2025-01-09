@@ -1,7 +1,7 @@
 <div class="p-8">
   <div class="flex justify-between items-center mb-4">
     <h3 class="">Ingresa tu historial académico</h3>
-    <button mat-flat-button class="w-1/4" (click)="openDialog('0ms', '0ms')">
+    <button mat-stroked-button class="w-1/4" (click)="openDialog()">
       <mat-icon>add_circle</mat-icon> Añadir evidencia
     </button>
   </div>
@@ -9,9 +9,9 @@
   <div class="overflow-x-auto">
     <table mat-table [dataSource]="dataSource" class="mat-elevation-z8 w-full">
       <!-- Nivel Escolar Column -->
-      <ng-container matColumnDef="nivelEscolar">
-        <th mat-header-cell *matHeaderCellDef>Nivel Escolar</th>
-        <td mat-cell *matCellDef="let element">{{ element.nivelEscolar }}</td>
+      <ng-container matColumnDef="nivelAcademico">
+        <th mat-header-cell *matHeaderCellDef>Grado académico</th>
+        <td mat-cell *matCellDef="let element">{{ element.nivelAcademico }}</td>
       </ng-container>
 
       <!-- Periodo Column -->
@@ -36,6 +36,16 @@
       <ng-container matColumnDef="evidencia">
         <th mat-header-cell *matHeaderCellDef>Evidencia</th>
         <td mat-cell *matCellDef="let element">{{ element.evidencia }}</td>
+      </ng-container>
+
+      <!-- Eliminar Column -->
+      <ng-container matColumnDef="eliminar">
+        <th mat-header-cell *matHeaderCellDef>Eliminar</th>
+        <td mat-cell *matCellDef="let element">
+          <button mat-icon-button (click)="eliminarEvidencia(element)">
+            <mat-icon mat-button color="warn">delete</mat-icon>
+          </button>
+        </td>
       </ng-container>
 
       <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>

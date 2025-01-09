@@ -1,6 +1,8 @@
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ CREACIÓN E INICIALIZACIÓN DE LA BASE DE DATOS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 CREATE DATABASE dvdr_cursos;
 USE dvdr_cursos;
 
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ TABLAS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 CREATE TABLE users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(50) UNIQUE NOT NULL,
@@ -30,19 +32,19 @@ CREATE TABLE courses (
 		ON DELETE CASCADE
 );
 
-CREATE TABLE course_documentation (
+CREATE TABLE documents_templates (
     id INT PRIMARY KEY AUTO_INCREMENT,
-    formato_registro_cursos LONGBLOB,
-    lista_cotejo_registro_cursos LONGBLOB,
-    lista_cotejo_modalidad_no_escolarizada LONGBLOB,
-    formato_protesta_autoria LONGBLOB,
-    cronograma_actividades LONGBLOB,
-    formato_curriculum_vitae LONGBLOB,
-    carta_aval LONGBLOB,
-    
+    name VARCHAR(255) NOT NULL,
+    filePath VARCHAR(255) NOT NULL
+);
+
+CREATE TABLE course_documentation (
+	id INT PRIMARY KEY AUTO_INCREMENT,
     course_id INT NOT NULL, -- Relación con cursos
-    FOREIGN KEY (course_id) REFERENCES courses(id) 
-		ON DELETE CASCADE
+    document_id INT NOT NULL, -- Relación con plantillas de documentos
+    filePath VARCHAR(255) NOT NULL, -- Ruta al documento cargado o personalizado
+    FOREIGN KEY (course_id) REFERENCES courses(id) ON DELETE CASCADE,
+    FOREIGN KEY (document_id) REFERENCES documents_templates(id) ON DELETE CASCADE
 );
 
 -- Tabla principal: Información general del Actor
@@ -136,7 +138,12 @@ CREATE TABLE course_schedules (
         ON UPDATE CASCADE
 );
 
+CREATE TABLE academic_categories (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) UNIQUE NOT NULL
+);
 
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ PROCEDMIENTOS ALMACENADOS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 -- Procedimiento para dar de alta un usuario
 DELIMITER $$
 CREATE PROCEDURE sp_insert_user(
@@ -244,22 +251,8 @@ END$$
 DELIMITER ;
 
 
--- Ejemplo de cómo insertar un nuevo usuario con los nuevos campos
-CALL sp_insert_user('admin', 'Aguacate.20', 'Sebastián', 'Morales', 'Palacios', 'Centro de Innovación e Integración de Tecnologías Avanzadas Veracruz');
 
--- Llamar al procedimiento para verificar usuario y contraseña
-CALL sp_verify_user('admin', 'Aguacate.20', @is_valid);
-SELECT @is_valid;
-
-CALL sp_check_username('admin', @user_exists);
-SELECT @user_exists;
-
-SELECT * FROM academic_categories;
-
-CREATE TABLE academic_categories (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(255) UNIQUE NOT NULL
-);
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ LLENADO DE TABLAS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 INSERT INTO academic_categories (name) VALUES
 ('Ingeniería y Ciencias Físico-Matemáticas'),
 ('Ciencias Médico Biológicas'),
@@ -293,123 +286,28 @@ INSERT INTO centers (name, type) VALUES
 ('Centro de Innovación e Integración de Tecnologías Avanzadas Puebla', 'CITTA'),
 ('Centro de Innovación e Integración de Tecnologías Avanzadas Veracruz', 'CITTA');
 
-CREATE TABLE documents_templates (
-    id INT PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    filePath VARCHAR(255) NOT NULL
-);
 
-INSERT INTO documents_templates (id, name, filePath) VALUES
-(1, 'Formato de registro de cursos de formación a lo largo de la vida', 'assets/templates/01 FS20H 2024-2.docx'),
-(2, 'Lista de cotejo para formato de registro de cursos', 'assets/templates/01 LC20H 2024-2.xlsx'),
-(3, 'Lista de cotejo para cursos en modalidad no escolarizada', 'assets/templates/01 LC20H 2024-2.xlsx'),
-(4, 'Formato de protesta de autoría', 'assets/templates/02 FPA20H 2024.docx'),
-(5, 'Cronograma de actividades', 'assets/templates/03 CR20H 2024 .docx'),
-(6, 'Formato de curriculum vitae', 'assets/templates/04 CV20H 2024.docx'),
-(7, 'Carta aval', 'assets/templates/05 CA-ejemplo.pdf');
+INSERT INTO documents_templates (name, filePath) VALUES
+('Formato de registro de cursos de formación a lo largo de la vida', 'assets/templates/01 FS20H 2024-2.docx'),
+('Lista de cotejo para formato de registro de cursos', 'assets/templates/01 LC20H 2024-2.xlsx'),
+('Lista de cotejo para cursos en modalidad no escolarizada', 'assets/templates/01 LC20H 2024-2.xlsx'),
+('Formato de protesta de autoría', 'assets/templates/02 FPA20H 2024.docx'),
+('Cronograma de actividades', 'assets/templates/03 CR20H 2024 .docx'),
+('Formato de curriculum vitae', 'assets/templates/04 CV20H 2024.docx'),
+('Carta aval', 'assets/templates/05 CA-ejemplo.pdf');
 
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ PRUEBAS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-- Ejemplo de cómo insertar un nuevo usuario con los nuevos campos
+CALL sp_insert_user('admin', 'Aguacate.20', 'Sebastián', 'Morales', 'Palacios', 'Centro de Innovación e Integración de Tecnologías Avanzadas Veracruz');
 
+-- Llamar al procedimiento para verificar usuario y contraseña
+CALL sp_verify_user('admin', 'Aguacate.20', @is_valid);
+SELECT @is_valid;
 
-SELECT * FROM documents_templates;
+CALL sp_check_username('admin', @user_exists);
+SELECT @user_exists;
 
- -- DROP DATABASE dvdr_cursos;
- -- TRUNCATE TABLE academic_categories;
+SELECT * FROM academic_categories;
 
--- ################################################################################################################################### 
--- Crear la tabla Curso
-CREATE TABLE Curso (
-    id_curso INT PRIMARY KEY,
-    nombre VARCHAR(100) UNIQUE,
-    tipo_de_servicio VARCHAR(50),
-    categoria VARCHAR(50),
-    convenio VARCHAR(50),
-    unidad_responsable_del_servicio VARCHAR(100),
-    duracion INT NOT NULL,
-    escolaridad VARCHAR(100),
-    oferta_educativa VARCHAR(255),
-    sede VARCHAR(255),
-    plataforma_educativa VARCHAR(255),
-    costo_unitario DECIMAL(10, 2),
-    num_de_inscritos INT
-);
+-- DROP DATABASE dvdr_cursos;
 
--- Crear la tabla Instructor
-CREATE TABLE Instructor (
-    ID_instructor INT PRIMARY KEY,
-    primer_apellido VARCHAR(255),
-    segundo_apellido VARCHAR(255),
-    nombres VARCHAR(255),
-    calle VARCHAR(255),
-    numero VARCHAR(10),
-    colonia VARCHAR(255),
-    cp CHAR(5),
-    municipio_estado VARCHAR(255),
-    estado VARCHAR(255),
-    correo_electronico VARCHAR(255) UNIQUE,
-    telefono_particular VARCHAR(20),
-    telefono_celular VARCHAR(20)
-);
-
--- Crear la tabla Cronograma_calendario
-CREATE TABLE Cronograma_calendario (
-    ID_cronograma_calendario INT PRIMARY KEY,
-    fecha DATE,
-    hora_inicio TIME,
-    hora_fin TIME
-);
-
--- Crear la tabla Cronograma_curso
-CREATE TABLE Cronograma_curso (
-    ID_curso INT,
-    ID_cronograma_calendario INT,
-    horas_totales DECIMAL(5, 2),
-    fecha_inicio DATE,
-    fecha_fin DATE,
-    PRIMARY KEY (ID_curso, ID_cronograma_calendario),
-    FOREIGN KEY (ID_curso) REFERENCES Curso(ID_curso),
-    FOREIGN KEY (ID_cronograma_calendario) REFERENCES Cronograma_calendario(ID_cronograma_calendario)
-);
-
--- Crear la tabla Instructores_curso
-CREATE TABLE Instructores_curso (
-    ID_instructor INT,
-    ID_curso INT,
-    rol VARCHAR(255),
-    PRIMARY KEY (ID_instructor, ID_curso),
-    FOREIGN KEY (ID_instructor) REFERENCES Instructor(ID_instructor),
-    FOREIGN KEY (ID_curso) REFERENCES Curso(ID_curso)
-);
-
--- Crear la tabla Educacion
-CREATE TABLE Educacion (
-    ID_formacion_academica INT PRIMARY KEY,
-    nivel_escolar VARCHAR(255),
-    periodo VARCHAR(255),
-    institucion VARCHAR(255),
-    titulo_otorgado VARCHAR(255),
-    evidencia LONGBLOB
-);
-
--- Crear la tabla Experiencia
-CREATE TABLE Experiencia (
-    ID_experiencia INT PRIMARY KEY,
-    desde DATE,
-    hasta DATE,
-    organizacion VARCHAR(255),
-    puesto VARCHAR(255),
-    actividad VARCHAR(255),
-    evidencia LONGBLOB
-);
-
--- Crear la tabla Instructores_data
-CREATE TABLE Instructores_data (
-    ID_instructor INT,
-    ID_experiencia INT,
-    ID_formacion_academica INT,
-    PRIMARY KEY (ID_instructor, ID_experiencia, ID_formacion_academica),
-    FOREIGN KEY (ID_instructor) REFERENCES Instructor(ID_instructor),
-    FOREIGN KEY (ID_experiencia) REFERENCES Experiencia(ID_experiencia),
-    FOREIGN KEY (ID_formacion_academica) REFERENCES Educacion(ID_formacion_academica)
-);
-
-DROP DATABASE dvdr_cursos;

@@ -1,14 +1,6 @@
 <main class="flex justify-center py-10">
   <div class="sm:w-5/6">
     <div class="bg-white border border-gray-400 rounded-lg p-8 shadow">
-      <!-- <button
-        mat-raised-button
-        (click)="isLinear = !isLinear"
-        id="toggle-linear"
-      >
-        {{ !isLinear ? "Enable linear mode" : "Disable linear mode" }}
-      </button> -->
-
       <!-- STEPPER DE LOS PASOS PARA REGISTRAR EL CURSO -->
       <div class="bg-white">
         <mat-stepper [linear]="isLinear" #stepper [animationDuration]="'200'">
@@ -28,12 +20,8 @@
             <form [formGroup]="secondFormGroup">
               <ng-template matStepLabel>Subir documentación</ng-template>
               <app-upload-documentation></app-upload-documentation>
-
-              <div class="flex justify-start">
+              <div class="stepper-buttons">
                 <button mat-flat-button matStepperPrevious>Anterior</button>
-              </div>
-
-              <div class="flex justify-end">
                 <button mat-flat-button matStepperNext>Enviar</button>
               </div>
             </form>
@@ -44,9 +32,9 @@
             <form [formGroup]="thirdFormGroup">
               <ng-template matStepLabel>Solicitar registro</ng-template>
               <app-request-registration></app-request-registration>
-              <div>
-                <button mat-button matStepperPrevious>Anterior</button>
-                <button mat-button matStepperNext>Siguiente</button>
+              <div class="stepper-buttons">
+                <button mat-flat-button matStepperPrevious>Anterior</button>
+                <button mat-flat-button matStepperNext>Siguiente</button>
               </div>
             </form>
           </mat-step> -->
@@ -56,8 +44,8 @@
             <form [formGroup]="fourthFormGroup">
               <ng-template matStepLabel>Descargar Constancias</ng-template>
               <app-download-certificates></app-download-certificates>
-              <div>
-                <button mat-button matStepperPrevious>Anterior</button>
+              <div class="stepper-buttons">
+                <button mat-flat-button matStepperPrevious>Anterior</button>
               </div>
             </form>
           </mat-step> -->

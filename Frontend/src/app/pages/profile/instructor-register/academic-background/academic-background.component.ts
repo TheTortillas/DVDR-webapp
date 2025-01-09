@@ -6,54 +6,58 @@ import { MatTableModule } from '@angular/material/table';
 import { MatIcon } from '@angular/material/icon';
 
 export interface AcademicBackground {
-  nivelEscolar: string;
+  nivelAcademico: string;
   periodo: string;
   institucion: string;
   tituloOtorgado: string;
   evidencia: string;
 }
 
-const ELEMENT_DATA: AcademicBackground[] = [
-  {
-    nivelEscolar: 'Licenciatura',
-    periodo: '2010-2014',
-    institucion: 'Universidad X',
-    tituloOtorgado: 'Ingeniero',
-    evidencia: 'Ver',
-  },
-  // Agrega más datos según sea necesario
-];
-
 @Component({
   selector: 'app-academic-background',
   standalone: true,
   imports: [MatButton, MatTableModule, MatIcon],
   templateUrl: './academic-background.component.html',
-  styleUrl: './academic-background.component.scss',
+  styleUrls: ['./academic-background.component.scss'],
 })
 export class AcademicBackgroundComponent {
   displayedColumns: string[] = [
-    'nivelEscolar',
+    'nivelAcademico',
     'periodo',
     'institucion',
     'tituloOtorgado',
     'evidencia',
+    'eliminar',
   ];
-  dataSource = ELEMENT_DATA;
 
-  readonly dialog = inject(MatDialog);
+  dataSource: AcademicBackground[] = [
+    {
+      nivelAcademico: 'Licenciatura',
+      periodo: '2010-2014',
+      institucion: 'Universidad X',
+      tituloOtorgado: 'Ingeniero',
+      evidencia: 'Ver',
+    },
+  ];
 
-  constructor() {}
+  constructor(private dialog: MatDialog) {}
 
-  openDialog(
-    enterAnimationDuration: string,
-    exitAnimationDuration: string
-  ): void {
-    this.dialog.open(EvidenceDialogComponent, {
+  openDialog(): void {
+    const dialogRef = this.dialog.open(EvidenceDialogComponent, {
       width: '40%',
       disableClose: true,
-      enterAnimationDuration,
-      exitAnimationDuration,
     });
+
+    dialogRef
+      .afterClosed()
+      .subscribe((result: AcademicBackground | undefined) => {
+        if (result) {
+          this.dataSource = [...this.dataSource, result];
+        }
+      });
+  }
+
+  eliminarEvidencia(element: AcademicBackground): void {
+    this.dataSource = this.dataSource.filter((e) => e !== element);
   }
 }

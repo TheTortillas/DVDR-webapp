@@ -1,49 +1,38 @@
 <h2 mat-dialog-title>Evidencia Académica</h2>
 <mat-dialog-content class="flex justify-center w-full">
-  <div class="py-2">
-    <label for="nivel" class="flex mb-2 text-x font-medium text-gray-900"
-      >Nivel escolar</label
-    >
-    <mat-form-field class="w-full">
-      <mat-label>Ingresa nivel del título recibdo</mat-label>
-      <input matInput placeholder="Ex. Posgrado" />
-    </mat-form-field>
-  </div>
-
-  <div class="fechas-container py-2">
-    <label for="fechas" class="flex text-x mb-2 font-medium text-gray-900"
-      >Periodo</label
-    >
-
-    <div class="flex flex-wrap gap-4">
-      <div class="flex-1">
-        <mat-form-field class="w-full">
-          <mat-label>Inicio</mat-label>
-          <input
-            placeholder="Ex. 2011"
-            matInput
-            #from
-            type="number"
-            min="1950"
-            [max]="to.value"
-          />
-        </mat-form-field>
-      </div>
-      <div class="flex-1">
-        <mat-form-field class="w-full">
-          <mat-label>Fin</mat-label>
-          <input
-            placeholder="Ex. 2015"
-            matInput
-            #to
-            type="number"
-            [min]="from.value"
-          />
-        </mat-form-field>
-      </div>
+  <form [formGroup]="evidenceForm">
+    <div class="py-2">
+      <label for="nivel" class="flex mb-2 text-x font-medium text-gray-900"
+        >Grado académico</label
+      >
+      <mat-form-field appearance="fill" class="w-full">
+        <mat-label>Grado académico</mat-label>
+        <mat-select formControlName="nivelAcademico">
+          <mat-option value="Licenciatura / Ingeniería"
+            >Licenciatura / Ingeniería</mat-option
+          >
+          <mat-option value="Especialización">Especialización</mat-option>
+          <mat-option value="Maestría">Maestría</mat-option>
+          <mat-option value="Doctorado">Doctorado</mat-option>
+        </mat-select>
+      </mat-form-field>
     </div>
 
-    <!-- <div class="flex gap-4">
+    <div class="fechas-container py-2">
+      <label for="fechas" class="flex text-x mb-2 font-medium text-gray-900"
+        >Periodo</label
+      >
+
+      <mat-form-field appearance="fill" class="w-full">
+        <mat-label>Periodo</mat-label>
+        <input
+          matInput
+          formControlName="periodo"
+          placeholder="Ej: 2010 - 2014"
+        />
+      </mat-form-field>
+
+      <!-- <div class="flex gap-4">
       <div class="flex-1 w-1/2">
         <mat-form-field class="w-full">
           <mat-label>Mes y año de inicio</mat-label>
@@ -81,67 +70,80 @@
         </mat-form-field>
       </div>
     </div> -->
-  </div>
-
-  <div class="py-2">
-    <label for="titulo" class="flex mb-2 text-x font-medium text-gray-900"
-      >Título otorgado</label
-    >
-    <mat-form-field class="w-full">
-      <mat-label>Ingresa el título recibido</mat-label>
-      <input matInput placeholder="Ex. Licenciado en psicología" />
-    </mat-form-field>
-  </div>
-
-  <div>
-    <label for="institución" class="flex mb-2 text-x font-medium text-gray-900"
-      >Institución</label
-    >
-
-    <mat-form-field class="w-full">
-      <mat-label>Ingresa en donde recibiste tu grado</mat-label>
-      <input
-        matInput
-        placeholder="Ex. Escuela Superior de Comercio y Administración"
-      />
-    </mat-form-field>
-  </div>
-
-  <div>
-    <label for="evidencia" class="flex text-x font-medium text-gray-900">
-      Adjunta tu evidencia
-    </label>
-
-    <!-- Chips to display selected PDFs -->
-    <mat-chip-grid #chipGrid class="flex">
-      <mat-chip *ngFor="let file of selectedFiles" (removed)="removeFile(file)">
-        {{ file.name }}
-        <mat-icon matChipRemove>cancel</mat-icon>
-      </mat-chip>
-    </mat-chip-grid>
-
-    <div class="xl:p-2 bg-white">
-      <input
-        [matChipInputFor]="chipGrid"
-        #onInput
-        hidden="true"
-        type="file"
-        onclick="this.value=null"
-        (change)="onInputChange($event)"
-        accept=".pdf"
-      />
-      <button mat-flat-button (click)="onInput.click()">
-        <mat-icon>cloud_upload</mat-icon>Adjuntar documento (PDF)
-      </button>
     </div>
-  </div>
+
+    <div class="py-2">
+      <label for="titulo" class="flex mb-2 text-x font-medium text-gray-900"
+        >Título otorgado</label
+      >
+      <mat-form-field appearance="fill" class="w-full">
+        <mat-label>Título otorgado</mat-label>
+        <input
+          matInput
+          formControlName="tituloOtorgado"
+          placeholder="Ej: Ingeniero"
+        />
+      </mat-form-field>
+    </div>
+
+    <div>
+      <label
+        for="institución"
+        class="flex mb-2 text-x font-medium text-gray-900"
+        >Institución</label
+      >
+
+      <mat-form-field appearance="fill" class="w-full">
+        <mat-label>Institución</mat-label>
+        <input
+          matInput
+          formControlName="institucion"
+          placeholder="Ej: Universidad X"
+        />
+      </mat-form-field>
+    </div>
+
+    <div>
+      <label for="evidencia" class="flex text-x font-medium text-gray-900">
+        Adjunta tu evidencia
+      </label>
+
+      <!-- Chips to display selected PDFs -->
+      <mat-chip-grid #chipGrid class="flex">
+        <mat-chip
+          *ngFor="let file of selectedFiles"
+          (removed)="removeFile(file)"
+        >
+          {{ file.name }}
+          <mat-icon matChipRemove>cancel</mat-icon>
+        </mat-chip>
+      </mat-chip-grid>
+
+      <div class="xl:p-2 bg-white">
+        <input
+          [matChipInputFor]="chipGrid"
+          #onInput
+          hidden="true"
+          type="file"
+          onclick="this.value=null"
+          (change)="onInputChange($event)"
+          accept=".pdf"
+        />
+        <button mat-flat-button (click)="onInput.click()">
+          <mat-icon>cloud_upload</mat-icon>Adjuntar documento (PDF)
+        </button>
+      </div>
+    </div>
+  </form>
 </mat-dialog-content>
 
 <div>
-  <div mat-dialog-actions>
-    <button mat-stroked-button mat-dialog-close>Cancelar</button>
-    <button mat-stroked-button cdkFocusInitial>Añadir evidencia</button>
-  </div>
+  <mat-dialog-actions>
+    <button mat-stroked-button (click)="closeDialog()">Cancelar</button>
+    <button mat-stroked-button color="primary" (click)="addEvidence()">
+      Añadir evidencia
+    </button>
+  </mat-dialog-actions>
 
   <!-- 
 <div class="fechas-container py-5">

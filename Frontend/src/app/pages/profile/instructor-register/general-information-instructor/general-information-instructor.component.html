@@ -1,6 +1,6 @@
 <section class="">
   <div class="bg-white rounded-lg p-8">
-    <form class="" action="#" [formGroup]="form">
+    <form class="" [formGroup]="formGroup">
       <h4 class="">Nombre completo</h4>
       <!-- NOMBRE + APELLIDO PATERNO + APELLIDO MATERNO -->
 
@@ -13,7 +13,11 @@
           >
           <mat-form-field appearance="fill" class="w-full">
             <mat-label>Ingresa tu primer apellido</mat-label>
-            <input matInput placeholder="Ex. Pérez" />
+            <input
+              matInput
+              placeholder="Ex. Pérez"
+              formControlName="lastName"
+            />
           </mat-form-field>
         </div>
         <div class="instructor-second-last-name-container px-2 w-full md:w-1/3">
@@ -24,7 +28,11 @@
           >
           <mat-form-field appearance="fill" class="w-full">
             <mat-label>Ingresa tu segundo apellido</mat-label>
-            <input matInput placeholder="Ex. Sánchez" />
+            <input
+              matInput
+              placeholder="Ex. Sánchez"
+              formControlName="secondLastName"
+            />
           </mat-form-field>
         </div>
         <div class="instructor-name-container px-2 w-full md:w-1/3">
@@ -35,7 +43,11 @@
           >
           <mat-form-field appearance="fill" class="w-full">
             <mat-label>Ingresa tu(s) nombre(s)</mat-label>
-            <input matInput placeholder="Ex. José Antonio" />
+            <input
+              matInput
+              placeholder="Ex. José Antonio"
+              formControlName="firstName"
+            />
           </mat-form-field>
         </div>
       </div>
@@ -54,7 +66,11 @@
               >
               <mat-form-field appearance="fill" class="w-full">
                 <mat-label>Ingresa el nombre de tu calle</mat-label>
-                <input matInput placeholder="Ex. Calle Reforma" />
+                <input
+                  matInput
+                  placeholder="Ex. Calle Reforma"
+                  formControlName="street"
+                />
               </mat-form-field>
             </div>
             <div class="number-container px-2 w-full md:w-1/3">
@@ -65,7 +81,7 @@
               >
               <mat-form-field appearance="fill" class="w-full">
                 <mat-label>No. de domicilio</mat-label>
-                <input matInput placeholder="Ex. #4" />
+                <input matInput placeholder="Ex. #4" formControlName="number" />
               </mat-form-field>
             </div>
           </div>
@@ -80,7 +96,11 @@
             >
             <mat-form-field appearance="fill" class="w-full">
               <mat-label>Ingresa el nombre de tu colonia</mat-label>
-              <input matInput placeholder="Ex. Altavista" />
+              <input
+                matInput
+                placeholder="Ex. Altavista"
+                formControlName="colony"
+              />
             </mat-form-field>
           </div>
           <div class="zip-container px-2 w-full md:w-1/3">
@@ -96,6 +116,7 @@
                 #postalCode
                 maxlength="5"
                 placeholder="Ex. 94105"
+                formControlName="postalCode"
               />
               <mat-hint align="end">{{ postalCode.value.length }} / 5</mat-hint>
             </mat-form-field>
@@ -115,7 +136,11 @@
                 <mat-label
                   >Ingresa el nombre de tu Municipio / Alcaldía
                 </mat-label>
-                <input matInput placeholder="Ex. Miguel Hidalgo" />
+                <input
+                  matInput
+                  placeholder="Ex. Miguel Hidalgo"
+                  formControlName="city"
+                />
               </mat-form-field>
             </div>
             <div class="state-container px-2 w-full md:w-1/2">
@@ -126,7 +151,11 @@
               >
               <mat-form-field appearance="fill" class="w-full">
                 <mat-label>Ingresa el nombre de tu Estado</mat-label>
-                <input matInput placeholder="Ex. Ciudad de México" />
+                <input
+                  matInput
+                  placeholder="Ex. Ciudad de México"
+                  formControlName="state"
+                />
               </mat-form-field>
             </div>
           </div>
@@ -147,13 +176,21 @@
             <input
               matInput
               placeholder="nombre@ejemplo.com"
-              [formControl]="email"
-              (blur)="updateErrorMessage()"
+              formControlName="email"
               required
             />
-            @if (email.invalid && email.touched) {
-            <mat-error>{{ errorMessage() }}</mat-error>
-            }
+            <mat-error
+              *ngIf="
+                formGroup.get('email')?.invalid &&
+                formGroup.get('email')?.touched
+              "
+            >
+              {{
+                formGroup.get("email")?.hasError("required")
+                  ? "Debes ingresar un correo válido"
+                  : "Correo inválido"
+              }}
+            </mat-error>
           </mat-form-field>
         </div>
         <div class="flex flex-end w-full">
@@ -166,7 +203,12 @@
             <mat-form-field appearance="fill" class="w-full">
               <mat-label>Ingrese su télefono particular</mat-label>
               <span matTextPrefix>+52 &nbsp;</span>
-              <input type="tel" matInput placeholder="555-555-1234" />
+              <input
+                type="tel"
+                matInput
+                placeholder="555-555-1234"
+                formControlName="phone"
+              />
               <mat-icon matSuffix>local_phone</mat-icon>
             </mat-form-field>
           </div>
@@ -180,7 +222,12 @@
             <mat-form-field appearance="fill" class="w-full">
               <mat-label>Ingrese su número de teléfono celular</mat-label>
               <span matTextPrefix>+52 &nbsp;</span>
-              <input type="tel" matInput placeholder="555-555-1234" />
+              <input
+                type="tel"
+                matInput
+                placeholder="555-555-1234"
+                formControlName="mobile"
+              />
               <mat-icon matSuffix>phone_android</mat-icon>
             </mat-form-field>
           </div>

@@ -69,7 +69,7 @@ export class ProfileComponent implements OnDestroy {
     const currentTime = Math.floor(Date.now() / 1000); // Tiempo actual en segundos
     const timeToExpire = decodedToken.exp - currentTime;
 
-    console.log(`Tiempo restante de sesión: ${timeToExpire / 60} minutos`);
+    // console.log(`Tiempo restante de sesión: ${timeToExpire / 60} minutos`);
 
     if (timeToExpire <= 0) {
       // Token expirado

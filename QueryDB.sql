@@ -205,7 +205,6 @@ BEGIN
 END$$
 DELIMITER ;
 
-
 -- Procedimiento para verificar si ya eciste el username
 DELIMITER $$
 CREATE PROCEDURE sp_check_username(
@@ -296,7 +295,7 @@ INSERT INTO centers (name, type) VALUES
 
 SELECT * FROM users;
 
--- DROP DATABASE dvdr_cursos;
+ -- DROP DATABASE dvdr_cursos;
  -- TRUNCATE TABLE academic_categories;
 
 -- ################################################################################################################################### 

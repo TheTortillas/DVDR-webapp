@@ -13,6 +13,7 @@ import { MyCoursesComponent } from './pages/profile/my-courses/my-courses.compon
 import { ApertureInfoComponent } from './pages/profile/request-aperture/aperture-info/aperture-info.component';
 import { DashboardComponent } from './pages/profile/dashboard/dashboard.component';
 import { AuthGuard } from './core/guards/auth.guard';
+import { InstructorsCatalogComponent } from './pages/profile/instructors-catalog/instructors-catalog.component';
 export const routes: Routes = [
   {
     path: 'home',
@@ -60,6 +61,10 @@ export const routes: Routes = [
       {
         path: 'dashboard',
         component: DashboardComponent,
+      },
+      {
+        path: 'instructors-catalog',
+        component: InstructorsCatalogComponent,
       },
       {
         path: 'instructor-register',

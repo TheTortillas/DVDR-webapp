@@ -1,12 +1,13 @@
 import { Component } from '@angular/core';
 import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { RouterOutlet } from '@angular/router';
 
 @Component({
   selector: 'app-request-aperture',
   standalone: true,
-  imports: [MatTableModule, MatButtonModule, RouterLink],
+  imports: [MatTableModule, MatButtonModule],
   templateUrl: './request-aperture.component.html',
   styleUrls: ['./request-aperture.component.scss'],
 })
@@ -24,7 +25,10 @@ export class RequestApertureComponent {
   ];
   dataSource = this.courses;
 
+  constructor(private router: Router, private route: ActivatedRoute) {}
+
   solicitarApertura(course: { title: string }) {
     console.log(`Solicitud de apertura para el curso: ${course.title}`);
+    this.router.navigate(['aperture-info'], { relativeTo: this.route });
   }
 }

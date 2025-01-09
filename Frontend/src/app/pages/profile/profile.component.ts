@@ -21,7 +21,7 @@ import { time } from 'console';
 export class ProfileComponent implements OnDestroy {
   private tokenValidationInterval: any;
   private tokenWarningTimeout: any;
-  private readonly warningTimeInSeconds = 60; // Tiempo de advertencia en segundos
+  private readonly warningTimeInSeconds = 300; // Tiempo de advertencia en segundos
 
   private hasShownWarning = false; // Bandera para controlar la alerta
 
@@ -69,7 +69,7 @@ export class ProfileComponent implements OnDestroy {
     const currentTime = Math.floor(Date.now() / 1000); // Tiempo actual en segundos
     const timeToExpire = decodedToken.exp - currentTime;
 
-    console.log(`Tiempo restante de sesión: ${timeToExpire} segundos`);
+    console.log(`Tiempo restante de sesión: ${timeToExpire / 60} minutos`);
 
     if (timeToExpire <= 0) {
       // Token expirado
@@ -99,7 +99,9 @@ export class ProfileComponent implements OnDestroy {
   showTokenWarning(timeToExpire: number) {
     Swal.fire({
       title: 'Sesión a punto de expirar',
-      text: `Tu sesión expirará en ${timeToExpire} segundos. ¿Deseas extender la sesión?`,
+      text: `Tu sesión expirará en ${
+        timeToExpire / 60
+      } minutos. ¿Deseas extender la sesión?`,
       icon: 'warning',
       showCancelButton: true,
       confirmButtonText: 'Sí, extender sesión',

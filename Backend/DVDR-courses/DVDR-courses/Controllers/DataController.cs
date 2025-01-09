@@ -24,5 +24,12 @@ namespace DVDR_courses.Controllers
             return new JsonResult(new DBManager(_config).get_academic_categories());
         }
 
+        [HttpGet("DocumentTemplates", Name = "GetDocumentTemplates")]
+        public JsonResult GetDocumentTemplates()
+        {
+            return new JsonResult(new DBManager(_config).GetDocumentTemplates());
+        }
+
     }
+
 }

@@ -293,7 +293,24 @@ INSERT INTO centers (name, type) VALUES
 ('Centro de Innovación e Integración de Tecnologías Avanzadas Puebla', 'CITTA'),
 ('Centro de Innovación e Integración de Tecnologías Avanzadas Veracruz', 'CITTA');
 
-SELECT * FROM users;
+CREATE TABLE documents_templates (
+    id INT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    filePath VARCHAR(255) NOT NULL
+);
+
+INSERT INTO documents_templates (id, name, filePath) VALUES
+(1, 'Formato de registro de cursos de formación a lo largo de la vida', 'assets/templates/01 FS20H 2024-2.docx'),
+(2, 'Lista de cotejo para formato de registro de cursos', 'assets/templates/01 LC20H 2024-2.xlsx'),
+(3, 'Lista de cotejo para cursos en modalidad no escolarizada', 'assets/templates/01 LC20H 2024-2.xlsx'),
+(4, 'Formato de protesta de autoría', 'assets/templates/02 FPA20H 2024.docx'),
+(5, 'Cronograma de actividades', 'assets/templates/03 CR20H 2024 .docx'),
+(6, 'Formato de curriculum vitae', 'assets/templates/04 CV20H 2024.docx'),
+(7, 'Carta aval', 'assets/templates/05 CA-ejemplo.pdf');
+
+
+
+SELECT * FROM documents_templates;
 
  -- DROP DATABASE dvdr_cursos;
  -- TRUNCATE TABLE academic_categories;

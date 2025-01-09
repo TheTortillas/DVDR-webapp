@@ -11,6 +11,17 @@
     "EndpointName": "GetCategories"
   },
   {
+    "ContainingType": "DVDR_courses.Controllers.DataController",
+    "Method": "GetDocumentTemplates",
+    "RelativePath": "api/Data/DocumentTemplates",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": [],
+    "EndpointName": "GetDocumentTemplates"
+  },
+  {
     "ContainingType": "DVDR_courses.Controllers.UserManagementController",
     "Method": "RefreshToken",
     "RelativePath": "api/UserManagement/RefreshToken",

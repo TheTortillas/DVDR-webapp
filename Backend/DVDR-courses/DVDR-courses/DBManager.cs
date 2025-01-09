@@ -167,5 +167,39 @@ namespace DVDR_courses
             return categories;
         }
 
+
+        public List<DocumentTemplate> GetDocumentTemplates()
+        {
+            var templates = new List<DocumentTemplate>();
+            try
+            {
+                using (MySqlConnection con = new MySqlConnection(_config.GetConnectionString("default")))
+                {
+                    MySqlCommand command = new MySqlCommand("SELECT id, name, filePath FROM documents_templates", con);
+                    con.Open();
+                    using (MySqlDataReader reader = command.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            templates.Add(new DocumentTemplate
+                            {
+                                Id = reader.GetInt32("id"),
+                                Name = reader.GetString("name"),
+                                FilePath = reader.GetString("filePath")
+                            });
+                        }
+                    }
+                    if (con.State == System.Data.ConnectionState.Open)
+                    {
+                        con.Close();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+            }
+            return templates;
+        }
     }
 }

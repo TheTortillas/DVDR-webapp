@@ -21,4 +21,9 @@ export class DataService {
     const url = this.URLBase + '/api/Data/AcademicCategories';
     return this.httpClient.get(url, HttpOptions);
   }
+
+  public getDocumentTemplates(): Observable<any> {
+    const url = this.URLBase + '/api/Data/DocumentTemplates';
+    return this.httpClient.get(url, HttpOptions);
+  }
 }

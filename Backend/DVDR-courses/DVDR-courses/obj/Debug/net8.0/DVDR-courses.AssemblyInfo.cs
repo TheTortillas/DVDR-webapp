@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("DVDR-courses")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+68fd648f6813162dc4e9f6d2c3e96708d2688fb8")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+084e89dc7b777e4c9787219008e468d75d5aef1f")]
 [assembly: System.Reflection.AssemblyProductAttribute("DVDR-courses")]
 [assembly: System.Reflection.AssemblyTitleAttribute("DVDR-courses")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

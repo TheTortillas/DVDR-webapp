@@ -34,7 +34,7 @@ export class ProfileComponent implements OnDestroy {
   ngOnInit() {
     const username = localStorage.getItem('username');
     const center = localStorage.getItem('center');
-    console.log('Usuario:', username, 'Centro:', center);
+    // console.log('Usuario:', username, 'Centro:', center);
     if (!username || !center) {
       // Opcional: Manejo si no se encuentran datos
       console.log('Datos no encontrados en localStorage.');

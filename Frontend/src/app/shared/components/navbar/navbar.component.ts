@@ -4,12 +4,20 @@ import { RouterLink, Router } from '@angular/router';
 import { StorageService } from '../../../core/services/storage.service';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
+import { MatMenuModule } from '@angular/material/menu';
+
 import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-navbar',
   standalone: true,
-  imports: [RouterLink, MatButtonModule, CommonModule, MatIconModule],
+  imports: [
+    RouterLink,
+    MatButtonModule,
+    CommonModule,
+    MatIconModule,
+    MatMenuModule,
+  ],
   templateUrl: './navbar.component.html',
   styleUrl: './navbar.component.scss',
 })

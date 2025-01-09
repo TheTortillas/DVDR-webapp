@@ -10,24 +10,29 @@
     >
       <img src="/img/DVDRHorizontal.png" alt="Logo" width="200px" />
     </a>
-    <div class="" id="navbar-default">
+    <div id="navbar-default">
       <ul
         class="font-medium flex flex-col p-4 md:p-0 mt-4 border border-gray-100 rounded-lg bg-gray-50 md:flex-row md:space-x-8 rtl:space-x-reverse md:mt-0 md:border-0 md:bg-white"
       >
-        <li *ngIf="isLoggedInAndProfile()" class="content-center align-middle">
-          <a mat-button routerLink="../profile/instructors-catalog" class="">
-            Ver catálogo de instructores
-          </a>
-
-          <a mat-flat-button extended (click)="logout()">
-            <div
-              class="content-center align-middle"
-              style="display: inline-flex; align-items: center"
-            >
-              Cerrar sesión
-              <mat-icon style="margin-left: 8px">exit_to_app</mat-icon>
-            </div>
-          </a>
+        <!-- Mostrar el menú solo si isLoggedInAndProfile() es true -->
+        <li *ngIf="isLoggedInAndProfile()">
+          <button
+            mat-icon-button
+            [matMenuTriggerFor]="menu"
+            aria-label="Example icon-button with a menu"
+          >
+            <mat-icon>more_vert</mat-icon>
+          </button>
+          <mat-menu #menu="matMenu">
+            <button mat-menu-item routerLink="../profile/instructors-catalog">
+              <mat-icon>people</mat-icon>
+              <span>Ver catálogo de instructores</span>
+            </button>
+            <button mat-menu-item (click)="logout()" class="logout-button">
+              <mat-icon>exit_to_app</mat-icon>
+              <span>Cerrar sesión</span>
+            </button>
+          </mat-menu>
         </li>
       </ul>
     </div>

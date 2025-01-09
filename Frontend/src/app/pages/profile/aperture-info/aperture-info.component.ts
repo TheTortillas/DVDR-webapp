@@ -1,9 +1,9 @@
 import { Component, inject } from '@angular/core';
-import { ScheduleDialogComponent } from '../../../../shared/components/schedule-dialog/schedule-dialog.component';
+import { ScheduleDialogComponent } from '../../../shared/components/schedule-dialog/schedule-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { MatDivider } from '@angular/material/divider';
 import { MatRadioModule } from '@angular/material/radio';
 import { MatIcon } from '@angular/material/icon';
@@ -27,7 +27,15 @@ export class ApertureInfoComponent {
   //-------------------------------------- DIALOG CRONOGRAMA  ---------------------------------------
   readonly dialog = inject(MatDialog);
 
-  constructor() {}
+  title = '';
+  clave = '';
+
+  constructor(private route: ActivatedRoute) {
+    this.route.queryParams.subscribe((params) => {
+      this.title = params['title'] || '';
+      this.clave = params['clave'] || '';
+    });
+  }
 
   openDialog(
     enterAnimationDuration: string,

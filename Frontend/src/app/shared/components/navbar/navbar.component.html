@@ -16,23 +16,31 @@
       >
         <!-- Mostrar el menú solo si isLoggedInAndProfile() es true -->
         <li *ngIf="isLoggedInAndProfile()">
-          <button
-            mat-icon-button
-            [matMenuTriggerFor]="menu"
-            aria-label="Example icon-button with a menu"
-          >
-            <mat-icon>more_vert</mat-icon>
-          </button>
-          <mat-menu #menu="matMenu">
-            <button mat-menu-item routerLink="../profile/instructors-catalog">
-              <mat-icon>people</mat-icon>
-              <span>Ver catálogo de instructores</span>
+          <a>
+            <button
+              mat-icon-button
+              [matMenuTriggerFor]="menu"
+              aria-label="Example icon-button with a menu"
+            >
+              <mat-icon>more_vert</mat-icon>
             </button>
-            <button mat-menu-item (click)="logout()" class="logout-button">
-              <mat-icon>exit_to_app</mat-icon>
-              <span>Cerrar sesión</span>
+            <mat-menu #menu="matMenu">
+              <button mat-menu-item routerLink="../profile/instructors-catalog">
+                <mat-icon>people</mat-icon>
+                <span>Ver catálogo de instructores</span>
+              </button>
+              <button mat-menu-item (click)="logout()" class="logout-button">
+                <mat-icon>exit_to_app</mat-icon>
+                <span>Cerrar sesión</span>
+              </button>
+            </mat-menu>
+          </a>
+
+          <!-- <a>
+            <button mat-menu-item routerLink="../profile/dashboard">
+              <mat-icon>home</mat-icon>
             </button>
-          </mat-menu>
+          </a> -->
         </li>
       </ul>
     </div>

@@ -27,8 +27,14 @@ export class RequestApertureComponent {
 
   constructor(private router: Router, private route: ActivatedRoute) {}
 
-  solicitarApertura(course: { title: string }) {
+  solicitarApertura(course: { title: string; clave: string }) {
     console.log(`Solicitud de apertura para el curso: ${course.title}`);
-    this.router.navigate(['aperture-info'], { relativeTo: this.route });
+    this.router.navigate(['../aperture-info'], {
+      relativeTo: this.route,
+      queryParams: {
+        title: course.title,
+        clave: course.clave,
+      },
+    });
   }
 }

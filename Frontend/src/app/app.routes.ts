@@ -10,7 +10,7 @@ import { ProfileComponent } from './pages/profile/profile.component';
 import { AuthComponent } from './pages/auth/auth.component';
 import { RequestApertureComponent } from './pages/profile/request-aperture/request-aperture.component';
 import { MyCoursesComponent } from './pages/profile/my-courses/my-courses.component';
-import { ApertureInfoComponent } from './pages/profile/request-aperture/aperture-info/aperture-info.component';
+import { ApertureInfoComponent } from './pages/profile/aperture-info/aperture-info.component';
 import { DashboardComponent } from './pages/profile/dashboard/dashboard.component';
 import { AuthGuard } from './core/guards/auth.guard';
 import { InstructorsCatalogComponent } from './pages/profile/instructors-catalog/instructors-catalog.component';
@@ -81,17 +81,10 @@ export const routes: Routes = [
       {
         path: 'request-aperture',
         component: RequestApertureComponent,
-        children: [
-          {
-            path: 'aperture-info',
-            component: ApertureInfoComponent,
-          },
-          {
-            path: '',
-            redirectTo: 'request-aperture',
-            pathMatch: 'full',
-          },
-        ],
+      },
+      {
+        path: 'aperture-info',
+        component: ApertureInfoComponent,
       },
       {
         path: '',

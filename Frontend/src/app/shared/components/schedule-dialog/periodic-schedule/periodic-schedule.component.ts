@@ -8,7 +8,7 @@ import {
   Validators,
 } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import moment from 'moment';
 
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -130,5 +130,9 @@ export class PeriodicScheduleComponent {
     }
 
     return { hours, minutes };
+  }
+
+  getFormattedDate(date: Date): string {
+    return moment(date).format('ddd DD/MM/YYYY');
   }
 }

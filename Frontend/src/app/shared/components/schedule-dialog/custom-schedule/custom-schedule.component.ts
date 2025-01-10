@@ -22,6 +22,7 @@ import { MatTableModule } from '@angular/material/table';
 import { MatSelectModule } from '@angular/material/select';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatIcon } from '@angular/material/icon';
+import moment from 'moment';
 
 export interface customSchedule {
   date: string;
@@ -29,10 +30,7 @@ export interface customSchedule {
   end: string;
 }
 
-const ELEMENT_DATA: customSchedule[] = [
-  { date: '01/12/2025', start: '11:00 a.m.', end: '01:00 p.m.' },
-  // Agrega más datos según sea necesario
-];
+const ELEMENT_DATA: customSchedule[] = [];
 
 @Component({
   selector: 'app-custom-schedule',
@@ -63,42 +61,80 @@ const ELEMENT_DATA: customSchedule[] = [
   ],
 })
 export class CustomScheduleComponent {
-  displayedColumns: string[] = ['date', 'start', 'end'];
+  displayedColumns: string[] = ['date', 'start', 'end', 'actions'];
   dataSource = ELEMENT_DATA;
+
+  form: FormGroup;
+  totalHoursForm: FormGroup;
+
+  constructor(private fb: FormBuilder) {
+    this.form = this.fb.group({
+      date: [null, Validators.required],
+      startTime: this.fb.group({
+        hours: [
+          null,
+          [Validators.required, Validators.min(1), Validators.max(12)],
+        ],
+        minutes: [
+          null,
+          [Validators.required, Validators.min(0), Validators.max(59)],
+        ],
+        period: ['AM', Validators.required],
+      }),
+      endTime: this.fb.group({
+        hours: [
+          null,
+          [Validators.required, Validators.min(1), Validators.max(12)],
+        ],
+        minutes: [
+          null,
+          [Validators.required, Validators.min(0), Validators.max(59)],
+        ],
+        period: ['AM', Validators.required],
+      }),
+    });
+
+    this.totalHoursForm = this.fb.group({
+      totalHours: [null, Validators.required],
+    });
+  }
+
+  getFormattedTime(timeGroup: FormGroup): string {
+    const hours = timeGroup.get('hours')?.value;
+    const minutes = timeGroup.get('minutes')?.value;
+    const period = timeGroup.get('period')?.value;
+    return `${hours}:${minutes < 10 ? '0' + minutes : minutes} ${period}`;
+  }
+
+  getFormattedDate(date: Date): string {
+    return moment(date).format('ddd DD/MM/YYYY');
+  }
+
   addSchedule() {
-    // Obtener los valores de los campos de entrada
-    const dateInput = (document.getElementById('dp') as HTMLInputElement).value;
-    const startHours = (
-      document.getElementById('horaEntradaHoras') as HTMLInputElement
-    ).value;
-    const startMinutes = (
-      document.getElementById('horaEntradaMinutos') as HTMLInputElement
-    ).value;
-    const startAmPm = (
-      document.getElementById('horaEntradaAmPm') as HTMLSelectElement
-    ).value;
-    const endHours = (
-      document.getElementById('horaSalidaHoras') as HTMLInputElement
-    ).value;
-    const endMinutes = (
-      document.getElementById('horaSalidaMinutos') as HTMLInputElement
-    ).value;
-    const endAmPm = (
-      document.getElementById('horaSalidaAmPm') as HTMLSelectElement
-    ).value;
+    if (this.form.invalid) {
+      return;
+    }
 
-    // Formatear las horas y minutos junto con AM/PM
-    const startTime = `${startHours}:${startMinutes} ${startAmPm}`;
-    const endTime = `${endHours}:${endMinutes} ${endAmPm}`;
+    const dateInput = this.form.get('date')?.value;
+    const formattedDate = this.getFormattedDate(dateInput);
+    const startTime = this.getFormattedTime(
+      this.form.get('startTime') as FormGroup
+    );
+    const endTime = this.getFormattedTime(
+      this.form.get('endTime') as FormGroup
+    );
 
-    // Crear un nuevo objeto customSchedule
     const newSchedule: customSchedule = {
-      date: dateInput,
+      date: formattedDate,
       start: startTime,
       end: endTime,
     };
 
-    // Añadir el nuevo objeto al dataSource existente
     this.dataSource = [...this.dataSource, newSchedule];
+    this.form.reset();
+  }
+
+  removeSchedule(index: number) {
+    this.dataSource = this.dataSource.filter((_, i) => i !== index);
   }
 }

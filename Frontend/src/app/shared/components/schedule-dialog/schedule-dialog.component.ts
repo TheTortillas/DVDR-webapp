@@ -77,6 +77,9 @@ export class ScheduleDialogComponent {
   @ViewChild(PeriodicScheduleComponent)
   periodicScheduleComponent!: PeriodicScheduleComponent;
 
+  @ViewChild(CustomScheduleComponent)
+  customScheduleComponent!: CustomScheduleComponent;
+
   activeTab: string = 'Fechas periódicas';
 
   onTabChange(event: any) {
@@ -96,6 +99,13 @@ export class ScheduleDialogComponent {
         this.periodicScheduleComponent.form.get('endTime') as FormGroup
       );
       const selectedDays = this.periodicScheduleComponent.getSelectedDays();
+
+      const formattedStart = this.periodicScheduleComponent.getFormattedDate(
+        dateRange.start
+      );
+      const formattedEnd = this.periodicScheduleComponent.getFormattedDate(
+        dateRange.end
+      );
 
       if (
         !dateRange.start ||
@@ -137,13 +147,45 @@ export class ScheduleDialogComponent {
         end24.minutes / 60 -
         (start24.hours + start24.minutes / 60);
 
-      console.log('Fecha de inicio:', dateRange.start);
-      console.log('Fecha final:', dateRange.end);
+      // Convierte las horas y minutos a minutos
+      const startInMinutes = start24.hours * 60 + start24.minutes;
+      const endInMinutes = end24.hours * 60 + end24.minutes;
+
+      // Calcula la diferencia en minutos
+      const minutesDifference = endInMinutes - startInMinutes;
+
+      console.log('Fecha de inicio:', formattedStart);
+      console.log('Fecha final:', formattedEnd);
       console.log('Horas totales:', totalHours);
       console.log('Hora de inicio:', startTime);
       console.log('Hora de fin:', endTime);
       console.log('Días seleccionados:', selectedDays);
       console.log('Diferencia en horas:', hoursDifference);
+      console.log('Diferencia en minutos:', minutesDifference);
+
+      Swal.fire({
+        title: 'Generar cronograma',
+        text: `Estás en el tab: ${this.activeTab}`,
+        icon: 'info',
+        confirmButtonText: 'Aceptar',
+      });
+    } else if (this.activeTab === 'Fechas personalizadas') {
+      const totalHours =
+        this.customScheduleComponent.totalHoursForm.get('totalHours')?.value;
+      const schedule = this.customScheduleComponent.dataSource;
+
+      if (!totalHours || schedule.length === 0) {
+        Swal.fire({
+          title: 'Advertencia',
+          text: 'Por favor, ingresa las horas totales del curso y llena la tabla.',
+          icon: 'warning',
+          confirmButtonText: 'Aceptar',
+        });
+        return;
+      }
+
+      console.log('Horas totales:', totalHours);
+      console.log('Horario personalizado:', schedule);
 
       Swal.fire({
         title: 'Generar cronograma',

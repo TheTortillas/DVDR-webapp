@@ -104,9 +104,9 @@ export class ScheduleDialogComponent {
         selectedDays.length === 0
       ) {
         Swal.fire({
-          title: 'Error',
+          title: 'Advertencia',
           text: 'Por favor, completa todos los campos y selecciona al menos un día.',
-          icon: 'error',
+          icon: 'warning',
           confirmButtonText: 'Aceptar',
         });
         return;

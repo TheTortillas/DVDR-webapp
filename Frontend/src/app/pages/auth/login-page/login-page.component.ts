@@ -138,7 +138,7 @@ export class LoginPageComponent {
     const username = this.form.get('username')?.value;
     const password = this.form.get('password')?.value;
 
-    console.log('username:', username, 'password:', password);
+    // console.log('username:', username, 'password:', password);
 
     const user: UserSignIn = {
       username: username,

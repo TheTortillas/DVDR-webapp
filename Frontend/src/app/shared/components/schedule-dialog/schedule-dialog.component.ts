@@ -184,14 +184,96 @@ export class ScheduleDialogComponent {
         return;
       }
 
+      // Convertir "HH:MM AM/PM" a minutos
+      const parseTimeToMinutes = (timeString: string): number => {
+        const [time, period] = timeString.split(' ');
+        const [rawHours, rawMinutes] = time.split(':');
+        let hours = parseInt(rawHours, 10);
+        const minutes = parseInt(rawMinutes, 10);
+
+        if (period === 'PM' && hours < 12) {
+          hours += 12;
+        } else if (period === 'AM' && hours === 12) {
+          hours = 0;
+        }
+        return hours * 60 + minutes;
+      };
+
+      // Sumar minutos de todas las filas
+      const scheduleTotalMinutes = schedule.reduce((acc, row) => {
+        const startInMinutes = parseTimeToMinutes(row.start);
+        const endInMinutes = parseTimeToMinutes(row.end);
+        return acc + (endInMinutes - startInMinutes);
+      }, 0);
+
+      // Comparar con totalHours (pasado a minutos)
+      if (scheduleTotalMinutes !== totalHours * 60) {
+        Swal.fire({
+          title: 'Advertencia',
+          text: 'La suma de horas de los días añadidos no coincide con las horas totales del curso.',
+          icon: 'warning',
+          confirmButtonText: 'Aceptar',
+        });
+        return;
+      }
+
+      // Construir tabla HTML
+      const buildScheduleTable = (
+        data: { date: string; start: string; end: string }[]
+      ): string => {
+        let tableRows = '';
+        data.forEach((item) => {
+          tableRows += `
+            <tr>
+              <td style="border:1px solid #ccc;padding:5px;">${item.date}</td>
+              <td style="border:1px solid #ccc;padding:5px;">${item.start}</td>
+              <td style="border:1px solid #ccc;padding:5px;">${item.end}</td>
+            </tr>
+          `;
+        });
+        return `
+          <table style="border-collapse: collapse; width: 100%;">
+            <thead>
+              <tr>
+                <th style="border:1px solid #ccc;padding:5px;">Fecha</th>
+                <th style="border:1px solid #ccc;padding:5px;">Hora Inicio</th>
+                <th style="border:1px solid #ccc;padding:5px;">Hora Fin</th>
+              </tr>
+            </thead>
+            <tbody>${tableRows}</tbody>
+          </table>
+        `;
+      };
+
       console.log('Horas totales:', totalHours);
       console.log('Horario personalizado:', schedule);
+      console.log('Suma en minutos de las filas:', scheduleTotalMinutes);
 
       Swal.fire({
-        title: 'Generar cronograma',
-        text: `Estás en el tab: ${this.activeTab}`,
+        title: 'El cronograma es correcto, ¿confirmas este cronograma?',
+        html: buildScheduleTable(schedule),
         icon: 'info',
-        confirmButtonText: 'Aceptar',
+        showDenyButton: true,
+        confirmButtonText: 'Generar cronograma',
+        denyButtonText: 'No, seguir editando',
+        allowOutsideClick: false,
+      }).then((result) => {
+        if (result.isConfirmed) {
+          Swal.fire({
+            title: 'Cronograma generado',
+            text: 'Se ha confirmado el cronograma.',
+            icon: 'success',
+            confirmButtonText: 'Aceptar',
+          });
+        }
+        //  else if (result.isDenied) {
+        //   Swal.fire({
+        //     title: 'Edición del cronograma',
+        //     text: 'Puedes realizar los cambios necesarios.',
+        //     icon: 'info',
+        //     confirmButtonText: 'Aceptar',
+        //   });
+        // }
       });
     }
   }

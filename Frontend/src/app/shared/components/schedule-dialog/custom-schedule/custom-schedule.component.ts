@@ -23,8 +23,10 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatIcon } from '@angular/material/icon';
 import moment from 'moment';
+import Swal from 'sweetalert2';
 
 export interface customSchedule {
+  dateKey: string;
   date: string;
   start: string;
   end: string;
@@ -79,7 +81,7 @@ export class CustomScheduleComponent {
           null,
           [Validators.required, Validators.min(0), Validators.max(59)],
         ],
-        period: ['AM', Validators.required],
+        period: [null, Validators.required],
       }),
       endTime: this.fb.group({
         hours: [
@@ -90,7 +92,7 @@ export class CustomScheduleComponent {
           null,
           [Validators.required, Validators.min(0), Validators.max(59)],
         ],
-        period: ['AM', Validators.required],
+        period: [null, Validators.required],
       }),
     });
 
@@ -110,13 +112,52 @@ export class CustomScheduleComponent {
     return moment(date).format('ddd DD/MM/YYYY');
   }
 
+  convertTo24HourFormat(timeGroup: FormGroup): {
+    hours: number;
+    minutes: number;
+  } {
+    let hours = timeGroup.get('hours')?.value;
+    const minutes = timeGroup.get('minutes')?.value;
+    const period = timeGroup.get('period')?.value;
+
+    if (period === 'PM' && hours < 12) {
+      hours += 12;
+    } else if (period === 'AM' && hours === 12) {
+      hours = 0;
+    }
+
+    return { hours, minutes };
+  }
+
   addSchedule() {
     if (this.form.invalid) {
       return;
     }
 
+    const start24 = this.convertTo24HourFormat(
+      this.form.get('startTime') as FormGroup
+    );
+    const end24 = this.convertTo24HourFormat(
+      this.form.get('endTime') as FormGroup
+    );
+
+    if (
+      start24.hours > end24.hours ||
+      (start24.hours === end24.hours && start24.minutes >= end24.minutes)
+    ) {
+      Swal.fire({
+        title: 'Error',
+        text: 'La hora de inicio debe ser menor que la hora de fin.',
+        icon: 'error',
+        confirmButtonText: 'Aceptar',
+      });
+      return;
+    }
+
     const dateInput = this.form.get('date')?.value;
-    const formattedDate = this.getFormattedDate(dateInput);
+    const dateKey = moment(dateInput).format('YYYY-MM-DD');
+    const displayDate = moment(dateInput).format('ddd DD/MM/YYYY');
+
     const startTime = this.getFormattedTime(
       this.form.get('startTime') as FormGroup
     );
@@ -125,12 +166,26 @@ export class CustomScheduleComponent {
     );
 
     const newSchedule: customSchedule = {
-      date: formattedDate,
+      dateKey: dateKey,
+      date: displayDate,
       start: startTime,
       end: endTime,
     };
 
-    this.dataSource = [...this.dataSource, newSchedule];
+    // Busca fecha repetida y la reemplaza si existe
+    const idx = this.dataSource.findIndex((item) => item.dateKey === dateKey);
+    if (idx !== -1) {
+      this.dataSource[idx] = newSchedule;
+    } else {
+      this.dataSource.push(newSchedule);
+    }
+
+    // Ordenar por dateKey (YYYY-MM-DD) de manera ascendente
+    this.dataSource.sort((a, b) => a.dateKey.localeCompare(b.dateKey));
+
+    // Reemplazar referencia para forzar la detección de cambios en la tabla
+    this.dataSource = [...this.dataSource];
+
     this.form.reset();
   }
 

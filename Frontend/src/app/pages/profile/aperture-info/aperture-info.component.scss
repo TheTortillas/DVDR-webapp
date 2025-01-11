@@ -1,0 +1,13 @@
+.custom-dialog-container {
+    height: 100vh !important; /* Asegura que el diálogo ocupe toda la altura */
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .custom-dialog-container .mat-dialog-container {
+    height: 100%;
+    padding: 0; /* Elimina cualquier padding interno del contenedor */
+    display: flex;
+    flex-direction: column;
+  }
+  

@@ -1,20 +1,23 @@
-<h2 mat-dialog-title>Cronograma</h2>
+<div class="h-full">
+  <h2 mat-dialog-title>Cronograma</h2>
 
-<mat-dialog-content class="flex flex-wrap">
-  <mat-tab-group (selectedTabChange)="onTabChange($event)">
-    <mat-tab label="Fechas periódicas">
-      <app-periodic-schedule></app-periodic-schedule>
-    </mat-tab>
-    <mat-tab label="Fechas personalizadas">
-      <app-custom-schedule></app-custom-schedule>
-    </mat-tab>
-  </mat-tab-group>
-</mat-dialog-content>
-<mat-dialog-actions>
-  <button mat-flat-button mat-dialog-close>Cancelar</button>
-  <button mat-flat-button (click)="generateSchedule()">
-    Generar cronograma<mat-icon style="margin-right: 8px"
-      >check_circle</mat-icon
-    >
-  </button>
-</mat-dialog-actions>
+  <mat-dialog-content class="flex flex-wrap h-full">
+    <mat-tab-group (selectedTabChange)="onTabChange($event)">
+      <mat-tab label="Fechas periódicas">
+        <app-periodic-schedule class=""></app-periodic-schedule>
+      </mat-tab>
+      <mat-tab label="Fechas personalizadas">
+        <app-custom-schedule class=""></app-custom-schedule>
+      </mat-tab>
+    </mat-tab-group>
+  </mat-dialog-content>
+
+  <mat-dialog-actions class="">
+    <button mat-flat-button mat-dialog-close>Cancelar</button>
+    <button mat-flat-button (click)="generateSchedule()">
+      Generar cronograma<mat-icon style="margin-right: 8px"
+        >check_circle</mat-icon
+      >
+    </button>
+  </mat-dialog-actions>
+</div>

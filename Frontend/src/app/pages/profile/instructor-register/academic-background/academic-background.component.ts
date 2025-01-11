@@ -44,8 +44,8 @@ export class AcademicBackgroundComponent {
 
   openDialog(): void {
     const dialogRef = this.dialog.open(EvidenceDialogComponent, {
+      autoFocus: false,
       width: '40%',
-      disableClose: true,
     });
 
     dialogRef

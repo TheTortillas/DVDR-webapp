@@ -119,6 +119,15 @@ Si deseas contribuir a este proyecto, sigue estos pasos:
 4. Sube tus cambios al repositorio remoto (`git push origin feature/nueva-funcionalidad`).
 5. Abre un Pull Request para que podamos revisar tus cambios.
 
+## Issues
+
+Aquí hay algunos enlaces a problemas y soluciones que hemos encontrado durante el desarrollo:
+
+- https://stackoverflow.com/questions/58587593/angular-material-dialog-mat-dialog-actions-position
+- https://stackoverflow.com/questions/53020792/how-to-set-width-of-mat-table-column-in-angular
+- https://stackoverflow.com/questions/50718485/angular-material-button-is-in-select-state-on-dialog-open
+- https://angular.dev/update-guide?v=18.0-19.0&l=3
+
 ## Licencia
 
 Este proyecto está bajo la licencia MIT. Consulta el archivo LICENSE para más detalles.

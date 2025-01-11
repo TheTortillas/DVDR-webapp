@@ -76,9 +76,11 @@ export class ApertureInfoComponent {
     exitAnimationDuration: string
   ): void {
     const dialogRef = this.dialog.open(ScheduleDialogComponent, {
-      width: '90%',
-      height: '80%',
-      disableClose: true,
+      autoFocus: false,
+      maxWidth: '100vh',
+      maxHeight: '100vh',
+      width: '45%',
+      height: '65%h',
       enterAnimationDuration,
       exitAnimationDuration,
     });

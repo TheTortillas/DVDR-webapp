@@ -1,6 +1,6 @@
 <form [formGroup]="form">
   <!-- INPUT PARA DURACIÓN TOTAL DEL CURSO EN HORAS -->
-  <div class="duracion-container mb-4 mt-4">
+  <div class="duracion-container mb-2 mt-4">
     <label for="duracion" class="flex mb-2 text-x font-medium text-gray-900"
       >Duración total del curso (en horas)</label
     >
@@ -17,7 +17,7 @@
   </div>
 
   <!-- INPUT DEL RANGO DE APLICACIÓN DEL CURSO -->
-  <div class="fechas-container mb-4 mt-2">
+  <div class="fechas-container mb-2 mt-2">
     <label for="fechas" class="flex mb-2 text-x font-medium text-gray-900"
       >Fechas de aplicación</label
     >
@@ -41,7 +41,7 @@
   </div>
 
   <!-- INPUT PARA HORA -->
-  <div class="mt-12 mb-4">
+  <div class="mt-4 mb-2">
     <!-- INPUT PARA HORA DE ENTRADA -->
     <div class="hora-entrada-container mt-4 w-full" formGroupName="startTime">
       <label
@@ -122,11 +122,11 @@
   </div>
 
   <!-- CHECKBOXES PARA DÍAS DE LA SEMANA -->
-  <div class="dias-container py-5">
+  <div class="dias-container mt-2">
     <label for="dias" class="flex mb-2 text-x font-medium text-gray-900"
       >¿Qué días se dará el curso?</label
     >
-    <div class="flex flex-wrap gap-4 mt-4" formGroupName="daysOfWeek">
+    <div class="flex flex-wrap gap-4" formGroupName="daysOfWeek">
       <mat-checkbox
         *ngFor="let day of daysOfWeek"
         [formControlName]="day.value"

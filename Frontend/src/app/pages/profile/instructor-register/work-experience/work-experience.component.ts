@@ -53,8 +53,8 @@ export class WorkExperienceComponent {
     exitAnimationDuration: string
   ): void {
     this.dialog.open(WorkExperienceDialogComponent, {
-      width: '800px',
-      disableClose: true,
+      width: '40%',
+      autoFocus: false,
       enterAnimationDuration,
       exitAnimationDuration,
     });

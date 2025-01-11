@@ -44,7 +44,7 @@ Thumbs.db
 # Ignorar environments.ts
 #/Frontend/src/app/environments/environment.ts
 
-/Backend/DVDR-courses/.vs/
+/Backend/DVDR-courses/.vs/*
 
-#Ignorar todos los SQL
-*.sql
+**/.vscode/
+**/.vs/

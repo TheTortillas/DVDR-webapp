@@ -198,11 +198,15 @@ export class ScheduleDialogComponent {
         return acc + (endMins - startMins);
       }, 0);
 
-      // Comparar con horas totales (en minutos)
+      const scheduleHours = (scheduleTotalMinutes / 60).toFixed(2); // Horas reales
+      const expectedHours = totalHours; // Horas esperadas
+
       if (scheduleTotalMinutes !== totalHours * 60) {
         Swal.fire({
           title: 'Advertencia',
-          text: 'La suma de horas de los días generados no coincide con las horas totales del curso.',
+          html: `La suma de los horarios creados es de <b>${scheduleHours} horas</b>,
+           pero indicaste <b>${expectedHours} horas</b> en total.<br>
+           Por favor, ajusta tus horarios o corrige la duración total.`,
           icon: 'warning',
           confirmButtonText: 'Aceptar',
         });
@@ -295,11 +299,16 @@ export class ScheduleDialogComponent {
         return acc + (endInMinutes - startInMinutes);
       }, 0);
 
+      const scheduleHours = (scheduleTotalMinutes / 60).toFixed(2); // Horas reales
+      const expectedHours = totalHours; // Horas esperadas
+
       // Comparar con totalHours (pasado a minutos)
       if (scheduleTotalMinutes !== totalHours * 60) {
         Swal.fire({
           title: 'Advertencia',
-          text: 'La suma de horas de los días añadidos no coincide con las horas totales del curso.',
+          html: `La suma de los horarios creados es de <b>${scheduleHours} horas</b>,
+                 pero indicaste <b>${expectedHours} horas</b> en total.<br>
+                 Por favor, ajusta tus horarios o corrige la duración total.`,
           icon: 'warning',
           confirmButtonText: 'Aceptar',
         });

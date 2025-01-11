@@ -1,163 +1,184 @@
-<form [formGroup]="totalHoursForm">
-  <!-- INPUT PARA DURACIÓN TOTAL DEL CURSO EN HORAS -->
-  <div class="duracion-container mb-4 mt-4">
-    <label for="duracion" class="flex mb-2 text-x font-medium text-gray-900"
-      >Duración total del curso (en horas)</label
-    >
-    <mat-form-field class="w-full">
-      <mat-label>¿Cuántas horas durará el curso?</mat-label>
-      <input
-        matInput
-        placeholder="Ex. 40"
-        type="number"
-        id="duracionTotal"
-        min="0"
-        formControlName="totalHours"
-      />
-    </mat-form-field>
+<div class="flex flex-col md:flex-row gap-4">
+  <!-- Columna izquierda: Formulario -->
+  <div class="w-full md:w-1/2">
+    <!-- FORM PARA LA DURACIÓN TOTAL DEL CURSO EN HORAS -->
+    <form [formGroup]="totalHoursForm">
+      <div class="duracion-container mb-4 mt-4">
+        <label for="duracion" class="flex mb-2 text-x font-medium text-gray-900"
+          >Duración total del curso (en horas)</label
+        >
+        <mat-form-field class="w-full">
+          <mat-label>¿Cuántas horas durará el curso?</mat-label>
+          <input
+            matInput
+            placeholder="Ex. 40"
+            type="number"
+            id="duracionTotal"
+            min="0"
+            formControlName="totalHours"
+          />
+        </mat-form-field>
+      </div>
+    </form>
+
+    <mat-divider></mat-divider>
+
+    <!-- FORM PARA LAS FECHAS E INPUTS DE HORA -->
+    <form [formGroup]="form">
+      <div class="fecha-container mb-4 mt-4">
+        <div>
+          <label for="dia" class="flex mb-2 text-x font-medium text-gray-900"
+            >Selecciona el día</label
+          >
+          <mat-form-field class="w-full">
+            <mat-label>Día de aplicación</mat-label>
+            <input matInput [matDatepicker]="dp" formControlName="date" />
+            <mat-datepicker-toggle
+              matIconSuffix
+              [for]="dp"
+            ></mat-datepicker-toggle>
+            <mat-hint>DD/MM/YYYY – DD/MM/YYYY</mat-hint>
+            <mat-datepicker #dp></mat-datepicker>
+          </mat-form-field>
+        </div>
+
+        <!-- INPUT PARA HORA -->
+        <div class="mt-4 mb-4">
+          <!-- INPUT PARA HORA DE ENTRADA -->
+          <div
+            class="hora-entrada-container mt-4 w-full"
+            formGroupName="startTime"
+          >
+            <label
+              for="horaEntrada"
+              class="flex mb-2 text-x font-medium text-gray-900"
+              >Hora de entrada</label
+            >
+            <div class="flex space-x-2">
+              <mat-form-field class="w-1/3">
+                <mat-label>Horas</mat-label>
+                <input
+                  matInput
+                  placeholder="Entre 1 y 12"
+                  type="number"
+                  formControlName="hours"
+                  min="1"
+                  max="12"
+                />
+              </mat-form-field>
+              <mat-form-field class="w-1/3">
+                <mat-label>Minutos</mat-label>
+                <input
+                  matInput
+                  placeholder="Entre 0 y 59"
+                  type="number"
+                  formControlName="minutes"
+                  min="0"
+                  max="59"
+                />
+              </mat-form-field>
+              <mat-form-field class="w-1/3">
+                <mat-label>AM/PM</mat-label>
+                <mat-select formControlName="period">
+                  <mat-option value="AM">a.m.</mat-option>
+                  <mat-option value="PM">p.m.</mat-option>
+                </mat-select>
+              </mat-form-field>
+            </div>
+          </div>
+
+          <!-- INPUT PARA HORA DE SALIDA -->
+          <div
+            class="hora-salida-container mb-4 w-full"
+            formGroupName="endTime"
+          >
+            <label
+              for="horaSalida"
+              class="flex mb-2 text-x font-medium text-gray-900"
+              >Hora de salida</label
+            >
+            <div class="flex space-x-2">
+              <mat-form-field class="w-1/3">
+                <mat-label>Horas</mat-label>
+                <input
+                  matInput
+                  placeholder="Entre 1 y 12"
+                  type="number"
+                  formControlName="hours"
+                  min="1"
+                  max="12"
+                />
+              </mat-form-field>
+              <mat-form-field class="w-1/3">
+                <mat-label>Minutos</mat-label>
+                <input
+                  matInput
+                  placeholder="Entre 0 y 59"
+                  type="number"
+                  formControlName="minutes"
+                  min="0"
+                  max="59"
+                />
+              </mat-form-field>
+              <mat-form-field class="w-1/3">
+                <mat-label>AM/PM</mat-label>
+                <mat-select formControlName="period">
+                  <mat-option value="AM">a.m.</mat-option>
+                  <mat-option value="PM">p.m.</mat-option>
+                </mat-select>
+              </mat-form-field>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex justify-end">
+          <button mat-flat-button (click)="addSchedule()">
+            Agregar <mat-icon>add_circle</mat-icon>
+          </button>
+        </div>
+      </div>
+    </form>
   </div>
-</form>
 
-<mat-divider></mat-divider>
-
-<form [formGroup]="form">
-  <div class="fecha-container mb-4 mt-4">
-    <div>
-      <label for="dia" class="flex mb-2 text-x font-medium text-gray-900"
-        >Selecciona el día</label
+  <!-- Columna derecha: Tabla -->
+  <div class="w-full md:w-1/2 md:pl-4">
+    <div class="schedule-table mt-4 overflow-x-auto md:mt-0">
+      <table
+        mat-table
+        [dataSource]="dataSource"
+        class="mat-elevation-z8 w-full"
       >
-      <mat-form-field class="w-full">
-        <mat-label>Día de aplicación</mat-label>
-        <input matInput [matDatepicker]="dp" formControlName="date" />
-        <mat-datepicker-toggle matIconSuffix [for]="dp"></mat-datepicker-toggle>
-        <mat-hint>DD/MM/YYYY – DD/MM/YYYY</mat-hint>
-        <mat-datepicker #dp></mat-datepicker>
-      </mat-form-field>
-    </div>
+        <!-- Fecha Column -->
+        <ng-container matColumnDef="date">
+          <th mat-header-cell *matHeaderCellDef>Fecha</th>
+          <td mat-cell *matCellDef="let element">{{ element.date }}</td>
+        </ng-container>
 
-    <!-- INPUT PARA HORA -->
-    <div class="mt-4 mb-4">
-      <!-- INPUT PARA HORA DE ENTRADA -->
-      <div class="hora-entrada-container mt-4 w-full" formGroupName="startTime">
-        <label
-          for="horaEntrada"
-          class="flex mb-2 text-x font-medium text-gray-900"
-          >Hora de entrada</label
-        >
-        <div class="flex space-x-2">
-          <mat-form-field class="w-1/3">
-            <mat-label>Horas</mat-label>
-            <input
-              matInput
-              placeholder="Entre 1 y 12"
-              type="number"
-              formControlName="hours"
-              min="1"
-              max="12"
-            />
-          </mat-form-field>
-          <mat-form-field class="w-1/3">
-            <mat-label>Minutos</mat-label>
-            <input
-              matInput
-              placeholder="Entre 0 y 59"
-              type="number"
-              formControlName="minutes"
-              min="0"
-              max="59"
-            />
-          </mat-form-field>
-          <mat-form-field class="w-1/3">
-            <mat-label>AM/PM</mat-label>
-            <mat-select formControlName="period">
-              <mat-option value="AM">a.m.</mat-option>
-              <mat-option value="PM">p.m.</mat-option>
-            </mat-select>
-          </mat-form-field>
-        </div>
-      </div>
+        <!-- Hora de Inicio Column -->
+        <ng-container matColumnDef="start">
+          <th mat-header-cell *matHeaderCellDef>Hora de Inicio</th>
+          <td mat-cell *matCellDef="let element">{{ element.start }}</td>
+        </ng-container>
 
-      <!-- INPUT PARA HORA DE SALIDA -->
-      <div class="hora-salida-container mb-4 w-full" formGroupName="endTime">
-        <label
-          for="horaSalida"
-          class="flex mb-2 text-x font-medium text-gray-900"
-          >Hora de salida</label
-        >
-        <div class="flex space-x-2">
-          <mat-form-field class="w-1/3">
-            <mat-label>Horas</mat-label>
-            <input
-              matInput
-              placeholder="Entre 1 y 12"
-              type="number"
-              formControlName="hours"
-              min="1"
-              max="12"
-            />
-          </mat-form-field>
-          <mat-form-field class="w-1/3">
-            <mat-label>Minutos</mat-label>
-            <input
-              matInput
-              placeholder="Entre 0 y 59"
-              type="number"
-              formControlName="minutes"
-              min="0"
-              max="59"
-            />
-          </mat-form-field>
-          <mat-form-field class="w-1/3">
-            <mat-label>AM/PM</mat-label>
-            <mat-select formControlName="period">
-              <mat-option value="AM">a.m.</mat-option>
-              <mat-option value="PM">p.m.</mat-option>
-            </mat-select>
-          </mat-form-field>
-        </div>
-      </div>
-    </div>
+        <!-- Hora de Fin Column -->
+        <ng-container matColumnDef="end">
+          <th mat-header-cell *matHeaderCellDef>Hora de Fin</th>
+          <td mat-cell *matCellDef="let element">{{ element.end }}</td>
+        </ng-container>
 
-    <div class="flex justify-end">
-      <button mat-flat-button (click)="addSchedule()">
-        Agregar <mat-icon>add_circle</mat-icon>
-      </button>
+        <!-- Acciones Column -->
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef>Acciones</th>
+          <td mat-cell *matCellDef="let element; let i = index">
+            <button mat-icon-button color="warn" (click)="removeSchedule(i)">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+      </table>
     </div>
   </div>
-</form>
-
-<!-- TABLA PARA MOSTRAR EL HORARIO PERSONALIZADO -->
-<div class="schedule-table mt-4 overflow-x-auto">
-  <table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
-    <!-- Fecha Column -->
-    <ng-container matColumnDef="date">
-      <th mat-header-cell *matHeaderCellDef>Fecha</th>
-      <td mat-cell *matCellDef="let element">{{ element.date }}</td>
-    </ng-container>
-
-    <!-- Hora de Inicio Column -->
-    <ng-container matColumnDef="start">
-      <th mat-header-cell *matHeaderCellDef>Hora de Inicio</th>
-      <td mat-cell *matCellDef="let element">{{ element.start }}</td>
-    </ng-container>
-
-    <!-- Hora de Fin Column -->
-    <ng-container matColumnDef="end">
-      <th mat-header-cell *matHeaderCellDef>Hora de Fin</th>
-      <td mat-cell *matCellDef="let element">{{ element.end }}</td>
-    </ng-container>
-
-    <!-- Acciones Column -->
-    <ng-container matColumnDef="actions">
-      <th mat-header-cell *matHeaderCellDef>Acciones</th>
-      <td mat-cell *matCellDef="let element; let i = index">
-        <button mat-icon-button color="warn" (click)="removeSchedule(i)">
-          <mat-icon>delete</mat-icon>
-        </button>
-      </td>
-    </ng-container>
-
-    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-    <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
-  </table>
 </div>

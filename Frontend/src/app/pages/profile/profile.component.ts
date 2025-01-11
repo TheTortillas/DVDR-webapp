@@ -10,6 +10,7 @@ import { jwtDecode } from 'jwt-decode';
 import { StorageService } from '../../core/services/storage.service';
 import { UserManagementService } from '../../core/services/user-management.service'; // Ajusta la ruta de tu servicio
 import { time } from 'console';
+import { MatDialog } from '@angular/material/dialog';
 
 @Component({
   selector: 'app-profile',
@@ -28,7 +29,8 @@ export class ProfileComponent implements OnDestroy {
   constructor(
     private router: Router,
     private storageService: StorageService,
-    private userManagementService: UserManagementService
+    private userManagementService: UserManagementService,
+    private dialog: MatDialog
   ) {}
 
   ngOnInit() {
@@ -86,6 +88,8 @@ export class ProfileComponent implements OnDestroy {
   }
 
   handleTokenExpiration() {
+    this.dialog.closeAll();
+
     Swal.fire({
       title: 'Sesión expirada',
       text: 'Tu sesión ha expirado. Por favor, inicia sesión nuevamente.',

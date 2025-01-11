@@ -74,7 +74,7 @@ export class PeriodicScheduleComponent {
           Validators.min(0),
           Validators.max(59),
         ]),
-        period: new FormControl('AM', Validators.required),
+        period: new FormControl(null, Validators.required),
       }),
       endTime: new FormGroup({
         hours: new FormControl(null, [
@@ -87,7 +87,7 @@ export class PeriodicScheduleComponent {
           Validators.min(0),
           Validators.max(59),
         ]),
-        period: new FormControl('AM', Validators.required),
+        period: new FormControl(null, Validators.required),
       }),
       daysOfWeek: new FormGroup({
         monday: new FormControl(false),

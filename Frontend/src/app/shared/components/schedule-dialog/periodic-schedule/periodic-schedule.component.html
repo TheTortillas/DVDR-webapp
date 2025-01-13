@@ -23,7 +23,11 @@
     >
     <mat-form-field class="w-full">
       <mat-label>Ingresa el periodo de aplicación de tu curso</mat-label>
-      <mat-date-range-input [rangePicker]="picker" formGroupName="dateRange">
+      <mat-date-range-input
+        [rangePicker]="picker"
+        formGroupName="dateRange"
+        [dateFilter]="myFilter"
+      >
         <input
           matStartDate
           placeholder="Fecha de inicio"

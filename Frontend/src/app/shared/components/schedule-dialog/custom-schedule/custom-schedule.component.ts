@@ -192,4 +192,10 @@ export class CustomScheduleComponent {
   removeSchedule(index: number) {
     this.dataSource = this.dataSource.filter((_, i) => i !== index);
   }
+
+  myFilter = (d: Date | null): boolean => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Set the time to midnight to compare only the date part
+    return d ? d >= today : false;
+  };
 }

@@ -135,4 +135,11 @@ export class PeriodicScheduleComponent {
   getFormattedDate(date: Date): string {
     return moment(date).format('ddd DD/MM/YYYY');
   }
+
+  myFilter(d: Date | null): boolean {
+    if (!d) return false;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return d.getTime() >= today.getTime();
+  }
 }

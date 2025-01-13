@@ -19,6 +19,8 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatDividerModule } from '@angular/material/divider';
 import { merge } from 'rxjs';
+import { DataService } from '../../../../core/services/data.service';
+import { MatSelectModule } from '@angular/material/select';
 
 @Component({
   selector: 'app-general-information-instructor',
@@ -35,6 +37,7 @@ import { merge } from 'rxjs';
     ReactiveFormsModule,
     MatInputModule,
     CommonModule,
+    MatSelectModule,
   ],
   templateUrl: './general-information-instructor.component.html',
   styleUrl: './general-information-instructor.component.scss',
@@ -48,10 +51,16 @@ export class GeneralInformationInstructorComponent {
 
   readonly email = new FormControl('', [Validators.required, Validators.email]);
   errorMessage = signal('');
-  constructor() {
+  constructor(private dataService: DataService) {
     merge(this.email.statusChanges, this.email.valueChanges)
       .pipe(takeUntilDestroyed())
       .subscribe(() => this.updateErrorMessage());
+  }
+
+  ngOnInit() {
+    this.dataService.getCategoriasAcademicas().subscribe((data: any) => {
+      this.categories = data;
+    });
   }
 
   updateErrorMessage() {
@@ -68,5 +77,13 @@ export class GeneralInformationInstructorComponent {
   clickEvent(event: MouseEvent) {
     this.hide.set(!this.hide());
     event.stopPropagation();
+  }
+
+  //-------------------------------------- AREAS DE EXPERTISE ---------------------------------------
+  categories: string[] = [];
+  selectedCategory: string = '';
+
+  onCategoryChange(event: any) {
+    this.selectedCategory = event.value;
   }
 }

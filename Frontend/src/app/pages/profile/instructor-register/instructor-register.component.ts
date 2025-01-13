@@ -54,6 +54,7 @@ export class InstructorRegisterComponent {
     email: ['', [Validators.required, Validators.email]],
     phone: ['', Validators.required],
     mobile: ['', Validators.required],
+    expertiseAreas: ['', Validators.required],
   });
 
   secondFormGroup = this._formBuilder.group({

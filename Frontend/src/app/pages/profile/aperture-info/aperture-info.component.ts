@@ -85,6 +85,13 @@ export class ApertureInfoComponent {
       exitAnimationDuration,
     });
 
+    // Apenas se abre el diálogo, vaciamos la tabla de Fechas Personalizadas
+    dialogRef.afterOpened().subscribe(() => {
+      if (dialogRef.componentInstance.customScheduleComponent) {
+        dialogRef.componentInstance.customScheduleComponent.dataSource = [];
+      }
+    });
+
     dialogRef.afterClosed().subscribe((result: ScheduleEntry[] | undefined) => {
       if (result && result.length > 0) {
         this.generatedSchedule = result;

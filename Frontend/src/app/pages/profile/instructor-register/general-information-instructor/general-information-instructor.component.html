@@ -162,6 +162,7 @@
         </div>
       </div>
 
+      <!-- DATOS DE CONTACTO -->
       <mat-divider class="py-3"></mat-divider>
       <h4 class="">Contacto</h4>
       <div class="w-full">
@@ -231,6 +232,33 @@
               <mat-icon matSuffix>phone_android</mat-icon>
             </mat-form-field>
           </div>
+        </div>
+      </div>
+
+      <mat-divider class="py-3"></mat-divider>
+      <h4 class="">Especialidad</h4>
+      <div class="w-full">
+        <div class="especialidad-container px-2">
+          <label
+            for="email"
+            class="block mb-2 text-xl font-medium text-gray-900"
+            >Seleccione su(s) área(s) de expertise:</label
+          >
+          <mat-form-field class="w-full">
+            <mat-select
+              placeholder="Puedes seleccionar más de una"
+              formControlName="expertiseAreas"
+              (selectionChange)="onCategoryChange($event)"
+              multiple
+            >
+              <mat-option
+                *ngFor="let category of categories"
+                [value]="category"
+              >
+                {{ category }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
         </div>
       </div>
     </form>

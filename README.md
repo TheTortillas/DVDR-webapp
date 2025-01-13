@@ -127,6 +127,8 @@ Aquí hay algunos enlaces a problemas y soluciones que hemos encontrado durante 
 - https://stackoverflow.com/questions/53020792/how-to-set-width-of-mat-table-column-in-angular
 - https://stackoverflow.com/questions/50718485/angular-material-button-is-in-select-state-on-dialog-open
 - https://angular.dev/update-guide?v=18.0-19.0&l=3
+- https://stackoverflow.com/questions/43447688/setting-up-swagger-asp-net-core-using-the-authorization-headers-bearer
+- https://stackoverflow.com/questions/62986290/cant-use-angular-material-date-range-date-filter
 
 ## Licencia
 

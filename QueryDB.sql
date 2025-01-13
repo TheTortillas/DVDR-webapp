@@ -55,13 +55,14 @@ CREATE TABLE actors_general_information (
     second_last_name VARCHAR(255) NOT NULL,
     street VARCHAR(255) NOT NULL,
     house_number VARCHAR(255) NOT NULL,
-    neighborhood VARCHAR(255) NOT NULL,
+    neighborhood VARCHAR(255) NOT NULL, 	-- colonia 
     postal_code VARCHAR(5) NOT NULL,
-    city_or_district VARCHAR(255) NOT NULL,
+    municipality  VARCHAR(255) NOT NULL,
     state VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL,
     landline_phone VARCHAR(15) NOT NULL,
     mobile_phone VARCHAR(15) NOT NULL,
+    knowledge_area VARCHAR (15) NOT NULL,
 	center VARCHAR(100) NOT NULL -- EL centro que dió de alta al autor
 );
 
@@ -250,8 +251,6 @@ BEGIN
 END$$
 DELIMITER ;
 
-
-
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ LLENADO DE TABLAS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 INSERT INTO academic_categories (name) VALUES
 ('Ingeniería y Ciencias Físico-Matemáticas'),
@@ -298,16 +297,15 @@ INSERT INTO documents_templates (name, filePath) VALUES
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ PRUEBAS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 -- Ejemplo de cómo insertar un nuevo usuario con los nuevos campos
-CALL sp_insert_user('admin', 'Aguacate.20', 'Sebastián', 'Morales', 'Palacios', 'Centro de Innovación e Integración de Tecnologías Avanzadas Veracruz');
-
+CALL sp_insert_user('admin', 'admin', 'Sebastián', 'Morales', 'Palacios', 'Centro de Innovación e Integración de Tecnologías Avanzadas Veracruz');
 -- Llamar al procedimiento para verificar usuario y contraseña
-CALL sp_verify_user('admin', 'Aguacate.20', @is_valid);
-SELECT @is_valid;
+-- CALL sp_verify_user('admin', 'admin', @is_valid);
+-- SELECT @is_valid;
 
-CALL sp_check_username('admin', @user_exists);
-SELECT @user_exists;
+-- CALL sp_check_username('admin', @user_exists);
+-- SELECT @user_exists;
 
-SELECT * FROM academic_categories;
+SELECT * FROM users;
 
 -- DROP DATABASE dvdr_cursos;
 

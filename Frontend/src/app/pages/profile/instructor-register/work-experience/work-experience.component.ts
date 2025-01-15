@@ -32,15 +32,7 @@ export class WorkExperienceComponent {
     'eliminar',
   ];
 
-  dataSource: WorkExperience[] = [
-    {
-      periodo: '01/2015 - 05/2018',
-      organizacion: 'Empresa Y',
-      puesto: 'Desarrollador',
-      actividad: 'Desarrollo de software',
-      evidencia: 'Ver',
-    },
-  ];
+  dataSource: WorkExperience[] = [];
 
   constructor(private dialog: MatDialog) {}
 

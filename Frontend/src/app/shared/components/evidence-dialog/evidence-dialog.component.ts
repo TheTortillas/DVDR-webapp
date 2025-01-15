@@ -16,13 +16,19 @@ import { MatIcon } from '@angular/material/icon';
 import { MatDatepicker, MatDateRangeInput } from '@angular/material/datepicker';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { ChangeDetectionStrategy } from '@angular/core';
-import { MAT_DATE_FORMATS, MatNativeDateModule } from '@angular/material/core';
+import {
+  ErrorStateMatcher,
+  MAT_DATE_FORMATS,
+  MatNativeDateModule,
+} from '@angular/material/core';
 import {
   FormGroup,
   FormControl,
   FormsModule,
   ReactiveFormsModule,
   Validators,
+  FormGroupDirective,
+  NgForm,
 } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { MatSelectModule } from '@angular/material/select';
@@ -48,6 +54,8 @@ import { default as _rollupMoment, Moment } from 'moment';
 import * as _moment from 'moment';
 import 'moment/locale/es';
 
+import Swal from 'sweetalert2';
+
 const moment = _rollupMoment || _moment;
 
 // See the Moment.js docs for the meaning of these formats:
@@ -63,6 +71,21 @@ export const MY_FORMATS = {
     monthYearA11yLabel: 'MMMM YYYY',
   },
 };
+
+/** Error when invalid control is dirty, touched, or submitted. */
+export class MyErrorStateMatcher implements ErrorStateMatcher {
+  isErrorState(
+    control: FormControl | null,
+    form: FormGroupDirective | NgForm | null
+  ): boolean {
+    const isSubmitted = form && form.submitted;
+    return !!(
+      control &&
+      control.invalid &&
+      (control.dirty || control.touched || isSubmitted)
+    );
+  }
+}
 
 @Component({
   selector: 'app-evidence-dialog',
@@ -110,6 +133,7 @@ export class EvidenceDialogComponent {
   // readonly date = new FormControl(moment());
   evidenceForm: FormGroup;
 
+  matcher = new MyErrorStateMatcher();
   constructor(
     private fb: FormBuilder,
     private dialogRef: MatDialogRef<EvidenceDialogComponent>
@@ -165,8 +189,22 @@ export class EvidenceDialogComponent {
   addEvidence() {
     const { anioInicio, anioFin } = this.evidenceForm.value;
     this.evidenceForm.patchValue({ periodo: `${anioInicio} - ${anioFin}` });
+
+    if (this.evidenceForm.invalid) {
+      this.evidenceForm.markAllAsTouched(); // Marca todos los campos como tocados para mostrar errores
+      return;
+    }
+
+    if (this.selectedFiles.length === 0) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Advertencia',
+        text: 'Debes adjuntar un archivo.',
+      });
+      return;
+    }
+
     if (this.evidenceForm.valid) {
-      // Envía la información al componente que abrió el diálogo
       const formData = new FormData();
       formData.append('file', this.selectedFiles[0]);
 

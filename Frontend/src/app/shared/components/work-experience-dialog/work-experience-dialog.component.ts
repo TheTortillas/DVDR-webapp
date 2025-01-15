@@ -16,13 +16,19 @@ import { MatIcon } from '@angular/material/icon';
 import { MatDatepicker, MatDateRangeInput } from '@angular/material/datepicker';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { ChangeDetectionStrategy } from '@angular/core';
-import { MAT_DATE_FORMATS, MatNativeDateModule } from '@angular/material/core';
+import {
+  ErrorStateMatcher,
+  MAT_DATE_FORMATS,
+  MatNativeDateModule,
+} from '@angular/material/core';
 import {
   FormGroup,
   FormControl,
   FormsModule,
   ReactiveFormsModule,
   Validators,
+  FormGroupDirective,
+  NgForm,
 } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
@@ -48,6 +54,8 @@ import { default as _rollupMoment, Moment } from 'moment';
 import * as _moment from 'moment';
 import 'moment/locale/es';
 
+import Swal from 'sweetalert2'; // Importa SweetAlert2
+
 const moment = _rollupMoment || _moment;
 
 // See the Moment.js docs for the meaning of these formats:
@@ -63,6 +71,21 @@ export const MY_FORMATS = {
     monthYearA11yLabel: 'MMMM YYYY',
   },
 };
+
+/** Error when invalid control is dirty, touched, or submitted. */
+export class MyErrorStateMatcher implements ErrorStateMatcher {
+  isErrorState(
+    control: FormControl | null,
+    form: FormGroupDirective | NgForm | null
+  ): boolean {
+    const isSubmitted = form && form.submitted;
+    return !!(
+      control &&
+      control.invalid &&
+      (control.dirty || control.touched || isSubmitted)
+    );
+  }
+}
 
 @Component({
   selector: 'app-work-experience-dialog',
@@ -108,6 +131,8 @@ export const MY_FORMATS = {
 export class WorkExperienceDialogComponent {
   experienceForm: FormGroup;
 
+  matcher = new MyErrorStateMatcher();
+
   constructor(
     private fb: FormBuilder,
     private dialogRef: MatDialogRef<WorkExperienceDialogComponent>
@@ -130,12 +155,14 @@ export class WorkExperienceDialogComponent {
   setMonthAndYear(
     normalizedMonthAndYear: moment.Moment,
     datepicker: MatDatepicker<moment.Moment>,
-    control: FormControl
+    controlName: string
   ) {
-    const ctrlValue = control.value ?? moment();
+    // Obtén el control del formulario
+    const control = this.experienceForm.get(controlName);
+    const ctrlValue = control?.value ? moment(control.value) : moment();
     ctrlValue.month(normalizedMonthAndYear.month());
     ctrlValue.year(normalizedMonthAndYear.year());
-    control.setValue(ctrlValue);
+    control?.setValue(ctrlValue);
     datepicker.close();
   }
 
@@ -166,22 +193,27 @@ export class WorkExperienceDialogComponent {
     const inicio = moment(fechaInicio);
     const fin = moment(fechaFin);
 
-    // Valida si las fechas se pudieron convertir correctamente
-    if (!fechaInicio.isValid() || !fechaFin.isValid()) {
-      console.error('Fechas no válidas: ', fechaInicio, fechaFin);
-      return;
-    }
-
     // Formatea las fechas y establece el período
     const periodo = `${inicio.format('MM/YYYY')} - ${fin.format('MM/YYYY')}`;
     this.experienceForm.patchValue({ periodo: periodo });
 
+    if (this.experienceForm.invalid) {
+      this.experienceForm.markAllAsTouched(); // Esto obliga a mostrar los errores requeridos
+      return;
+    }
+
+    if (this.selectedFiles.length === 0) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Advertencia',
+        text: 'Debes adjuntar un archivo.',
+      });
+      return;
+    }
+
     if (this.experienceForm.valid) {
-      // Envía la información al componente que abrió el diálogo
       const formData = new FormData();
-      if (this.selectedFiles.length > 0) {
-        formData.append('file', this.selectedFiles[0]);
-      }
+      formData.append('file', this.selectedFiles[0]);
 
       this.dialogRef.close(this.experienceForm.value);
       console.log(this.experienceForm.value);
@@ -198,10 +230,5 @@ export class WorkExperienceDialogComponent {
 
   closeDialog() {
     this.dialogRef.close();
-  }
-
-  onDateChange(event: any, controlName: string) {
-    const date: Moment = event.value;
-    this.experienceForm.get(controlName)?.setValue(date);
   }
 }

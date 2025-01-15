@@ -15,6 +15,11 @@
           placeholder="Ex. Empresa Y"
           formControlName="organizacion"
         />
+        <mat-error
+          *ngIf="experienceForm.get('organizacion')?.hasError('required')"
+        >
+          Organización es <strong>requerido</strong>
+        </mat-error>
       </mat-form-field>
     </div>
 
@@ -30,6 +35,7 @@
               matInput
               [matDatepicker]="startDp"
               formControlName="fechaInicio"
+              placeholder="Ex. 02/2017"
             />
             <mat-hint>MM/YYYY</mat-hint>
             <mat-datepicker-toggle
@@ -39,10 +45,15 @@
             <mat-datepicker
               #startDp
               startView="multi-year"
-              (monthSelected)="setMonthAndYear($event, startDp, startDate)"
+              (monthSelected)="setMonthAndYear($event, startDp, 'fechaInicio')"
               panelClass="example-month-picker"
             >
             </mat-datepicker>
+            <mat-error
+              *ngIf="experienceForm.get('fechaInicio')?.hasError('required')"
+            >
+              Fecha de inicio es <strong>requerido</strong>
+            </mat-error>
           </mat-form-field>
         </div>
         <div class="flex-1 w-1/2">
@@ -52,6 +63,7 @@
               matInput
               [matDatepicker]="endDp"
               formControlName="fechaFin"
+              placeholder="Ex. 02/2017"
             />
             <mat-hint>MM/YYYY</mat-hint>
             <mat-datepicker-toggle
@@ -61,10 +73,15 @@
             <mat-datepicker
               #endDp
               startView="multi-year"
-              (monthSelected)="setMonthAndYear($event, endDp, endDate)"
+              (monthSelected)="setMonthAndYear($event, endDp, 'fechaFin')"
               panelClass="example-month-picker"
             >
             </mat-datepicker>
+            <mat-error
+              *ngIf="experienceForm.get('fechaFin')?.hasError('required')"
+            >
+              Fecha de fin es <strong>requerido</strong>
+            </mat-error>
           </mat-form-field>
         </div>
       </div>
@@ -81,6 +98,9 @@
           placeholder="Ex. Desarrollador"
           formControlName="puesto"
         />
+        <mat-error *ngIf="experienceForm.get('puesto')?.hasError('required')">
+          Puesto es <strong>requerido</strong>
+        </mat-error>
       </mat-form-field>
     </div>
 
@@ -95,6 +115,11 @@
           placeholder="Ex. Desarrollo de software"
           formControlName="actividad"
         />
+        <mat-error
+          *ngIf="experienceForm.get('actividad')?.hasError('required')"
+        >
+          Actividad es <strong>requerido</strong>
+        </mat-error>
       </mat-form-field>
     </div>
 

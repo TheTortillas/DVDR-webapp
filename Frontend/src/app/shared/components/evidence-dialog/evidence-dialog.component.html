@@ -15,6 +15,11 @@
           <mat-option value="Maestría">Maestría</mat-option>
           <mat-option value="Doctorado">Doctorado</mat-option>
         </mat-select>
+        <mat-error
+          *ngIf="evidenceForm.get('nivelAcademico')?.hasError('required')"
+        >
+          Grado académico es <strong>requerido</strong>
+        </mat-error>
       </mat-form-field>
     </div>
 
@@ -26,55 +31,36 @@
         <div class="fechas-input">
           <mat-form-field appearance="fill" class="w-full">
             <mat-label>Año de inicio</mat-label>
-            <input matInput formControlName="anioInicio" type="number" />
+            <input
+              matInput
+              formControlName="anioInicio"
+              type="number"
+              placeholder="Ex. 2017"
+            />
+            <mat-error
+              *ngIf="evidenceForm.get('anioInicio')?.hasError('required')"
+            >
+              Año de inicio es <strong>requerido</strong>
+            </mat-error>
           </mat-form-field>
         </div>
         <div class="fechas-input">
           <mat-form-field appearance="fill" class="w-full">
             <mat-label>Año de conclusión</mat-label>
-            <input matInput formControlName="anioFin" type="number" />
+            <input
+              matInput
+              formControlName="anioFin"
+              type="number"
+              placeholder="Ex. 2017"
+            />
+            <mat-error
+              *ngIf="evidenceForm.get('anioFin')?.hasError('required')"
+            >
+              Año de conclusión es <strong>requerido</strong>
+            </mat-error>
           </mat-form-field>
         </div>
       </div>
-
-      <!-- <div class="flex gap-4">
-      <div class="flex-1 w-1/2">
-        <mat-form-field class="w-full">
-          <mat-label>Mes y año de inicio</mat-label>
-          <input matInput [matDatepicker]="startDp" [formControl]="startDate" />
-          <mat-hint>MM/YYYY</mat-hint>
-          <mat-datepicker-toggle
-            matIconSuffix
-            [for]="startDp"
-          ></mat-datepicker-toggle>
-          <mat-datepicker
-            #startDp
-            startView="multi-year"
-            (monthSelected)="setMonthAndYear($event, startDp, startDate)"
-            panelClass="example-month-picker"
-          >
-          </mat-datepicker>
-        </mat-form-field>
-      </div>
-      <div class="flex-1 w-1/2">
-        <mat-form-field class="w-full">
-          <mat-label>Mes y año de fin</mat-label>
-          <input matInput [matDatepicker]="endDp" [formControl]="endDate" />
-          <mat-hint>MM/YYYY</mat-hint>
-          <mat-datepicker-toggle
-            matIconSuffix
-            [for]="endDp"
-          ></mat-datepicker-toggle>
-          <mat-datepicker
-            #endDp
-            startView="multi-year"
-            (monthSelected)="setMonthAndYear($event, endDp, endDate)"
-            panelClass="example-month-picker"
-          >
-          </mat-datepicker>
-        </mat-form-field>
-      </div>
-    </div> -->
     </div>
 
     <div class="py-2">
@@ -88,6 +74,11 @@
           formControlName="tituloOtorgado"
           placeholder="Ej: Ingeniero"
         />
+        <mat-error
+          *ngIf="evidenceForm.get('tituloOtorgado')?.hasError('required')"
+        >
+          Título otorgado es <strong>requerido</strong>
+        </mat-error>
       </mat-form-field>
     </div>
 
@@ -97,7 +88,6 @@
         class="flex mb-2 text-x font-medium text-gray-900"
         >Institución</label
       >
-
       <mat-form-field appearance="fill" class="w-full">
         <mat-label>Institución</mat-label>
         <input
@@ -105,6 +95,11 @@
           formControlName="institucion"
           placeholder="Ej: Universidad X"
         />
+        <mat-error
+          *ngIf="evidenceForm.get('institucion')?.hasError('required')"
+        >
+          Institución es <strong>requerido</strong>
+        </mat-error>
       </mat-form-field>
     </div>
 
@@ -113,7 +108,6 @@
         Adjunta tu evidencia
       </label>
 
-      <!-- Chips to display selected PDFs -->
       <mat-chip-grid #chipGrid class="flex">
         <mat-chip
           *ngIf="selectedFiles.length > 0"
@@ -149,32 +143,4 @@
       Añadir evidencia
     </button>
   </mat-dialog-actions>
-
-  <!-- 
-<div class="fechas-container py-5">
-    <label for="fechas" class="flex mb-2 text-x font-medium text-gray-900"
-      >Fechas de aplicación</label
-    >
-    <mat-form-field class="w-full">
-      <mat-label>Ingresa el periodo de aplicación de tu curso</mat-label>
-      <mat-date-range-input [rangePicker]="picker">
-        <input
-          matStartDate
-          placeholder="Fecha de inicio"
-          formControlName="fechaInicio"
-        />
-        <input
-          matEndDate
-          placeholder="Fecha final"
-          formControlName="fechaFin"
-        />
-      </mat-date-range-input>
-      <mat-hint>DD/MM/YYYY – DD/MM/YYYY</mat-hint>
-      <mat-datepicker-toggle
-        matIconSuffix
-        [for]="picker"
-      ></mat-datepicker-toggle>
-      <mat-date-range-picker #picker></mat-date-range-picker>
-    </mat-form-field>
-  </div> -->
 </div>

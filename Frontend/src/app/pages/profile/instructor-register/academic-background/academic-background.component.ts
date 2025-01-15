@@ -32,15 +32,7 @@ export class AcademicBackgroundComponent {
     'eliminar',
   ];
 
-  dataSource: AcademicBackground[] = [
-    {
-      nivelAcademico: 'Licenciatura',
-      periodo: '2010-2014',
-      institucion: 'Universidad X',
-      tituloOtorgado: 'Ingeniero',
-      evidencia: 'Ver',
-    },
-  ];
+  dataSource: AcademicBackground[] = [];
 
   constructor(private dialog: MatDialog) {}
 

@@ -51,7 +51,9 @@
 
           <div class="stepper-buttons">
             <button mat-flat-button matStepperPrevious>Anterior</button>
-            <button mat-flat-button matStepperNext>Enviar</button>
+            <button mat-flat-button matStepperNext (click)="onSubmit()">
+              Enviar
+            </button>
           </div>
         </form>
       </mat-step>

@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, ViewChild } from '@angular/core';
 import {
   FormBuilder,
   Validators,
@@ -40,6 +40,11 @@ import { WorkExperienceComponent } from './work-experience/work-experience.compo
 })
 export class InstructorRegisterComponent {
   private _formBuilder = inject(FormBuilder);
+
+  @ViewChild(AcademicBackgroundComponent)
+  academicBackgroundCmp!: AcademicBackgroundComponent;
+  @ViewChild(WorkExperienceComponent)
+  workExperienceCmp!: WorkExperienceComponent;
 
   hasAcademicRecords = false; // Variable para rastrear el estado de registros académicos
   hasWorkExperience = false; // Para experiencia laboral
@@ -84,9 +89,15 @@ export class InstructorRegisterComponent {
   validateWorkExperience(hasRecords: boolean): void {
     this.hasWorkExperience = hasRecords;
     if (this.hasWorkExperience) {
-      this.secondFormGroup.get('thirdCtrl')?.setErrors(null); // Limpia los errores si hay registros
+      this.thirdFormGroup.get('thirdCtrl')?.setErrors(null);
     } else {
-      this.secondFormGroup.get('thirdCtrl')?.setErrors({ required: true }); // Establece error si no hay registros
+      this.thirdFormGroup.get('thirdCtrl')?.setErrors({ required: true });
     }
+  }
+
+  onSubmit() {
+    console.log('Información general:', this.firstFormGroup.value);
+    console.log('Formación académica:', this.academicBackgroundCmp.dataSource);
+    console.log('Experiencia laboral:', this.workExperienceCmp.dataSource);
   }
 }

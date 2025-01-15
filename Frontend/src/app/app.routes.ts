@@ -14,6 +14,7 @@ import { ApertureInfoComponent } from './pages/profile/aperture-info/aperture-in
 import { DashboardComponent } from './pages/profile/dashboard/dashboard.component';
 import { AuthGuard } from './core/guards/auth.guard';
 import { InstructorsCatalogComponent } from './pages/profile/instructors-catalog/instructors-catalog.component';
+import { PruebasFicherosComponent } from './pages/pruebas-ficheros/pruebas-ficheros.component';
 export const routes: Routes = [
   {
     path: 'home',
@@ -29,7 +30,10 @@ export const routes: Routes = [
     path: 'pruebas',
     component: PruebasComponentesComponent,
   },
-
+  {
+    path: 'pruebas-ficheros',
+    component: PruebasFicherosComponent,
+  },
   {
     path: 'auth',
     component: AuthComponent,

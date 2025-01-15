@@ -22,15 +22,20 @@
       <label for="fechas" class="flex text-x mb-2 font-medium text-gray-900"
         >Periodo</label
       >
-
-      <mat-form-field appearance="fill" class="w-full">
-        <mat-label>Periodo</mat-label>
-        <input
-          matInput
-          formControlName="periodo"
-          placeholder="Ej: 2010 - 2014"
-        />
-      </mat-form-field>
+      <div class="fechas-inputs-container">
+        <div class="fechas-input">
+          <mat-form-field appearance="fill" class="w-full">
+            <mat-label>Año de inicio</mat-label>
+            <input matInput formControlName="anioInicio" type="number" />
+          </mat-form-field>
+        </div>
+        <div class="fechas-input">
+          <mat-form-field appearance="fill" class="w-full">
+            <mat-label>Año de conclusión</mat-label>
+            <input matInput formControlName="anioFin" type="number" />
+          </mat-form-field>
+        </div>
+      </div>
 
       <!-- <div class="flex gap-4">
       <div class="flex-1 w-1/2">
@@ -111,10 +116,10 @@
       <!-- Chips to display selected PDFs -->
       <mat-chip-grid #chipGrid class="flex">
         <mat-chip
-          *ngFor="let file of selectedFiles"
-          (removed)="removeFile(file)"
+          *ngIf="selectedFiles.length > 0"
+          (removed)="removeFile(selectedFiles[0])"
         >
-          {{ file.name }}
+          {{ selectedFiles[0].name }}
           <mat-icon matChipRemove>cancel</mat-icon>
         </mat-chip>
       </mat-chip-grid>
@@ -130,7 +135,7 @@
           accept=".pdf"
         />
         <button mat-flat-button (click)="onInput.click()">
-          <mat-icon>cloud_upload</mat-icon>Adjuntar documento (PDF)
+          <mat-icon>attach_file</mat-icon>Adjuntar documento (PDF)
         </button>
       </div>
     </div>

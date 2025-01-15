@@ -41,6 +41,9 @@ import { WorkExperienceComponent } from './work-experience/work-experience.compo
 export class InstructorRegisterComponent {
   private _formBuilder = inject(FormBuilder);
 
+  hasAcademicRecords = false; // Variable para rastrear el estado de registros académicos
+  hasWorkExperience = false; // Para experiencia laboral
+
   firstFormGroup = this._formBuilder.group({
     firstName: ['', Validators.required],
     lastName: ['', Validators.required],
@@ -60,7 +63,30 @@ export class InstructorRegisterComponent {
   secondFormGroup = this._formBuilder.group({
     secondCtrl: ['', Validators.required],
   });
+
   thirdFormGroup = this._formBuilder.group({
     thirdCtrl: ['', Validators.required],
   });
+
+  logFirstFormGroup() {
+    console.log(this.firstFormGroup.value);
+  }
+
+  validateAcademicRecords(hasRecords: boolean): void {
+    this.hasAcademicRecords = hasRecords;
+    if (this.hasAcademicRecords) {
+      this.secondFormGroup.get('secondCtrl')?.setErrors(null);
+    } else {
+      this.secondFormGroup.get('secondCtrl')?.setErrors({ required: true });
+    }
+  }
+
+  validateWorkExperience(hasRecords: boolean): void {
+    this.hasWorkExperience = hasRecords;
+    if (this.hasWorkExperience) {
+      this.secondFormGroup.get('thirdCtrl')?.setErrors(null); // Limpia los errores si hay registros
+    } else {
+      this.secondFormGroup.get('thirdCtrl')?.setErrors({ required: true }); // Establece error si no hay registros
+    }
+  }
 }

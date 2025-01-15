@@ -1,0 +1,77 @@
+<!-- src/app/file-upload/file-upload.component.html -->
+
+<div class="file-upload-container">
+  <h2>Subir Archivos del Curso</h2>
+  <form [formGroup]="uploadForm" (ngSubmit)="onSubmit()">
+    <div>
+      <label for="fileName">Nombre del Archivo:</label>
+      <input id="fileName" formControlName="fileName" type="text" />
+      <div
+        *ngIf="
+          uploadForm.get('fileName')?.invalid &&
+          uploadForm.get('fileName')?.touched
+        "
+        class="error"
+      >
+        Este campo es requerido.
+      </div>
+    </div>
+
+    <div>
+      <label for="courseDate">Fecha del Curso:</label>
+      <input id="courseDate" formControlName="courseDate" type="date" />
+      <div
+        *ngIf="
+          uploadForm.get('courseDate')?.invalid &&
+          uploadForm.get('courseDate')?.touched
+        "
+        class="error"
+      >
+        Este campo es requerido.
+      </div>
+    </div>
+
+    <div>
+      <label for="center">Centro:</label>
+      <input id="center" formControlName="center" type="text" />
+      <div
+        *ngIf="
+          uploadForm.get('center')?.invalid && uploadForm.get('center')?.touched
+        "
+        class="error"
+      >
+        Este campo es requerido.
+      </div>
+    </div>
+
+    <div>
+      <label for="files">Seleccionar Archivos:</label>
+      <input
+        id="files"
+        type="file"
+        (change)="onFileSelected($event)"
+        multiple
+      />
+      <div
+        *ngIf="
+          uploadForm.get('files')?.invalid && uploadForm.get('files')?.touched
+        "
+        class="error"
+      >
+        Debes seleccionar al menos un archivo.
+      </div>
+    </div>
+
+    <button type="submit" [disabled]="uploadForm.invalid">Subir</button>
+  </form>
+
+  <div *ngIf="uploadProgress !== null" class="progress">
+    <div class="progress-bar" [style.width.%]="uploadProgress">
+      {{ uploadProgress }}%
+    </div>
+  </div>
+
+  <div *ngIf="message" class="message">
+    {{ message }}
+  </div>
+</div>

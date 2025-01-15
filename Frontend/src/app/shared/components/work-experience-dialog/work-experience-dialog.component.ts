@@ -76,7 +76,6 @@ export const MY_FORMATS = {
     MatDialogModule,
     MatDialogActions,
     MatDialogTitle,
-    MatDialogClose,
     MatNativeDateModule,
     MatDatepickerModule,
     MatFormFieldModule,
@@ -90,7 +89,6 @@ export const MY_FORMATS = {
     MatDialogContent,
     MatDialogActions,
     MatDialogTitle,
-    MatDialogClose,
     MatTabsModule,
     MatCheckboxModule,
     MatIcon,
@@ -108,6 +106,24 @@ export const MY_FORMATS = {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class WorkExperienceDialogComponent {
+  experienceForm: FormGroup;
+
+  constructor(
+    private fb: FormBuilder,
+    private dialogRef: MatDialogRef<WorkExperienceDialogComponent>
+  ) {
+    // Ajusta este formulario según los campos que requieras
+    this.experienceForm = this.fb.group({
+      periodo: ['', Validators.required],
+      organizacion: ['', Validators.required],
+      fechaInicio: ['', Validators.required],
+      fechaFin: ['', Validators.required],
+      puesto: ['', Validators.required],
+      actividad: ['', Validators.required],
+      evidencia: [''], // Aquí podrías almacenar el nombre o path del archivo
+    });
+  }
+
   readonly startDate = new FormControl();
   readonly endDate = new FormControl();
 
@@ -132,18 +148,60 @@ export class WorkExperienceDialogComponent {
 
   // Método que se ejecuta cuando el input cambia (cuando el usuario selecciona un archivo)
   onInputChange(event: any) {
-    const file = event.target.files[0]; // Captura el archivo seleccionado (solo uno porque es un input único)
+    const file = event.target.files[0];
     if (file) {
-      //this.selectedFiles.push(file);  // Agrega el archivo a la lista de seleccionados
-      this.selectedFiles = [file]; // Agrega el archivo a la lista de seleccionados
+      // Reemplaza el archivo anterior con el nuevo archivo seleccionado
+      this.selectedFiles = [file];
+      // Genera una URL temporal para el archivo seleccionado
+      const fileUrl = URL.createObjectURL(file);
+      // Agrega el nombre del archivo y la URL al formulario
+      this.experienceForm.patchValue({ evidencia: fileUrl });
+    }
+  }
+
+  addExperience() {
+    const { fechaInicio, fechaFin } = this.experienceForm.value;
+
+    // Convertir a objetos de Moment.js si no lo son
+    const inicio = moment(fechaInicio);
+    const fin = moment(fechaFin);
+
+    // Valida si las fechas se pudieron convertir correctamente
+    if (!fechaInicio.isValid() || !fechaFin.isValid()) {
+      console.error('Fechas no válidas: ', fechaInicio, fechaFin);
+      return;
+    }
+
+    // Formatea las fechas y establece el período
+    const periodo = `${inicio.format('MM/YYYY')} - ${fin.format('MM/YYYY')}`;
+    this.experienceForm.patchValue({ periodo: periodo });
+
+    if (this.experienceForm.valid) {
+      // Envía la información al componente que abrió el diálogo
+      const formData = new FormData();
+      if (this.selectedFiles.length > 0) {
+        formData.append('file', this.selectedFiles[0]);
+      }
+
+      this.dialogRef.close(this.experienceForm.value);
+      console.log(this.experienceForm.value);
     }
   }
 
   // Método para eliminar un archivo de la lista
   removeFile(file: File) {
-    const index = this.selectedFiles.indexOf(file);
-    if (index >= 0) {
-      this.selectedFiles.splice(index, 1); // Remueve el archivo de la lista
-    }
+    // Vacía la lista de archivos seleccionados
+    this.selectedFiles = [];
+    // Limpia el campo de evidencia en el formulario
+    this.experienceForm.patchValue({ evidencia: '' });
+  }
+
+  closeDialog() {
+    this.dialogRef.close();
+  }
+
+  onDateChange(event: any, controlName: string) {
+    const date: Moment = event.value;
+    this.experienceForm.get(controlName)?.setValue(date);
   }
 }

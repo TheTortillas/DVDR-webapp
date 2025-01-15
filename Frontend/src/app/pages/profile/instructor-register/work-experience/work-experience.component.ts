@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, EventEmitter, inject, Output } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { WorkExperienceDialogComponent } from '../../../../shared/components/work-experience-dialog/work-experience-dialog.component';
 import { MatButton } from '@angular/material/button';
@@ -6,25 +6,12 @@ import { MatTableModule } from '@angular/material/table';
 import { MatIcon } from '@angular/material/icon';
 
 export interface WorkExperience {
-  desde: string;
-  hasta: string;
+  periodo: string;
   organizacion: string;
   puesto: string;
   actividad: string;
   evidencia: string;
 }
-
-const ELEMENT_DATA_WORK: WorkExperience[] = [
-  {
-    desde: '01/2015',
-    hasta: '05/2018',
-    organizacion: 'Empresa Y',
-    puesto: 'Desarrollador',
-    actividad: 'Desarrollo de software',
-    evidencia: 'Ver',
-  },
-  // Agrega más datos según sea necesario
-];
 
 @Component({
   selector: 'app-work-experience',
@@ -34,29 +21,50 @@ const ELEMENT_DATA_WORK: WorkExperience[] = [
   styleUrl: './work-experience.component.scss',
 })
 export class WorkExperienceComponent {
+  @Output() dataSourceChange = new EventEmitter<boolean>();
+
   displayedColumns: string[] = [
-    'desde',
-    'hasta',
+    'periodo',
     'organizacion',
     'puesto',
     'actividad',
     'evidencia',
+    'eliminar',
   ];
-  dataSource = ELEMENT_DATA_WORK;
 
-  readonly dialog = inject(MatDialog);
+  dataSource: WorkExperience[] = [
+    {
+      periodo: '01/2015 - 05/2018',
+      organizacion: 'Empresa Y',
+      puesto: 'Desarrollador',
+      actividad: 'Desarrollo de software',
+      evidencia: 'Ver',
+    },
+  ];
 
-  constructor() {}
+  constructor(private dialog: MatDialog) {}
 
-  openDialog(
-    enterAnimationDuration: string,
-    exitAnimationDuration: string
-  ): void {
-    this.dialog.open(WorkExperienceDialogComponent, {
-      width: '40%',
+  openDialog(): void {
+    const dialogRef = this.dialog.open(WorkExperienceDialogComponent, {
       autoFocus: false,
-      enterAnimationDuration,
-      exitAnimationDuration,
+      width: '40%',
     });
+
+    dialogRef.afterClosed().subscribe((result: WorkExperience | undefined) => {
+      if (result) {
+        this.dataSource = [...this.dataSource, result];
+        this.dataSourceChange.emit(this.dataSource.length > 0);
+      }
+    });
+  }
+
+  verEvidencia(element: WorkExperience): void {
+    // Abre la URL del archivo en una nueva ventana
+    window.open(element.evidencia, '_blank');
+  }
+
+  eliminarEvidencia(element: WorkExperience): void {
+    this.dataSource = this.dataSource.filter((e) => e !== element);
+    this.dataSourceChange.emit(this.dataSource.length > 0);
   }
 }

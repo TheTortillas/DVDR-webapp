@@ -119,6 +119,8 @@ export class EvidenceDialogComponent {
       nivelAcademico: ['', Validators.required],
       tituloOtorgado: ['', Validators.required],
       institucion: ['', Validators.required],
+      anioInicio: [null, Validators.required],
+      anioFin: [null, Validators.required],
       periodo: ['', Validators.required],
       evidencia: [''], // Aquí podrías almacenar el nombre o path del archivo
     });
@@ -148,17 +150,26 @@ export class EvidenceDialogComponent {
 
   // Método que se ejecuta cuando el input cambia (cuando el usuario selecciona un archivo)
   onInputChange(event: any) {
-    const file = event.target.files[0]; // Captura el archivo seleccionado (solo uno porque es un input único)
+    const file = event.target.files[0];
     if (file) {
-      //this.selectedFiles.push(file);  // Agrega el archivo a la lista de seleccionados
-      this.selectedFiles = [file]; // Agrega el archivo a la lista de seleccionados
+      // Reemplaza el archivo anterior con el nuevo archivo seleccionado
+      this.selectedFiles = [file];
+      // Genera una URL temporal para el archivo seleccionado
+      const fileUrl = URL.createObjectURL(file);
+      // Agrega el nombre del archivo y la URL al formulario
+      this.evidenceForm.patchValue({ evidencia: fileUrl });
     }
   }
 
   // Llamado al hacer clic en "Añadir evidencia"
   addEvidence() {
+    const { anioInicio, anioFin } = this.evidenceForm.value;
+    this.evidenceForm.patchValue({ periodo: `${anioInicio} - ${anioFin}` });
     if (this.evidenceForm.valid) {
       // Envía la información al componente que abrió el diálogo
+      const formData = new FormData();
+      formData.append('file', this.selectedFiles[0]);
+
       this.dialogRef.close(this.evidenceForm.value);
       console.log(this.evidenceForm.value);
     }
@@ -166,10 +177,10 @@ export class EvidenceDialogComponent {
 
   // Método para eliminar un archivo de la lista
   removeFile(file: File) {
-    const index = this.selectedFiles.indexOf(file);
-    if (index >= 0) {
-      this.selectedFiles.splice(index, 1); // Remueve el archivo de la lista
-    }
+    // Vacía la lista de archivos seleccionados
+    this.selectedFiles = [];
+    // Limpia el campo de evidencia en el formulario
+    this.evidenceForm.patchValue({ evidencia: '' });
   }
 
   closeDialog() {

@@ -68,7 +68,7 @@
                 <mat-label>Ingresa el nombre de tu calle</mat-label>
                 <input
                   matInput
-                  placeholder="Ex. Calle Reforma"
+                  placeholder="Ex. Reforma"
                   formControlName="street"
                 />
               </mat-form-field>
@@ -81,7 +81,7 @@
               >
               <mat-form-field appearance="fill" class="w-full">
                 <mat-label>No. de domicilio</mat-label>
-                <input matInput placeholder="Ex. #4" formControlName="number" />
+                <input matInput placeholder="Ex. 4" formControlName="number" />
               </mat-form-field>
             </div>
           </div>
@@ -207,6 +207,7 @@
               <input
                 type="tel"
                 matInput
+                maxlength="10"
                 placeholder="555-555-1234"
                 formControlName="phone"
               />
@@ -226,6 +227,7 @@
               <input
                 type="tel"
                 matInput
+                maxlength="10"
                 placeholder="555-555-1234"
                 formControlName="mobile"
               />

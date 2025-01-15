@@ -6,4 +6,11 @@
     display: none;
   }
 
+  .fechas-inputs-container {
+    display: flex;
+    gap: 16px; /* Espacio entre los inputs */
+  }
   
+  .fechas-input {
+    flex: 1; /* Hace que los inputs ocupen el mismo espacio */
+  }

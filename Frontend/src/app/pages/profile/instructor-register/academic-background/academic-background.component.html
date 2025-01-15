@@ -35,7 +35,11 @@
       <!-- Evidencia Column -->
       <ng-container matColumnDef="evidencia">
         <th mat-header-cell *matHeaderCellDef>Evidencia</th>
-        <td mat-cell *matCellDef="let element">{{ element.evidencia }}</td>
+        <td mat-cell *matCellDef="let element">
+          <button mat-icon-button (click)="verEvidencia(element)">
+            <mat-icon mat-button>insert_drive_file</mat-icon>
+          </button>
+        </td>
       </ng-container>
 
       <!-- Eliminar Column -->

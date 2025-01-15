@@ -89,7 +89,7 @@ export class ProfileComponent implements OnDestroy {
 
   handleTokenExpiration() {
     this.dialog.closeAll();
-
+    this.storageService.clear();
     Swal.fire({
       title: 'Sesión expirada',
       text: 'Tu sesión ha expirado. Por favor, inicia sesión nuevamente.',

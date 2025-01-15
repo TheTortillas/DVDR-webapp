@@ -3,33 +3,48 @@ CREATE DATABASE dvdr_cursos;
 USE dvdr_cursos;
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ TABLAS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+CREATE TABLE centers (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    type ENUM('CITTA', 'CVDR', 'UA') NOT NULL,
+    identifier INT NOT NULL,
+    UNIQUE KEY (type, identifier) -- Índice compuesto
+);
+
 CREATE TABLE users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(50) UNIQUE NOT NULL,
     password VARCHAR(255) NOT NULL,
-    first_name VARCHAR(100) NOT NULL,  
-    last_name VARCHAR(100) NOT NULL,  
-    second_last_name VARCHAR(100),     
-    center VARCHAR(100) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    first_name VARCHAR(100) NOT NULL,
+    last_name VARCHAR(100) NOT NULL,
+    second_last_name VARCHAR(100),
+    center_id INT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (center_id) REFERENCES centers(id)
 );
 
 CREATE TABLE courses (
     id INT PRIMARY KEY AUTO_INCREMENT,
-    course_name VARCHAR(255) NOT NULL,	-- nombre
-    service_type VARCHAR(255) NOT NULL, -- curso, diplomado u otro
-    category VARCHAR(255) NOT NULL, 	-- matematicas, medico biologicas, ...
-    agreement VARCHAR(255), 			-- convenio (opcional)
-    total_duration INT NOT NULL,		-- duración total en horas
-    modality VARCHAR(255) NOT NULL,		-- escolarizada, no escolarizada, mixta
-    educational_offer VARCHAR(255) NOT NULL, -- medio, superior, posgrado
-    educational_platform VARCHAR(255) NOT NULL,	-- zoom, meet, teams ...
-	course_key VARCHAR(50) UNIQUE NOT NULL, -- Clave única para el curso
-	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    course_name VARCHAR(255),
+    service_type VARCHAR(255),
+    category VARCHAR(255),
+    agreement VARCHAR(255),
+    total_duration INT,
+    modality VARCHAR(255),
+    educational_offer VARCHAR(255),
+    educational_platform VARCHAR(255),
+    course_key VARCHAR(50),
+    status ENUM('draft', 'submitted') DEFAULT 'draft' NOT NULL,
+    approval_status ENUM('pending', 'approved', 'rejected') DEFAULT 'pending' NOT NULL,
+    admin_notes TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     
-	user_id INT NOT NULL, -- Relación con usuarios
+    user_id INT NOT NULL,
     FOREIGN KEY (user_id) REFERENCES users(id) 
-		ON DELETE CASCADE
+        ON DELETE CASCADE,
+    
+    UNIQUE (course_key, status)
 );
 
 CREATE TABLE documents_templates (
@@ -47,7 +62,6 @@ CREATE TABLE course_documentation (
     FOREIGN KEY (document_id) REFERENCES documents_templates(id) ON DELETE CASCADE
 );
 
--- Tabla principal: Información general del Actor
 CREATE TABLE actors_general_information (
     id INT PRIMARY KEY AUTO_INCREMENT,
     first_name VARCHAR(255) NOT NULL,
@@ -55,15 +69,17 @@ CREATE TABLE actors_general_information (
     second_last_name VARCHAR(255) NOT NULL,
     street VARCHAR(255) NOT NULL,
     house_number VARCHAR(255) NOT NULL,
-    neighborhood VARCHAR(255) NOT NULL, 	-- colonia 
+    neighborhood VARCHAR(255) NOT NULL,
     postal_code VARCHAR(5) NOT NULL,
-    municipality  VARCHAR(255) NOT NULL,
+    municipality VARCHAR(255) NOT NULL,
     state VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL,
     landline_phone VARCHAR(15) NOT NULL,
     mobile_phone VARCHAR(15) NOT NULL,
-    knowledge_area VARCHAR (15) NOT NULL,
-	center VARCHAR(100) NOT NULL -- EL centro que dió de alta al autor
+    knowledge_area VARCHAR(15) NOT NULL,
+    center_type ENUM('CITTA', 'CVDR', 'UA') NOT NULL, -- Relación con el tipo de centro
+    center_identifier INT NOT NULL, -- Relación con el identificador
+    FOREIGN KEY (center_type, center_identifier) REFERENCES centers(type, identifier)
 );
 
 -- Tabla de historial académico, relacionada con el instructor
@@ -114,7 +130,6 @@ CREATE TABLE course_actor_roles (
 CREATE TABLE course_sessions (
     id INT PRIMARY KEY AUTO_INCREMENT,
     course_id INT NOT NULL, -- Relación con la tabla de cursos
-    course_subkey VARCHAR(255) NOT NULL, -- Sublcave del curso
     period VARCHAR(255) NOT NULL, -- Periodo en el que se impartió el curso (Ene2024-Mar2024)
     number_of_participants INT NOT NULL, -- Número de personas que tomaron el curso
     number_of_certificates INT NOT NULL, -- Constancias entregadas
@@ -157,7 +172,8 @@ CREATE PROCEDURE sp_insert_user(
 )
 BEGIN
     DECLARE hashed_password VARCHAR(255);
-    
+    DECLARE v_center_id INT;
+
     -- Manejo de errores
     DECLARE EXIT HANDLER FOR SQLEXCEPTION 
     BEGIN
@@ -170,19 +186,35 @@ BEGIN
         ROLLBACK;
         SELECT -1 AS status_code, 'Advertencia: Hubo un problema en la base de datos.' AS mensaje;
     END;
-    
-    START TRANSACTION;
-		SET hashed_password = SHA2(p_password, 256);
 
-		INSERT INTO users (username, password, first_name, last_name, second_last_name, center)
-		VALUES (p_username, hashed_password, p_first_name, p_last_name, p_second_last_name, p_center);
-		
-		SELECT 1 AS status_code, 'Éxito: Usuario insertado correctamente.' AS mensaje;
+    START TRANSACTION;
+
+    -- Obtener el id del centro a partir del nombre
+    SELECT id INTO v_center_id 
+    FROM centers 
+    WHERE name = p_center 
+    LIMIT 1;
+
+    -- Verificar que el centro exista
+    IF v_center_id IS NULL THEN
+        SIGNAL SQLSTATE '45000' 
+            SET MESSAGE_TEXT = 'Error: El centro especificado no existe.';
+    END IF;
+
+    -- Hash de la contraseña
+    SET hashed_password = SHA2(p_password, 256);
+
+    -- Insertar el nuevo usuario
+    INSERT INTO users (username, password, first_name, last_name, second_last_name, center_id)
+    VALUES (p_username, hashed_password, p_first_name, p_last_name, p_second_last_name, v_center_id);
+
     COMMIT;
+
+    -- Confirmación de éxito
+    SELECT 1 AS status_code, 'Éxito: Usuario insertado correctamente.' AS mensaje;
 END$$
 DELIMITER ;
 
--- Procedimiento para verificar si el usuario y contraseña son correctos
 DELIMITER $$
 CREATE PROCEDURE sp_verify_user(
     IN p_username VARCHAR(50),
@@ -194,21 +226,38 @@ BEGIN
     DECLARE stored_password VARCHAR(255);
     DECLARE user_center VARCHAR(100);
 
-    START TRANSACTION;
-        SELECT password, center INTO stored_password, user_center
-        FROM users
-        WHERE username = p_username;
+    -- Manejo de errores
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        ROLLBACK;
+        SET p_is_valid = FALSE;
+        SET p_user_center = NULL;
+    END;
 
-        IF stored_password IS NULL THEN
-            SET p_is_valid = FALSE;
+    START TRANSACTION;
+
+    -- Obtener la contraseña almacenada, el nombre del centro y el identificador del centro
+    SELECT u.password, c.name
+    INTO stored_password, user_center
+    FROM users u
+    INNER JOIN centers c ON u.center_id = c.id
+    WHERE u.username = p_username
+    LIMIT 1;
+
+    -- Verificar si el usuario existe y validar la contraseña
+    IF stored_password IS NULL THEN
+        SET p_is_valid = FALSE;
+        SET p_user_center = NULL;
+    ELSE
+        IF SHA2(p_password, 256) = stored_password THEN
+            SET p_is_valid = TRUE;
+            SET p_user_center = user_center;
         ELSE
-            IF SHA2(p_password, 256) = stored_password THEN
-                SET p_is_valid = TRUE;
-                SET p_user_center = user_center;
-            ELSE
-                SET p_is_valid = FALSE;
-            END IF;
+            SET p_is_valid = FALSE;
+            SET p_user_center = NULL;
         END IF;
+    END IF;
+
     COMMIT;
 END$$
 DELIMITER ;
@@ -262,29 +311,22 @@ INSERT INTO academic_categories (name) VALUES
 ('Educación'),
 ('TIC');
 
-CREATE TABLE centers (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    type ENUM('CITTA', 'DVDR') NOT NULL
-);
-INSERT INTO centers (name, type) VALUES
-('Centro de Vinculación y Desarrollo Regional Unidad Tampico', 'DVDR'),
-('Centro de Vinculación y Desarrollo Regional Culiacán', 'DVDR'),
-('Centro de Vinculación y Desarrollo Regional Unidad Cajeme', 'DVDR'),
-('Centro de Vinculación y Desarrollo Regional Unidad Cancún', 'DVDR'),
-('Centro de Vinculación y Desarrollo Regional Unidad Campeche', 'DVDR'),
-('Centro de Vinculación y Desarrollo Regional Durango', 'DVDR'),
-('Centro de Vinculación y Desarrollo Regional Unidad Los Mochis', 'DVDR'),
-('Centro de Desarrollo y Vinculación Regional Unidad Mazatlán', 'DVDR'),
-('Centro de Vinculación y Desarrollo Regional Unidad Morelia', 'DVDR'),
-('Centro de Vinculación y Desarrollo Regional Unidad Tlaxcala', 'DVDR'),
-('Centro de Vinculación y Desarrollo Regional Unidad Oaxaca', 'DVDR'),
-('Centro de Vinculación y Desarrollo Regional Unidad Tijuana', 'DVDR');
-INSERT INTO centers (name, type) VALUES
-('Centro de Innovación e Integración de Tecnologías Avanzadas Chihuahua', 'CITTA'),
-('Centro de Innovación e Integración de Tecnologías Avanzadas Puebla', 'CITTA'),
-('Centro de Innovación e Integración de Tecnologías Avanzadas Veracruz', 'CITTA');
-
+INSERT INTO centers (name, type, identifier) VALUES
+('Centro de Innovación e Integración de Tecnologías Avanzadas Chihuahua', 'CITTA', 2),
+('Centro de Innovación e Integración de Tecnologías Avanzadas Puebla', 'CITTA', 3),
+('Centro de Innovación e Integración de Tecnologías Avanzadas Veracruz', 'CITTA', 1),
+('Centro de Vinculación y Desarrollo Regional Unidad Cajeme', 'CVDR', 1),
+('Centro de Vinculación y Desarrollo Regional Unidad Campeche', 'CVDR', 2),
+('Centro de Vinculación y Desarrollo Regional Unidad Cancún', 'CVDR', 3),
+('Centro de Vinculación y Desarrollo Regional Culiacán', 'CVDR', 4),
+('Centro de Vinculación y Desarrollo Regional Durango', 'CVDR', 5),
+('Centro de Vinculación y Desarrollo Regional Unidad Los Mochis', 'CVDR', 6),
+('Centro de Desarrollo y Vinculación Regional Unidad Mazatlán', 'CVDR', 7),
+('Centro de Vinculación y Desarrollo Regional Unidad Morelia', 'CVDR', 8),
+('Centro de Vinculación y Desarrollo Regional Unidad Tlaxcala', 'CVDR', 12),
+('Centro de Vinculación y Desarrollo Regional Unidad Oaxaca', 'CVDR', 9),
+('Centro de Vinculación y Desarrollo Regional Unidad Tijuana', 'CVDR', 11),
+('Centro de Vinculación y Desarrollo Regional Unidad Tampico', 'CVDR', 10);
 
 INSERT INTO documents_templates (name, filePath) VALUES
 ('Formato de registro de cursos de formación a lo largo de la vida', 'assets/templates/01 FS20H 2024-2.docx'),
@@ -299,13 +341,31 @@ INSERT INTO documents_templates (name, filePath) VALUES
 -- Ejemplo de cómo insertar un nuevo usuario con los nuevos campos
 CALL sp_insert_user('admin', 'admin', 'Sebastián', 'Morales', 'Palacios', 'Centro de Innovación e Integración de Tecnologías Avanzadas Veracruz');
 -- Llamar al procedimiento para verificar usuario y contraseña
--- CALL sp_verify_user('admin', 'admin', @is_valid);
--- SELECT @is_valid;
+ CALL sp_verify_user('admin', 'admin', @is_valid, @user_center);
+ -- SELECT @is_valid;
 
 -- CALL sp_check_username('admin', @user_exists);
 -- SELECT @user_exists;
 
 SELECT * FROM users;
+/*
+SELECT 
+    u.id AS user_id,
+    u.username,
+    u.first_name,
+    u.last_name,
+    u.second_last_name,
+    u.created_at AS user_created_at,
+    c.id AS center_id,
+    c.name AS center_name,
+    c.type AS center_type,
+FROM 
+    users u
+INNER JOIN 
+    centers c
+ON 
+    u.center_id = c.id;
+*/
 
--- DROP DATABASE dvdr_cursos;
+  -- DROP DATABASE dvdr_cursos;
 

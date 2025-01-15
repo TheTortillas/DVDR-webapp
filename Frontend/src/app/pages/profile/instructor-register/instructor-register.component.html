@@ -13,17 +13,26 @@
             [formGroup]="firstFormGroup"
           ></app-general-information-instructor>
           <div class="flex justify-end">
-            <button mat-flat-button matStepperNext>Siguiente</button>
+            <button
+              mat-flat-button
+              matStepperNext
+              (click)="logFirstFormGroup()"
+            >
+              Siguiente
+            </button>
           </div>
         </form>
       </mat-step>
       <mat-step
         [stepControl]="secondFormGroup"
-        errorMessage="Llene todos los campos requeridos"
+        errorMessage="Ingrese al menos un registro académico"
       >
         <form [formGroup]="secondFormGroup">
           <ng-template matStepLabel>Formación Académica</ng-template>
-          <app-academic-background></app-academic-background>
+          <app-academic-background
+            (dataSourceChange)="validateAcademicRecords($event)"
+          ></app-academic-background>
+
           <div class="stepper-buttons">
             <button mat-flat-button matStepperPrevious>Anterior</button>
             <button mat-flat-button matStepperNext>Siguiente</button>
@@ -32,11 +41,14 @@
       </mat-step>
       <mat-step
         [stepControl]="thirdFormGroup"
-        errorMessage="Llene todos los campos requeridos"
+        errorMessage="Ingrese al menos un registro de experiencia laboral"
       >
         <form [formGroup]="thirdFormGroup">
           <ng-template matStepLabel>Experiencia Laboral</ng-template>
-          <app-work-experience></app-work-experience>
+          <app-work-experience
+            (dataSourceChange)="validateWorkExperience($event)"
+          ></app-work-experience>
+
           <div class="stepper-buttons">
             <button mat-flat-button matStepperPrevious>Anterior</button>
             <button mat-flat-button matStepperNext>Enviar</button>

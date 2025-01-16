@@ -2,7 +2,7 @@
   <div class="sm:w-3/4 bg-white rounded-lg border border-gray-400 shadow p-8">
     <h2 class="flex justify-center">Registro de Instructor / Aval</h2>
 
-    <mat-stepper #stepper>
+    <mat-stepper (selectionChange)="onStepperSelectionChange($event)">
       <mat-step
         [stepControl]="firstFormGroup"
         errorMessage="Llene todos los campos requeridos"

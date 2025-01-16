@@ -1,307 +1,416 @@
-<div class="w-full py-1">
-  <div>
-    <img
-      src="/img/plecas-sistema/datos-generales.png"
-      alt="Banner"
-      class="w-full h-full object-cover"
-    />
-  </div>
-
-  <div class="xl:p-10 bg-white">
+<div [formGroup]="formGroup">
+  <div class="w-full py-1">
     <div>
-      <!-- NOMBRE DEL DIPLOMADO  -->
-      <div class="course-name-container">
-        <label
-          for="nombre-curso"
-          class="flex mb-2 text-xl font-medium text-gray-900"
-          >Nombre de la acción de formación:</label
-        >
-        <mat-form-field appearance="fill" class="w-full">
-          <mat-label>Ingresa el nombre de tu curso o diplomado aquí</mat-label>
-          <input matInput placeholder="Ex. Curso de Excel Básico" />
-        </mat-form-field>
-      </div>
+      <img
+        src="/img/plecas-sistema/datos-generales.png"
+        alt="Banner"
+        class="w-full h-full object-cover"
+      />
     </div>
-    <mat-divider></mat-divider>
 
-    <!-- TIPO DE SERVICIO -->
-    <div class="service-type-container py-5">
-      <label
-        for="tipo-servicio"
-        class="flex mb-2 text-xl font-medium text-gray-900"
-        >Tipo de Servicio:</label
-      >
-      <mat-radio-group
-        aria-label="Select an option"
-        class=""
-        [(ngModel)]="typeService"
-      >
-        <!-- Ponemos los [] porque los estamos usando en la funcionalidad -->
-        <mat-radio-button [value]="1">Curso</mat-radio-button>
-        <mat-radio-button [value]="2">Diplomado</mat-radio-button>
-        <mat-radio-button (change)="onOtroServicioChange($event)" [value]="3"
-          >Otro:</mat-radio-button
-        >
-      </mat-radio-group>
-      <mat-form-field appearance="fill" class="w-1/2" *ngIf="typeService === 3">
-        <input matInput placeholder="Especificar" />
-      </mat-form-field>
-      <!-- <h1 *ngIf="typeService === 1">Button A is selected</h1>
-      <h1 *ngIf="typeService === 2">Button B is selected</h1> -->
-    </div>
-    <mat-divider></mat-divider>
-
-    <!-- CATEGORÍA DEL CURSO -->
-    <div class="category-type-container py-5">
-      <label
-        for="categoria-servicio"
-        class="flex mb-2 text-xl font-medium text-gray-900"
-        >Categoría</label
-      >
-      <mat-form-field class="w-full">
-        <mat-label>¿A qué categoría pertenece su curso?</mat-label>
-        <mat-select (selectionChange)="onCategoryChange($event)">
-          <mat-option *ngFor="let category of categories" [value]="category">
-            {{ category }}
-          </mat-option>
-        </mat-select>
-      </mat-form-field>
-    </div>
-    <mat-divider></mat-divider>
-
-    <!-- CONVENIO DEL CURSO -->
-    <div class="convenio-container py-5">
-      <label
-        for="tipo-servicio"
-        class="flex mb-2 text-xl font-medium text-gray-900"
-        >Convenio</label
-      >
-      <mat-slide-toggle (change)="tieneConvenioChange($event)">
-      </mat-slide-toggle>
-      <span class="ms-3 text-base font-medium text-gray-900"
-        >¿Cuenta con convenio?</span
-      >
-      <div *ngIf="tieneConvenio" class="convenio-options-container py-5">
-        <mat-form-field class="w-full">
-          <mat-label>Seleccione una opción de convenio</mat-label>
-          <mat-select (selectionChange)="onConvenioOptionChange($event)">
-            <mat-option *ngFor="let option of convenioOptions" [value]="option">
-              {{ option }}
-            </mat-option>
-          </mat-select>
-        </mat-form-field>
-
-        <div *ngIf="selectedConvenioOption">
-          <mat-form-field class="w-full">
-            <!-- <mat-label
-              >Ingrese ingrese su convenio de
-              {{ selectedConvenioOption }}</mat-label
-            > -->
-            <mat-label>Ingrese su número de convenio</mat-label>
-            <input matInput placeholder="Detalles del convenio" />
+    <div class="xl:p-10 bg-white">
+      <div>
+        <!-- NOMBRE DEL DIPLOMADO  -->
+        <div class="course-name-container mb-3">
+          <label
+            for="nombre-curso"
+            class="flex mb-2 text-xl font-medium text-gray-900"
+            >Nombre de la acción de formación:</label
+          >
+          <mat-form-field appearance="fill" class="w-full">
+            <mat-label
+              >Ingresa el nombre de tu curso o diplomado aquí</mat-label
+            >
+            <input
+              matInput
+              placeholder="Ex. Curso de Excel Básico"
+              formControlName="course_name"
+            />
+            <mat-error
+              *ngIf="
+                formGroup.get('course_name')?.invalid &&
+                formGroup.get('course_name')?.touched
+              "
+            >
+              El nombre del curso es <strong>requerido</strong>.
+            </mat-error>
           </mat-form-field>
         </div>
       </div>
-    </div>
-    <mat-divider></mat-divider>
-
-    <!-- NOMBRE DE LA UNIDAD -->
-    <!-- <div class="unity-name-container py-5">
-      <label
-        for="nombre-unidad"
-        class="flex mb-2 text-xl font-medium text-gray-900"
-        >Unidad responsable del servicio</label
-      >
-      <mat-form-field class="w-full">
-        <mat-label>Seleccionar tipo de unidad</mat-label>
-        <mat-select (selectionChange)="onUnidadChange($event)">
-          <mat-option value="DVDR">DVDR</mat-option>
-          <mat-option value="CITTA">CITTA</mat-option>
-        </mat-select>
-      </mat-form-field>
-
-      <mat-form-field class="w-full" *ngIf="unidadOptions.length > 0">
-        <mat-label>Seleccionar unidad específica</mat-label>
-        <mat-select (selectionChange)="onunidadOptionChange($event)">
-          <mat-option *ngFor="let option of unidadOptions" [value]="option">
-            {{ option }}
-          </mat-option>
-        </mat-select>
-      </mat-form-field>
-    </div>
-    <mat-divider></mat-divider> -->
-
-    <!-- Duración total del curso -->
-    <div class="duration-container py-5">
-      <label
-        for="duracion-total"
-        class="flex mb-2 text-xl font-medium text-gray-900"
-      >
-        Duración total del curso (horas):
-      </label>
-      <mat-form-field appearance="fill" class="w-full">
-        <mat-label>Ingresa la duración total del curso</mat-label>
-        <input
-          matInput
-          type="number"
-          min="20"
-          [(ngModel)]="duracionTotal"
-          placeholder="Ej. 40"
-          required
-        />
-        <mat-error *ngIf="duracionTotal && duracionTotal < 20">
-          La duración debe ser un valor entero y no menor a 20 horas.
-        </mat-error>
-      </mat-form-field>
-    </div>
-    <mat-divider></mat-divider>
-
-    <!-- MODALIDAD -->
-    <div class="modality-container py-5">
-      <label for="modality" class="flex mb-2 text-xl font-medium text-gray-900"
-        >Modalidad</label
-      >
-      <mat-form-field class="w-full">
-        <mat-label>Seleccionar tipo de modalidad</mat-label>
-        <mat-select (selectionChange)="onModalidadChange($event)">
-          <mat-option *ngFor="let option of modalidadOptions" [value]="option">
-            {{ option }}
-          </mat-option>
-        </mat-select>
-      </mat-form-field>
-    </div>
-    <mat-divider></mat-divider>
-
-    <!-- OFERTA EDUCATIVA -->
-    <div class="educational-offer-container py-5">
-      <label
-        for="oferta-educativa"
-        class="flex mb-2 text-xl font-medium text-gray-900"
-        >Oferta educativa</label
-      >
-      <mat-form-field class="w-full">
-        <mat-label>Seleccionar tipo de oferta educativa</mat-label>
-        <mat-select (selectionChange)="onOfertaEducativaChange($event)">
-          <mat-option
-            *ngFor="let option of ofertaEducativaOptions"
-            [value]="option"
-          >
-            {{ option }}
-          </mat-option>
-        </mat-select>
-      </mat-form-field>
-    </div>
-    <mat-divider></mat-divider>
-
-    <!-- NOMBRE DE LA SEDE  -->
-
-    <div class="plataforma-container py-5">
-      <label
-        for="plataforma-ed"
-        class="flex mb-2 text-xl font-medium text-gray-900"
-        >Plataforma educativa</label
-      >
-      <div class="flex flex-wrap gap-4 mt-4 mb-5">
-        <mat-checkbox>Zoom</mat-checkbox>
-        <mat-checkbox>Meet</mat-checkbox>
-        <mat-checkbox>Moodle</mat-checkbox>
-        <mat-checkbox>Teams</mat-checkbox>
-        <mat-checkbox (change)="onOtroChange($event)">Otro:</mat-checkbox>
-        <mat-form-field
-          appearance="fill"
-          class="w-1/2"
-          *ngIf="otroSeleccionado"
-        >
-          <input matInput placeholder="Especificar" />
-        </mat-form-field>
-      </div>
-
       <mat-divider></mat-divider>
 
-      <!-- AÑADIR AUTORES / COAUTORES / INSTRUCTORES  -->
-      <div class="people-container py-5">
-        <label for="people" class="flex mb-2 text-xl font-medium text-gray-900"
-          >Añadir autores co-autores e instructores:</label
+      <!-- TIPO DE SERVICIO -->
+      <div class="service-type-container py-5">
+        <label
+          for="tipo-servicio"
+          class="flex mb-2 text-xl font-medium text-gray-900"
+          >Tipo de Servicio:</label
         >
-      </div>
+        <mat-radio-group
+          formControlName="service_type"
+          (change)="onServiceTypeChange($event)"
+          class="flex flex-wrap gap-4"
+        >
+          <mat-radio-button class="flex-1" [value]="1">Curso</mat-radio-button>
+          <mat-radio-button class="flex-1" [value]="2"
+            >Diplomado</mat-radio-button
+          >
+          <mat-radio-button class="flex-1" [value]="3">Otro</mat-radio-button>
+        </mat-radio-group>
 
-      <div class="">
-        <div class="flex gap-4 mb-4">
-          <!-- Combobox para Autores / Co-Autores / Instructores -->
-          <mat-form-field appearance="fill">
-            <mat-label>Seleccionar Persona</mat-label>
-            <mat-select [(value)]="selectedPersona">
-              <mat-option value="" disabled>Seleccionar Persona</mat-option>
-              <mat-option *ngFor="let persona of personas" [value]="persona">
-                {{ persona }}
+        <mat-error
+          *ngIf="
+            formGroup.get('service_type')?.invalid &&
+            formGroup.get('service_type')?.touched
+          "
+          class="text-xs"
+        >
+          <span style="display: inline-block; width: 20px"></span>El tipo de
+          servicio <strong>requerido</strong>.
+        </mat-error>
+        <div class="w-full mt-4" *ngIf="typeService === 3">
+          <mat-form-field appearance="fill" class="w-full">
+            <mat-label>Ingresa el tipo de tu servicio aquí</mat-label>
+            <input
+              matInput
+              placeholder="Especifique que tipo de servicio brindará"
+              (input)="onOtherServiceTypeInput($event)"
+            />
+          </mat-form-field>
+        </div>
+      </div>
+      <mat-divider></mat-divider>
+
+      <!-- CATEGORÍA DEL CURSO -->
+      <div class="category-type-container py-5">
+        <label
+          for="categoria-servicio"
+          class="flex mb-2 text-xl font-medium text-gray-900"
+          >Categoría</label
+        >
+        <mat-form-field class="w-full">
+          <mat-label>¿A qué categoría pertenece su curso?</mat-label>
+          <mat-select
+            formControlName="category"
+            (selectionChange)="onCategoryChange($event)"
+          >
+            <mat-option *ngFor="let category of categories" [value]="category">
+              {{ category }}
+            </mat-option>
+          </mat-select>
+          <mat-error
+            *ngIf="
+              formGroup.get('category')?.hasError('required') &&
+              formGroup.get('category')?.touched
+            "
+          >
+            Área de expertise es <strong>requerido</strong>
+          </mat-error>
+        </mat-form-field>
+      </div>
+      <mat-divider></mat-divider>
+
+      <!-- CONVENIO DEL CURSO -->
+      <div class="convenio-container py-5">
+        <label
+          for="tipo-servicio"
+          class="flex mb-2 text-xl font-medium text-gray-900"
+          >Convenio</label
+        >
+        <mat-slide-toggle
+          formControlName="agreement"
+          (change)="tieneConvenioChange($event)"
+        >
+        </mat-slide-toggle>
+        <span class="ms-3 text-base font-medium text-gray-900"
+          >¿Cuenta con convenio?</span
+        >
+        <div *ngIf="tieneConvenio" class="convenio-options-container py-5">
+          <label
+            for="tipo-servicio"
+            class="flex mb-1 text-base font-medium text-gray-900"
+            >Tipo de convenio</label
+          >
+          <mat-form-field class="w-full">
+            <mat-label>Seleccione una opción de convenio</mat-label>
+            <mat-select (selectionChange)="onConvenioOptionChange($event)">
+              <mat-option
+                *ngFor="let option of convenioOptions"
+                [value]="option"
+              >
+                {{ option }}
               </mat-option>
             </mat-select>
           </mat-form-field>
 
-          <!-- Botón para añadir a la tabla -->
-          <button mat-raised-button color="primary" (click)="addPersona()">
-            Añadir
-          </button>
+          <div *ngIf="selectedConvenioOption">
+            <label
+              for="convenio"
+              class="flex mb-1 text-base font-medium text-gray-900"
+              >No. de convenio</label
+            >
+            <mat-form-field class="w-full">
+              <mat-label
+                >Ingresa el número de convenio de tu curso aquí</mat-label
+              >
+              <input matInput placeholder="Detalles del convenio" />
+            </mat-form-field>
+          </div>
         </div>
       </div>
+      <mat-divider></mat-divider>
 
-      <!-- Tabla para mostrar autores, co-autores e instructores -->
-      <div class="overflow-x-auto">
-        <table
-          mat-table
-          [dataSource]="dataSource"
-          class="mat-elevation-z8 w-full"
+      <!-- Duración total del curso -->
+      <div class="duration-container py-5">
+        <label
+          for="duracion-total"
+          class="flex mb-2 text-xl font-medium text-gray-900"
         >
-          <!-- Nombre Column -->
-          <ng-container matColumnDef="nombre">
-            <th mat-header-cell *matHeaderCellDef class="w-1/3">Nombre</th>
-            <td mat-cell *matCellDef="let element">{{ element.nombre }}</td>
-          </ng-container>
-
-          <!-- Rol Column -->
-          <ng-container matColumnDef="rol">
-            <th mat-header-cell *matHeaderCellDef class="w-1/3">Rol</th>
-            <td mat-cell *matCellDef="let element">
-              <mat-form-field appearance="fill">
-                <mat-label>¿Qué rol tendrá?</mat-label>
-                <mat-select [(ngModel)]="element.rol">
-                  <mat-option value="Autor">Autor</mat-option>
-                  <mat-option value="Co-Autor">Co-Autor</mat-option>
-                  <mat-option value="Instructor">Instructor</mat-option>
-                </mat-select>
-              </mat-form-field>
-            </td>
-          </ng-container>
-
-          <!-- Acción Column -->
-          <ng-container matColumnDef="accion">
-            <th mat-header-cell *matHeaderCellDef class="w-1/3">Acción</th>
-            <td mat-cell *matCellDef="let element; let i = index">
-              <button mat-button color="warn" (click)="removePersona(i)">
-                Eliminar <mat-icon>delete</mat-icon>
-              </button>
-            </td>
-          </ng-container>
-
-          <tr
-            mat-header-row
-            *matHeaderRowDef="['nombre', 'rol', 'accion']"
-          ></tr>
-          <tr
-            mat-row
-            *matRowDef="let row; columns: ['nombre', 'rol', 'accion']"
-          ></tr>
-        </table>
+          Duración total del curso (horas):
+        </label>
+        <mat-form-field appearance="fill" class="w-full">
+          <mat-label>Ingresa la duración total del curso</mat-label>
+          <input
+            matInput
+            type="number"
+            min="20"
+            formControlName="total_duration"
+            placeholder="Ej. 40"
+            required
+          />
+          <mat-error
+            *ngIf="
+              formGroup.get('total_duration')?.invalid &&
+              formGroup.get('total_duration')?.touched
+            "
+          >
+            La duración es <strong>requerida</strong> y debe ser un valor entero
+            y no menor a 20 horas.
+          </mat-error>
+        </mat-form-field>
       </div>
+      <mat-divider></mat-divider>
 
-      <div class="py-11">
-        <a
-          mat-button
-          routerLink="../instructor-register"
-          class="block text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-black md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent"
+      <!-- MODALIDAD -->
+      <div class="modality-container py-5">
+        <label
+          for="modality"
+          class="flex mb-2 text-xl font-medium text-gray-900"
+          >Modalidad</label
         >
-          ¿No encuentras a alguien? Dalo de alta aquí</a
+        <mat-form-field class="w-full">
+          <mat-label>Seleccionar tipo de modalidad</mat-label>
+          <mat-select
+            formControlName="modality"
+            (selectionChange)="onModalidadChange($event)"
+          >
+            <mat-option
+              *ngFor="let option of modalidadOptions"
+              [value]="option"
+            >
+              {{ option }}
+            </mat-option>
+          </mat-select>
+          <mat-error
+            *ngIf="
+              formGroup.get('modality')?.invalid &&
+              formGroup.get('modality')?.touched
+            "
+          >
+            La modalidad es <strong>requerida</strong>.
+          </mat-error>
+        </mat-form-field>
+      </div>
+      <mat-divider></mat-divider>
+
+      <!-- OFERTA EDUCATIVA -->
+      <div class="educational-offer-container py-5">
+        <label
+          for="oferta-educativa"
+          class="flex mb-2 text-xl font-medium text-gray-900"
+          >Oferta educativa</label
         >
+        <mat-form-field class="w-full">
+          <mat-label>Seleccionar tipo de oferta educativa</mat-label>
+          <mat-select
+            formControlName="educational_offer"
+            (selectionChange)="onOfertaEducativaChange($event)"
+          >
+            <mat-option
+              *ngFor="let option of ofertaEducativaOptions"
+              [value]="option"
+            >
+              {{ option }}
+            </mat-option>
+          </mat-select>
+          <mat-error
+            *ngIf="
+              formGroup.get('educational_offer')?.invalid &&
+              formGroup.get('educational_offer')?.touched
+            "
+          >
+            La oferta educativa es <strong>requerida</strong>.
+          </mat-error>
+        </mat-form-field>
+      </div>
+      <mat-divider></mat-divider>
+
+      <!-- PLATAFORMAS EDUCATIVAS  -->
+      <div class="plataforma-container py-5">
+        <label
+          for="educational_platform"
+          class="flex mb-2 text-xl font-medium text-gray-900"
+          >Plataforma Educativa</label
+        >
+
+        <mat-form-field class="w-full">
+          <mat-select
+            placeholder="Selecciona la(s) plataforma(s)"
+            multiple
+            (selectionChange)="onPlatformSelectionChange($event.value)"
+            formControlName="educational_platform"
+          >
+            <mat-option
+              *ngFor="let platform of platformOptions"
+              [value]="platform"
+            >
+              {{ platform }}
+            </mat-option>
+            <mat-option value="Otro">Otro</mat-option>
+          </mat-select>
+          <mat-error
+            *ngIf="
+              formGroup.get('educational_platform')?.invalid &&
+              formGroup.get('educational_platform')?.touched
+            "
+          >
+            Debe seleccionar al menos <strong>una</strong> plataforma o
+            especificar otra(s).
+          </mat-error>
+        </mat-form-field>
+
+        <div *ngIf="otroPlatformSelected" class="mt-1">
+          <label
+            for="otra-plataforma"
+            class="flex mb-1 text-base font-medium text-gray-900"
+            >Especifica la plataforma</label
+          >
+          <mat-form-field appearance="fill" class="w-full">
+            <mat-label>Especifique la plataforma</mat-label>
+            <input
+              matInput
+              placeholder="Especifica la o las plataformas a usar"
+              (input)="onOtherPlatformChange($event)"
+            />
+          </mat-form-field>
+        </div>
+      </div>
+      <mat-divider></mat-divider>
+
+      <!-- AÑADIR AUTORES / COAUTORES / INSTRUCTORES  -->
+      <div class="people-container">
+        <div class="py-5">
+          <label
+            for="people"
+            class="flex mb-2 text-xl font-medium text-gray-900"
+            >Añadir autores co-autores e instructores:</label
+          >
+        </div>
+
+        <div class="">
+          <div class="flex gap-4 mb-4">
+            <!-- Combobox para Autores / Co-Autores / Instructores -->
+            <mat-form-field appearance="fill">
+              <mat-label>Seleccionar Persona</mat-label>
+              <mat-select [(value)]="selectedPersona">
+                <mat-option value="" disabled>Seleccionar Persona</mat-option>
+                <mat-option *ngFor="let persona of personas" [value]="persona">
+                  {{ persona }}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <!-- Botón para añadir a la tabla -->
+            <button mat-raised-button color="primary" (click)="addPersona()">
+              Añadir
+            </button>
+          </div>
+        </div>
+
+        <!-- Tabla para mostrar autores, co-autores e instructores -->
+        <div class="overflow-x-auto">
+          <table
+            mat-table
+            [dataSource]="dataSource"
+            class="mat-elevation-z8 w-full"
+          >
+            <!-- Nombre Column -->
+            <ng-container matColumnDef="nombre">
+              <th mat-header-cell *matHeaderCellDef class="w-1/3">Nombre</th>
+              <td mat-cell *matCellDef="let element">{{ element.nombre }}</td>
+            </ng-container>
+
+            <!-- Rol Column -->
+            <ng-container matColumnDef="rol">
+              <th mat-header-cell *matHeaderCellDef class="w-1/3">Rol</th>
+              <td mat-cell *matCellDef="let element">
+                <mat-form-field appearance="fill">
+                  <mat-label>¿Qué rol tendrá?</mat-label>
+                  <mat-select
+                    [value]="element.rol"
+                    (selectionChange)="updatePersonaRol(element, $event.value)"
+                  >
+                    <mat-option value="Autor">Autor</mat-option>
+                    <mat-option value="Co-Autor">Co-Autor</mat-option>
+                    <mat-option value="Instructor">Instructor</mat-option>
+                  </mat-select>
+                </mat-form-field>
+              </td>
+            </ng-container>
+            <!-- Acción Column -->
+            <ng-container matColumnDef="accion">
+              <th mat-header-cell *matHeaderCellDef class="w-1/3">Acción</th>
+              <td mat-cell *matCellDef="let element; let i = index">
+                <mat-icon
+                  matTooltip="Eliminar actor"
+                  class="hover-red cursor-pointer"
+                  (click)="removePersona(i)"
+                >
+                  delete
+                </mat-icon>
+              </td>
+            </ng-container>
+
+            <tr
+              mat-header-row
+              *matHeaderRowDef="['nombre', 'rol', 'accion']"
+            ></tr>
+            <tr
+              mat-row
+              *matRowDef="let row; columns: ['nombre', 'rol', 'accion']"
+            ></tr>
+          </table>
+          <mat-error
+            *ngIf="
+              formGroup.get('actors')?.hasError('requiredActors') &&
+              formGroup.get('actors')?.touched
+            "
+            class="mt-2 text-xs"
+          >
+            <span style="display: inline-block; width: 20px"></span>Debe agregar
+            al menos <strong>un</strong> autor, co-autor o instructor.
+          </mat-error>
+        </div>
+
+        <div class="py-11">
+          <a
+            mat-button
+            routerLink="../instructor-register"
+            class="block text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-black md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent"
+          >
+            ¿No encuentras a alguien? Dalo de alta aquí</a
+          >
+        </div>
       </div>
       <mat-divider></mat-divider>
     </div>

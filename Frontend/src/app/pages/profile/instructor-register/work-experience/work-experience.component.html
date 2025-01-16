@@ -37,7 +37,13 @@
         <th mat-header-cell *matHeaderCellDef>Evidencia</th>
         <td mat-cell *matCellDef="let element">
           <button mat-icon-button (click)="verEvidencia(element)">
-            <mat-icon mat-button>insert_drive_file</mat-icon>
+            <mat-icon
+              mat-button
+              mat-button
+              matTooltip="Ver archivo"
+              class="cursor-pointer hover-blue"
+              >description</mat-icon
+            >
           </button>
         </td>
       </ng-container>
@@ -46,7 +52,12 @@
         <th mat-header-cell *matHeaderCellDef>Eliminar</th>
         <td mat-cell *matCellDef="let element">
           <button mat-icon-button (click)="eliminarEvidencia(element)">
-            <mat-icon mat-button color="warn">delete</mat-icon>
+            <mat-icon
+              mat-button
+              matTooltip="Eliminar evidencia de trabajo"
+              class="cursor-pointer hover-red"
+              >delete</mat-icon
+            >
           </button>
         </td>
       </ng-container>

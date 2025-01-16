@@ -2,6 +2,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   inject,
+  Input,
   OnInit,
 } from '@angular/core';
 //import { StepperIndicatorComponent } from "../../components/stepper-indicator/stepper-indicator.component";
@@ -9,15 +10,20 @@ import {
   FormGroup,
   FormsModule,
   ReactiveFormsModule,
-  Validators,
-  FormBuilder,
+  NgForm,
+  FormGroupDirective,
+  FormControl,
 } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 
 import { MatButtonModule } from '@angular/material/button';
 //import {provideMomentDateAdapter} from '@angular/material-moment-adapter';
-import { DateAdapter, MAT_DATE_LOCALE } from '@angular/material/core';
+import {
+  DateAdapter,
+  ErrorStateMatcher,
+  MAT_DATE_LOCALE,
+} from '@angular/material/core';
 import {
   MatDatepickerIntl,
   MatDatepickerModule,
@@ -40,10 +46,29 @@ import {
   MatDialogModule,
   MatDialogRef,
 } from '@angular/material/dialog';
-import { InstructorRegisterComponent } from '../../instructor-register/instructor-register.component';
-import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { MatTooltipModule } from '@angular/material/tooltip';
+
 import { DataService } from '../../../../core/services/data.service';
+
+/** Error when invalid control is dirty, touched, or submitted. */
+export class MyErrorStateMatcher implements ErrorStateMatcher {
+  isErrorState(
+    control: FormControl | null,
+    form: FormGroupDirective | NgForm | null
+  ): boolean {
+    const isSubmitted = form && form.submitted;
+    return !!(
+      control &&
+      control.invalid &&
+      (control.dirty || control.touched || isSubmitted)
+    );
+  }
+}
+
+interface Persona {
+  nombre: string;
+  rol: string;
+}
 
 @Component({
   selector: 'app-general-information-instructor',
@@ -65,18 +90,24 @@ import { DataService } from '../../../../core/services/data.service';
     RouterLink,
     MatDivider,
     MatRadioModule,
+    MatTooltipModule,
   ],
   templateUrl: './general-information.component.html',
   styleUrl: './general-information.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class GeneralInformationComponent implements OnInit {
+  @Input() formGroup!: FormGroup;
+  matcher = new MyErrorStateMatcher();
+
   constructor(private dataService: DataService) {}
 
   ngOnInit() {
     this.dataService.getCategoriasAcademicas().subscribe((data: any) => {
       this.categories = data;
     });
+
+    this.formGroup.get('educational_platform')?.setValue([]);
   }
 
   //-------------------------------------- TIPO SERVICIO ---------------------------------------
@@ -84,6 +115,23 @@ export class GeneralInformationComponent implements OnInit {
 
   onOtroServicioChange(event: any) {
     this.typeService = event.value;
+  }
+  onServiceTypeChange(event: any) {
+    const val = event.value;
+    this.typeService = val;
+
+    if (val === 1) {
+      this.formGroup.get('service_type')?.setValue('Curso');
+    } else if (val === 2) {
+      this.formGroup.get('service_type')?.setValue('Diplomado');
+    } else {
+      // Limpia para que el usuario escriba
+      this.formGroup.get('service_type')?.reset();
+    }
+  }
+
+  onOtherServiceTypeInput(event: any) {
+    this.formGroup.get('service_type')?.setValue(event.target.value);
   }
   //-------------------------------------- CATEGORÍA ---------------------------------------
   categories: string[] = [];
@@ -110,48 +158,6 @@ export class GeneralInformationComponent implements OnInit {
     this.selectedConvenioOption = event.value;
   }
 
-  //-------------------------------------- UNIDAD  RESPONSABLE ---------------------------------------
-  // unidadTipo: string = '';
-  // unidadOptions: string[] = [];
-  // selectedUnidadOption: string = '';
-  // dvdrsOptions: string[] = [
-  //   'Centro de Vinculación y Desarrollo Regional Unidad Tampico',
-  //   'Centro de Vinculación y Desarrollo Regional Culiacán',
-  //   'Centro de Vinculación y Desarrollo Regional Unidad Cajeme',
-  //   'Centro de Vinculación y Desarrollo Regional Unidad Cancún',
-  //   'Centro de Vinculación y Desarrollo Regional Unidad Campeche',
-  //   'Centro de Vinculación y Desarrollo Regional Durango',
-  //   'Centro de Vinculación y Desarrollo Regional Unidad Los Mochis',
-  //   'Centro de Desarrollo y Vinculación Regional Unidad Mazatlán',
-  //   'Centro de Vinculación y Desarrollo Regional Unidad Morelia',
-  //   'Centro de Vinculación y Desarrollo Regional Unidad Tlaxcala',
-  //   'Centro de Vinculación y Desarrollo Regional Unidad Oaxaca',
-  //   'Centro de Vinculación y Desarrollo Regional Unidad Tijuana',
-  // ];
-
-  // cittasOptions: string[] = [
-  //   'Centro de Innovación e Integración de Tecnologías Avanzadas Chihuahua',
-  //   'Centro de Innovación e Integración de Tecnologías Avanzadas Puebla',
-  //   'Centro de Innovación e Integración de Tecnologías Avanzadas Veracruz',
-  // ];
-
-  // // Esta función actualiza las opciones del segundo select
-  // onUnidadChange(event: any) {
-  //   this.unidadTipo = event.value;
-  //   if (this.unidadTipo === 'DVDR') {
-  //     this.unidadOptions = this.dvdrsOptions;
-  //   } else if (this.unidadTipo === 'CITTA') {
-  //     this.unidadOptions = this.cittasOptions;
-  //   } else {
-  //     this.unidadOptions = [];
-  //   }
-  // }
-
-  // onunidadOptionChange(event: any) {
-  //   this.selectedUnidadOption = event.value;
-  //   //console.log(this.unidadTipo + ": " +this.selectedUnidadOption);
-  // }
-
   //-------------------------------------- DURACIÓN TOTAL ---------------------------------------
   duracionTotal: number | null = null;
 
@@ -171,11 +177,31 @@ export class GeneralInformationComponent implements OnInit {
     this.selectedOfertaEducativaOption = event.value;
   }
 
-  //-------------------------------------- SEDE ---------------------------------------
-  otroSeleccionado: boolean = false;
+  //-------------------------------------- PLATAFORMA ---------------------------------------
+  platformOptions: string[] = [
+    'Google Meet',
+    'Microsoft Teams',
+    'Zoom',
+    'Moodle',
+    'Blackboard',
+  ];
+  platformSelections: string[] = [];
+  otroPlatformSelected = false;
 
-  onOtroChange(event: any) {
-    this.otroSeleccionado = event.checked;
+  onPlatformSelectionChange(selected: string[]) {
+    if (selected.includes('Otro')) {
+      this.otroPlatformSelected = true;
+      // Limpia el FormControl para que espere la entrada
+      this.formGroup.get('educational_platform')?.setValue([]);
+    } else {
+      this.otroPlatformSelected = false;
+      this.platformSelections = selected;
+      this.formGroup.get('educational_platform')?.setValue(selected);
+    }
+  }
+
+  onOtherPlatformChange(event: any) {
+    this.formGroup.get('educational_platform')?.setValue([event.target.value]);
   }
 
   //-------------------------------------- AUTORES  ---------------------------------------
@@ -202,12 +228,16 @@ export class GeneralInformationComponent implements OnInit {
       const personaExistente = this.seleccionados.find(
         (p) => p.nombre === this.selectedPersona
       );
-
       if (!personaExistente) {
-        this.seleccionados.push({ nombre: this.selectedPersona, rol: 'Autor' }); // Por defecto como 'Autor'
-        this.dataSource.data = this.seleccionados; // Update the dataSource
-        console.log(this.seleccionados);
-        this.selectedPersona = ''; // Limpiar la selección
+        const nuevaPersona: Persona = {
+          nombre: this.selectedPersona,
+          rol: 'Autor',
+        };
+        this.seleccionados.push(nuevaPersona);
+        this.dataSource.data = this.seleccionados;
+        this.selectedPersona = '';
+        this.formGroup.get('actors')?.setValue(this.seleccionados);
+        this.formGroup.get('actors')?.markAsTouched();
       }
     }
   }
@@ -215,6 +245,14 @@ export class GeneralInformationComponent implements OnInit {
   // Método para eliminar personas de la tabla
   removePersona(index: number) {
     this.seleccionados.splice(index, 1);
-    this.dataSource.data = this.seleccionados; // Update the dataSource
+    this.dataSource.data = this.seleccionados;
+    this.formGroup.get('actors')?.setValue(this.seleccionados);
+    this.formGroup.get('actors')?.markAsTouched();
+  }
+
+  // Método para actualizar el rol de una persona
+  updatePersonaRol(persona: Persona, nuevoRol: string) {
+    persona.rol = nuevoRol;
+    this.formGroup.get('actors')?.setValue(this.seleccionados);
   }
 }

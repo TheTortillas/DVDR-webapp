@@ -4,6 +4,7 @@ import { WorkExperienceDialogComponent } from '../../../../shared/components/wor
 import { MatButton } from '@angular/material/button';
 import { MatTableModule } from '@angular/material/table';
 import { MatIcon } from '@angular/material/icon';
+import { MatTooltip } from '@angular/material/tooltip';
 
 export interface WorkExperience {
   periodo: string;
@@ -16,7 +17,7 @@ export interface WorkExperience {
 @Component({
   selector: 'app-work-experience',
   standalone: true,
-  imports: [MatButton, MatTableModule, MatIcon],
+  imports: [MatButton, MatTableModule, MatIcon, MatTooltip],
   templateUrl: './work-experience.component.html',
   styleUrl: './work-experience.component.scss',
 })

@@ -4,7 +4,7 @@
       <h4 class="">Nombre completo</h4>
       <!-- NOMBRE + APELLIDO PATERNO + APELLIDO MATERNO -->
 
-      <div class="flex flex-end sm:w-full">
+      <div for="nombre-competo-container" class="flex flex-end sm:w-full mb-3">
         <div class="instructor-first-last-name-container px-2 w-full md:w-1/3">
           <label
             for="apellldo-paterno-instructor"
@@ -18,6 +18,14 @@
               placeholder="Ex. Pérez"
               formControlName="lastName"
             />
+            <mat-error
+              *ngIf="
+                formGroup.get('lastName')?.hasError('required') &&
+                formGroup.get('lastName')?.touched
+              "
+            >
+              Primer apellido es <strong>requerido</strong>
+            </mat-error>
           </mat-form-field>
         </div>
         <div class="instructor-second-last-name-container px-2 w-full md:w-1/3">
@@ -33,6 +41,14 @@
               placeholder="Ex. Sánchez"
               formControlName="secondLastName"
             />
+            <mat-error
+              *ngIf="
+                formGroup.get('secondLastName')?.hasError('required') &&
+                formGroup.get('secondLastName')?.touched
+              "
+            >
+              Segundo apellido es <strong>requerido</strong>
+            </mat-error>
           </mat-form-field>
         </div>
         <div class="instructor-name-container px-2 w-full md:w-1/3">
@@ -48,6 +64,14 @@
               placeholder="Ex. José Antonio"
               formControlName="firstName"
             />
+            <mat-error
+              *ngIf="
+                formGroup.get('firstName')?.hasError('required') &&
+                formGroup.get('firstName')?.touched
+              "
+            >
+              Nombre es <strong>requerido</strong>
+            </mat-error>
           </mat-form-field>
         </div>
       </div>
@@ -55,9 +79,9 @@
       <h4 class="">Domicilio</h4>
 
       <!-- CALLE + NÚMERO -->
-      <div class="w-full">
+      <div for="domicilio-container" class="w-full mb-3">
         <div class="">
-          <div class="flex flex-end w-full">
+          <div class="flex flex-end w-full mb-2">
             <div class="street-container px-2 w-full md:w-2/3">
               <label
                 for="calle-domicilio"
@@ -71,6 +95,14 @@
                   placeholder="Ex. Reforma"
                   formControlName="street"
                 />
+                <mat-error
+                  *ngIf="
+                    formGroup.get('street')?.hasError('required') &&
+                    formGroup.get('street')?.touched
+                  "
+                >
+                  Calle es <strong>requerido</strong>
+                </mat-error>
               </mat-form-field>
             </div>
             <div class="number-container px-2 w-full md:w-1/3">
@@ -82,12 +114,20 @@
               <mat-form-field appearance="fill" class="w-full">
                 <mat-label>No. de domicilio</mat-label>
                 <input matInput placeholder="Ex. 4" formControlName="number" />
+                <mat-error
+                  *ngIf="
+                    formGroup.get('number')?.hasError('required') &&
+                    formGroup.get('number')?.touched
+                  "
+                >
+                  Número es <strong>requerido</strong>
+                </mat-error>
               </mat-form-field>
             </div>
           </div>
         </div>
 
-        <div class="flex flex-end w-full">
+        <div class="flex flex-end w-full mb-2">
           <div class="colony-container px-2 w-full md:w-2/3">
             <label
               for="colonia-domicilio"
@@ -101,6 +141,14 @@
                 placeholder="Ex. Altavista"
                 formControlName="colony"
               />
+              <mat-error
+                *ngIf="
+                  formGroup.get('colony')?.hasError('required') &&
+                  formGroup.get('colony')?.touched
+                "
+              >
+                Colonia es <strong>requerido</strong>
+              </mat-error>
             </mat-form-field>
           </div>
           <div class="zip-container px-2 w-full md:w-1/3">
@@ -119,12 +167,20 @@
                 formControlName="postalCode"
               />
               <mat-hint align="end">{{ postalCode.value.length }} / 5</mat-hint>
+              <mat-error
+                *ngIf="
+                  formGroup.get('postalCode')?.hasError('required') &&
+                  formGroup.get('postalCode')?.touched
+                "
+              >
+                Código Postal es <strong>requerido</strong>
+              </mat-error>
             </mat-form-field>
           </div>
         </div>
 
         <!-- MUNICIPIO + ESTADO -->
-        <div class="">
+        <div class="mb-1">
           <div class="flex flex-end w-full">
             <div class="city-container px-2 w-full md:w-1/2">
               <label
@@ -141,6 +197,14 @@
                   placeholder="Ex. Miguel Hidalgo"
                   formControlName="city"
                 />
+                <mat-error
+                  *ngIf="
+                    formGroup.get('city')?.hasError('required') &&
+                    formGroup.get('city')?.touched
+                  "
+                >
+                  Municipio / Alcaldía es <strong>requerido</strong>
+                </mat-error>
               </mat-form-field>
             </div>
             <div class="state-container px-2 w-full md:w-1/2">
@@ -156,6 +220,14 @@
                   placeholder="Ex. Ciudad de México"
                   formControlName="state"
                 />
+                <mat-error
+                  *ngIf="
+                    formGroup.get('state')?.hasError('required') &&
+                    formGroup.get('state')?.touched
+                  "
+                >
+                  Estado es <strong>requerido</strong>
+                </mat-error>
               </mat-form-field>
             </div>
           </div>
@@ -165,8 +237,8 @@
       <!-- DATOS DE CONTACTO -->
       <mat-divider class="py-3"></mat-divider>
       <h4 class="">Contacto</h4>
-      <div class="w-full">
-        <div class="email-container px-2">
+      <div class="w-full mb-3">
+        <div class="email-container px-2 mb-1">
           <label
             for="email"
             class="block mb-2 text-xl font-medium text-gray-900"
@@ -212,6 +284,14 @@
                 formControlName="phone"
               />
               <mat-icon matSuffix>local_phone</mat-icon>
+              <mat-error
+                *ngIf="
+                  formGroup.get('phone')?.hasError('required') &&
+                  formGroup.get('phone')?.touched
+                "
+              >
+                Teléfono particular es <strong>requerido</strong>
+              </mat-error>
             </mat-form-field>
           </div>
           <div class="state-container px-2 w-full md:w-1/2">
@@ -222,7 +302,7 @@
             >
 
             <mat-form-field appearance="fill" class="w-full">
-              <mat-label>Ingrese su número de teléfono celular</mat-label>
+              <mat-label>Ingrese su teléfono celular</mat-label>
               <span matTextPrefix>+52 &nbsp;</span>
               <input
                 type="tel"
@@ -232,6 +312,14 @@
                 formControlName="mobile"
               />
               <mat-icon matSuffix>phone_android</mat-icon>
+              <mat-error
+                *ngIf="
+                  formGroup.get('mobile')?.hasError('required') &&
+                  formGroup.get('mobile')?.touched
+                "
+              >
+                Celular es <strong>requerido</strong>
+              </mat-error>
             </mat-form-field>
           </div>
         </div>
@@ -260,6 +348,14 @@
                 {{ category }}
               </mat-option>
             </mat-select>
+            <mat-error
+              *ngIf="
+                formGroup.get('expertiseAreas')?.hasError('required') &&
+                formGroup.get('expertiseAreas')?.touched
+              "
+            >
+              Área de expertise es <strong>requerido</strong>
+            </mat-error>
           </mat-form-field>
         </div>
       </div>

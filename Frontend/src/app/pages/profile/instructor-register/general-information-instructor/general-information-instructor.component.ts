@@ -8,7 +8,9 @@ import { MatButtonModule } from '@angular/material/button';
 import {
   FormControl,
   FormGroup,
+  FormGroupDirective,
   FormsModule,
+  NgForm,
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
@@ -21,6 +23,22 @@ import { MatDividerModule } from '@angular/material/divider';
 import { merge } from 'rxjs';
 import { DataService } from '../../../../core/services/data.service';
 import { MatSelectModule } from '@angular/material/select';
+import { ErrorStateMatcher } from '@angular/material/core';
+
+/** Error when invalid control is dirty, touched, or submitted. */
+export class MyErrorStateMatcher implements ErrorStateMatcher {
+  isErrorState(
+    control: FormControl | null,
+    form: FormGroupDirective | NgForm | null
+  ): boolean {
+    const isSubmitted = form && form.submitted;
+    return !!(
+      control &&
+      control.invalid &&
+      (control.dirty || control.touched || isSubmitted)
+    );
+  }
+}
 
 @Component({
   selector: 'app-general-information-instructor',
@@ -45,32 +63,15 @@ import { MatSelectModule } from '@angular/material/select';
 export class GeneralInformationInstructorComponent {
   @Input() formGroup!: FormGroup;
 
-  form: FormGroup = new FormGroup({
-    email: new FormControl('', [Validators.email, Validators.required]),
-  });
+  matcher = new MyErrorStateMatcher();
 
-  readonly email = new FormControl('', [Validators.required, Validators.email]);
   errorMessage = signal('');
-  constructor(private dataService: DataService) {
-    merge(this.email.statusChanges, this.email.valueChanges)
-      .pipe(takeUntilDestroyed())
-      .subscribe(() => this.updateErrorMessage());
-  }
+  constructor(private dataService: DataService) {}
 
   ngOnInit() {
     this.dataService.getCategoriasAcademicas().subscribe((data: any) => {
       this.categories = data;
     });
-  }
-
-  updateErrorMessage() {
-    if (this.email.hasError('required')) {
-      this.errorMessage.set('Debes ingresar un correo válido');
-    } else if (this.email.hasError('email')) {
-      this.errorMessage.set('Correo inválido');
-    } else {
-      this.errorMessage.set('');
-    }
   }
 
   hide = signal(true);
@@ -85,5 +86,9 @@ export class GeneralInformationInstructorComponent {
 
   onCategoryChange(event: any) {
     this.selectedCategory = event.value;
+  }
+
+  markAllAsTouched() {
+    this.formGroup.markAllAsTouched();
   }
 }

@@ -1,6 +1,4 @@
 import { Component, OnInit } from '@angular/core';
-import { MatButton } from '@angular/material/button';
-import { MatChip, MatChipsModule } from '@angular/material/chips';
 import { MatIcon } from '@angular/material/icon';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -13,25 +11,19 @@ interface DocumentRow {
   id: number;
   name: string;
   filePath: string;
+  uploadedFile?: File; // Nuevo campo para el archivo subido
 }
 
 @Component({
   selector: 'app-upload-documentation',
   standalone: true,
-  imports: [
-    MatIcon,
-    MatTooltipModule,
-    MatChipsModule,
-    MatChip,
-    MatTableModule,
-    CommonModule,
-  ],
+  imports: [MatIcon, MatTooltipModule, MatTableModule, CommonModule],
   templateUrl: './upload-documentation.component.html',
   styleUrl: './upload-documentation.component.scss',
 })
 export class UploadDocumentationComponent implements OnInit {
   fileMap: { [key: number]: File | null } = {};
-  displayedColumns: string[] = ['icon', 'name', 'files'];
+  displayedColumns: string[] = ['icon', 'name', 'files', 'actions'];
   dataSource = new MatTableDataSource<DocumentRow>([]);
 
   constructor(private dataService: DataService) {}
@@ -58,7 +50,19 @@ export class UploadDocumentationComponent implements OnInit {
   onInputChange(event: any, fileIndex: number): void {
     const file = event.target.files[0];
     if (file) {
-      this.fileMap[fileIndex] = file;
+      this.dataSource.data = this.dataSource.data.map((row) => {
+        if (row.id === fileIndex) {
+          return { ...row, uploadedFile: file };
+        }
+        return row;
+      });
+    }
+  }
+
+  verArchivo(element: DocumentRow): void {
+    if (element.uploadedFile) {
+      const fileURL = URL.createObjectURL(element.uploadedFile);
+      window.open(fileURL, '_blank');
     }
   }
 
@@ -68,5 +72,14 @@ export class UploadDocumentationComponent implements OnInit {
 
   getFile(fileIndex: number): File | null {
     return this.fileMap[fileIndex] || null;
+  }
+
+  deleteFile(fileIndex: number): void {
+    this.dataSource.data = this.dataSource.data.map((row) => {
+      if (row.id === fileIndex) {
+        return { ...row, uploadedFile: undefined };
+      }
+      return row;
+    });
   }
 }

@@ -4,6 +4,7 @@ import { EvidenceDialogComponent } from '../../../../shared/components/evidence-
 import { MatButton } from '@angular/material/button';
 import { MatTableModule } from '@angular/material/table';
 import { MatIcon } from '@angular/material/icon';
+import { MatTooltip } from '@angular/material/tooltip';
 
 export interface AcademicBackground {
   nivelAcademico: string;
@@ -16,7 +17,7 @@ export interface AcademicBackground {
 @Component({
   selector: 'app-academic-background',
   standalone: true,
-  imports: [MatButton, MatTableModule, MatIcon],
+  imports: [MatButton, MatTableModule, MatIcon, MatTooltip],
   templateUrl: './academic-background.component.html',
   styleUrls: ['./academic-background.component.scss'],
 })

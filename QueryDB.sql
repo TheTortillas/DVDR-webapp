@@ -334,7 +334,6 @@ INSERT INTO documents_templates (name, filePath) VALUES
 ('Lista de cotejo para cursos en modalidad no escolarizada', 'assets/templates/01 LC20H 2024-2.xlsx'),
 ('Formato de protesta de autoría', 'assets/templates/02 FPA20H 2024.docx'),
 ('Cronograma de actividades', 'assets/templates/03 CR20H 2024 .docx'),
-('Formato de curriculum vitae', 'assets/templates/04 CV20H 2024.docx'),
 ('Carta aval', 'assets/templates/05 CA-ejemplo.pdf');
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ PRUEBAS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -367,5 +366,5 @@ ON
     u.center_id = c.id;
 */
 
-  -- DROP DATABASE dvdr_cursos;
+ -- DROP DATABASE dvdr_cursos;
 

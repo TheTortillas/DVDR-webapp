@@ -17,7 +17,7 @@
             <mat-cell *matCellDef="let element">
               <a [href]="element.filePath" download>
                 <mat-icon matTooltip="Descargar plantilla" class="hover-blue"
-                  >description</mat-icon
+                  >insert_drive_file</mat-icon
                 >
               </a>
             </mat-cell>
@@ -35,15 +35,17 @@
           <ng-container matColumnDef="files">
             <mat-header-cell *matHeaderCellDef> Archivos </mat-header-cell>
             <mat-cell *matCellDef="let element">
-              <ng-container
-                *ngIf="getFile(element.id) as file; else uploadIcon"
-              >
-                <mat-chip [removable]="true" (removed)="removeFile(element.id)">
-                  {{ file.name }}
-                  <mat-icon matChipRemove>cancel</mat-icon>
-                </mat-chip>
+              <ng-container *ngIf="element.uploadedFile">
+                <button mat-icon-button (click)="verArchivo(element)">
+                  <mat-icon
+                    mat-button
+                    class="hover-blue cursor-pointer"
+                    matTooltip="Ver archivo"
+                    >description</mat-icon
+                  >
+                </button>
               </ng-container>
-              <ng-template #uploadIcon>
+              <ng-container *ngIf="!element.uploadedFile">
                 <input
                   type="file"
                   hidden
@@ -53,18 +55,32 @@
                 />
                 <mat-icon
                   matTooltip="Subir archivo"
-                  class="hover-blue"
+                  class="hover-blue cursor-pointer"
                   (click)="fileInput.click()"
                 >
                   cloud_upload
                 </mat-icon>
-              </ng-template>
+              </ng-container>
             </mat-cell>
           </ng-container>
 
-          <!-- Table Header -->
+          <!-- Actions Column -->
+          <ng-container matColumnDef="actions">
+            <mat-header-cell *matHeaderCellDef>Acciones</mat-header-cell>
+            <mat-cell *matCellDef="let element">
+              <mat-icon
+                matTooltip="Eliminar archivo"
+                [class.disabled-icon]="!element.uploadedFile"
+                [class.hover-red]="element.uploadedFile"
+                class="cursor-pointer"
+                (click)="element.uploadedFile && deleteFile(element.id)"
+              >
+                delete
+              </mat-icon>
+            </mat-cell>
+          </ng-container>
+
           <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
-          <!-- Table Rows -->
           <mat-row *matRowDef="let row; columns: displayedColumns"></mat-row>
         </mat-table>
       </div>

@@ -3,12 +3,29 @@
     <div class="bg-white border border-gray-400 rounded-lg p-8 shadow">
       <!-- STEPPER DE LOS PASOS PARA REGISTRAR EL CURSO -->
       <div class="bg-white">
-        <mat-stepper [linear]="isLinear" #stepper [animationDuration]="'200'">
+        <mat-stepper
+          [linear]="isLinear"
+          #stepper
+          [animationDuration]="'200'"
+          (selectionChange)="onStepperSelectionChange($event)"
+        >
           <!-- PASO 1: REGISTAR INFORMACIÓN GENERAL -->
-          <mat-step [stepControl]="firstFormGroup">
+          <mat-step
+            [stepControl]="firstFormGroup"
+            errorMessage="Llene todos los campos requeridos"
+          >
             <form [formGroup]="firstFormGroup">
               <ng-template matStepLabel>Información general</ng-template>
-              <app-general-information-instructor></app-general-information-instructor>
+              <app-general-information-instructor
+                [formGroup]="firstFormGroup"
+              ></app-general-information-instructor>
+              <!-- <div
+                class="text-red-500"
+                *ngIf="firstFormGroup.invalid && firstFormGroup.touched"
+              >
+                Por favor completa todos los campos requeridos.
+              </div> -->
+
               <div class="flex justify-end">
                 <button mat-flat-button matStepperNext>Siguiente</button>
               </div>
@@ -20,9 +37,21 @@
             <form [formGroup]="secondFormGroup">
               <ng-template matStepLabel>Subir documentación</ng-template>
               <app-upload-documentation></app-upload-documentation>
+              <!-- <div
+                class="text-red-500"
+                *ngIf="secondFormGroup.invalid && secondFormGroup.touched"
+              >
+                Campos requeridos faltantes.
+              </div> -->
               <div class="stepper-buttons">
                 <button mat-flat-button matStepperPrevious>Anterior</button>
-                <button mat-flat-button matStepperNext>Enviar</button>
+                <button
+                  mat-flat-button
+                  matStepperNext
+                  (click)="onCompleteSecondStep()"
+                >
+                  Enviar
+                </button>
               </div>
             </form>
           </mat-step>

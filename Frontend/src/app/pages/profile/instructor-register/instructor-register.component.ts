@@ -5,7 +5,10 @@ import {
   FormsModule,
   ReactiveFormsModule,
 } from '@angular/forms';
-import { STEPPER_GLOBAL_OPTIONS } from '@angular/cdk/stepper';
+import {
+  STEPPER_GLOBAL_OPTIONS,
+  StepperSelectionEvent,
+} from '@angular/cdk/stepper';
 import { MatButtonModule } from '@angular/material/button';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -41,6 +44,8 @@ import { WorkExperienceComponent } from './work-experience/work-experience.compo
 export class InstructorRegisterComponent {
   private _formBuilder = inject(FormBuilder);
 
+  @ViewChild(GeneralInformationInstructorComponent)
+  generalInfoCmp!: GeneralInformationInstructorComponent;
   @ViewChild(AcademicBackgroundComponent)
   academicBackgroundCmp!: AcademicBackgroundComponent;
   @ViewChild(WorkExperienceComponent)
@@ -74,6 +79,10 @@ export class InstructorRegisterComponent {
   });
 
   logFirstFormGroup() {
+    if (this.firstFormGroup.invalid) {
+      this.firstFormGroup.markAllAsTouched(); // Marca todos los campos como tocados para mostrar errores
+      return;
+    }
     console.log(this.firstFormGroup.value);
   }
 
@@ -99,5 +108,11 @@ export class InstructorRegisterComponent {
     console.log('Información general:', this.firstFormGroup.value);
     console.log('Formación académica:', this.academicBackgroundCmp.dataSource);
     console.log('Experiencia laboral:', this.workExperienceCmp.dataSource);
+  }
+
+  onStepperSelectionChange(event: StepperSelectionEvent) {
+    if (event.previouslySelectedIndex === 0 && this.firstFormGroup.invalid) {
+      this.generalInfoCmp.markAllAsTouched();
+    }
   }
 }

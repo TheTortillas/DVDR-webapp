@@ -1,3 +1,59 @@
+::ng-deep .mat-mdc-table {
+  .mat-mdc-header-cell,
+  .mat-mdc-cell {
+    &:not(.mat-column-name) {
+      text-align: center !important;
+      justify-content: center !important;
+    }
+  }
+
+  .mat-column-name {
+    text-align: left !important;
+    justify-content: flex-start !important;
+    padding-left: 24px;
+  }
+
+  .mdc-data-table__header-cell,
+  .mdc-data-table__cell {
+    &:not(.mat-column-name) {
+      text-align: center !important;
+    }
+  }
+}
+
+.mat-column-icon,
+.mat-column-files,
+.mat-column-actions {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+}
+
+// ::ng-deep .mat-mdc-table {
+//   .mat-mdc-header-cell,
+//   .mat-mdc-cell {
+//     text-align: center !important;
+//     justify-content: center !important;
+//   }
+
+//   .mdc-data-table__header-cell {
+//     text-align: center !important;
+//   }
+
+//   .mdc-data-table__cell {
+//     text-align: center !important;
+//   }
+// }
+
+// .mat-column-icon,
+// .mat-column-name,
+// .mat-column-files,
+// .mat-column-actions {
+//   display: flex !important;
+//   justify-content: center !important;
+//   align-items: center !important;
+// }
+
 mat-icon {
     font-size: 24px;
     cursor: pointer;
@@ -16,6 +72,18 @@ mat-icon {
       pointer-events: none; // Deshabilita interacción
     }
   }
+
+  .disabled-icon {
+    color: #ccc;
+    cursor: default;
+  }
+  
+  .hover-red {
+    &:hover {
+      color: red;
+    }
+  }
+
   
   .mat-column-icon {
     word-wrap: break-word !important;
@@ -36,8 +104,8 @@ mat-icon {
   .mat-column-files {
     word-wrap: break-word !important;
     white-space: unset !important;
-    flex: 0 0 30% !important;
-    width: 30% !important;
+    flex: 0 0 15% !important;
+    width: 15% !important;
     overflow-wrap: break-word;
     word-wrap: break-word;
     word-break: break-word;
@@ -46,3 +114,18 @@ mat-icon {
     -webkit-hyphens: auto;
     hyphens: auto;
   }
+
+  .mat-column-actions {
+    word-wrap: break-word !important;
+    white-space: unset !important;
+    flex: 0 0 15% !important;
+    width: 15% !important;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    word-break: break-word;
+    -ms-hyphens: auto;
+    -moz-hyphens: auto;
+    -webkit-hyphens: auto;
+    hyphens: auto;
+  }
+

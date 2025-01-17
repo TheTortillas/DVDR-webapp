@@ -1,5 +1,6 @@
 ﻿using DVDR_courses.DTOs;
 using Microsoft.AspNetCore.Mvc;
+using System.Xml.Linq;
 
 namespace DVDR_courses.Controllers
 {
@@ -62,5 +63,42 @@ namespace DVDR_courses.Controllers
                 return StatusCode(500, new { message = "An error occurred during the upload.", error = ex.Message });
             }
         }
+        [HttpPost("UploadCourseDocumentation", Name = "PostUploadCourseDocumentation")]
+        public async Task<IActionResult> UploadCourseDocumentation([FromForm] UploadCourseDocumentation request)
+        {
+            // Valida que vengan archivos
+            if (request.Files == null || request.Files.Count == 0)
+            {
+                return BadRequest("No files were uploaded.");
+            }
+
+            // Carpeta base + subcarpeta: \Frontend\public\assets\files\courses-documentation\{FolderName}\
+            var angularPublicPath = Path.Combine("..", "..", "..", "Frontend", "public", "assets", "files", "courses-documentation");
+            string uploadPath = Path.Combine(angularPublicPath, request.FolderName);
+
+            try
+            {
+                if (!Directory.Exists(uploadPath))
+                {
+                    Directory.CreateDirectory(uploadPath);
+                }
+
+                foreach (var file in request.Files)
+                {
+                    var filePath = Path.Combine(uploadPath, file.FileName);
+                    using (var stream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await file.CopyToAsync(stream);
+                    }
+                }
+
+                return Ok(new { message = "Files uploaded successfully.", folderPath = uploadPath });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "An error occurred during the upload.", error = ex.Message });
+            }
+        }
+
     }
 }

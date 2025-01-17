@@ -112,4 +112,12 @@ export class UploadDocumentationComponent implements OnChanges, OnInit {
       return row;
     });
   }
+
+  getUploadedDocuments(): DocumentRow[] {
+    // Retornamos solo las filas que tengan un archivo subido.
+    return this.dataSource.data.filter((row) => !!row.uploadedFile);
+  }
+  /*
+  Ojo: Si necesitas todas las filas (con o sin archivo), podrías retornar this.dataSource.data, pero normalmente te interesa solo lo que el usuario efectivamente subió.
+  */
 }

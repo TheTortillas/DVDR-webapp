@@ -176,11 +176,11 @@ namespace DVDR_courses
                 using (MySqlConnection con = new MySqlConnection(_config.GetConnectionString("default")))
                 {
                     string query = @"
-                SELECT dt.id, dt.name, dt.filePath, dt.type, da.required
-                FROM documents_templates dt
-                INNER JOIN document_access da ON dt.id = da.document_id
-                WHERE da.modality = @modality
-                ORDER BY dt.id"; // Ordena por la columna "id"
+                    SELECT dt.id, dt.name, dt.filePath, dt.type, da.required
+                    FROM documents_templates dt
+                    INNER JOIN document_access da ON dt.id = da.document_id
+                    WHERE da.modality = @modality
+                    ORDER BY dt.id"; // Ordena por la columna "id"
 
                     MySqlCommand command = new MySqlCommand(query, con);
                     command.Parameters.AddWithValue("@modality", modality);

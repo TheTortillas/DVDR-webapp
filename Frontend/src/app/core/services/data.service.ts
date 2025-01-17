@@ -27,4 +27,9 @@ export class DataService {
       this.URLBase + '/api/Data/DocumentTemplates?modality=' + modality;
     return this.httpClient.get(url, HttpOptions);
   }
+
+  uploadCourseDocumentation(formData: FormData): Observable<any> {
+    const url = this.URLBase + '/api/api/Files/UploadCourseDocumentation';
+    return this.httpClient.post(url, formData);
+  }
 }

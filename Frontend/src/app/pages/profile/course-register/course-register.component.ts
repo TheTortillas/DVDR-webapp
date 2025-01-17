@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, ViewChild } from '@angular/core';
 import {
   FormBuilder,
   Validators,
@@ -19,6 +19,8 @@ import {
   STEPPER_GLOBAL_OPTIONS,
   StepperSelectionEvent,
 } from '@angular/cdk/stepper';
+
+import { FilesService } from '../../../core/services/files.service';
 
 // Custom validator function
 function actorsValidator() {
@@ -56,7 +58,13 @@ function actorsValidator() {
   ],
 })
 export class CourseRegisterComponent {
+  @ViewChild(UploadDocumentationComponent)
+  private uploadDocChild!: UploadDocumentationComponent;
+
   private _formBuilder = inject(FormBuilder);
+  constructor(
+    private filesService: FilesService // Inyectamos el servicio
+  ) {}
 
   firstFormGroup = this._formBuilder.group({
     // Mapeo con los campos de la base de datos
@@ -112,7 +120,42 @@ export class CourseRegisterComponent {
 
   // Al presionar el segundo botón se imprimen los valores
   onCompleteSecondStep() {
-    console.log('Datos del primer FormGroup:', this.firstFormGroup.value);
-    console.log('Datos del segundo FormGroup:', this.secondFormGroup.value);
+    // 1) Obtenemos los archivos subidos desde el hijo
+    const uploadedDocs = this.uploadDocChild.getUploadedDocuments();
+    console.log('Archivos subidos en el hijo:', uploadedDocs);
+
+    // 2) Si no hay archivos, podemos hacer alguna validación
+    if (!uploadedDocs.length) {
+      console.warn('No hay documentos subidos');
+      return;
+    }
+
+    // 3) Armamos el FormData para mandarlos en una sola llamada
+    const randomNumber = Math.floor(Math.random() * 10000) + 1;
+    // Ej. "0001" en un formato de 4 dígitos
+    const folderName = randomNumber.toString().padStart(4, '0');
+
+    const formData = new FormData();
+    formData.append('FolderName', folderName);
+
+    // Agregamos cada archivo subido
+    uploadedDocs.forEach((doc) => {
+      if (doc.uploadedFile) {
+        formData.append('Files', doc.uploadedFile, doc.uploadedFile.name);
+      }
+    });
+
+    // 4) Llamada HTTP a tu servicio (DataService o FilesService) para subir todos
+    //    Ajusta el método y endpoint según tu implementación
+    this.filesService.uploadCourseDocumentation(formData).subscribe({
+      next: (resp) => {
+        console.log('Respuesta del servidor:', resp);
+        // Manejo de éxito (limpiar, resetear forms, etc.)
+      },
+      error: (err) => {
+        console.error('Error subiendo los documentos:', err);
+        // Manejo de error
+      },
+    });
   }
 }

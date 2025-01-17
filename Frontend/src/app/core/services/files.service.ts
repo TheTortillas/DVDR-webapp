@@ -22,4 +22,9 @@ export class FilesService {
     const url = this.URLBase + '/api/Files/FileUpload';
     return this.http.post(url, formData);
   }
+
+  uploadCourseDocumentation(formData: FormData): Observable<any> {
+    const url = this.URLBase + '/api/Files/UploadCourseDocumentation';
+    return this.http.post(url, formData);
+  }
 }

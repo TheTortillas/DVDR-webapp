@@ -8,6 +8,4 @@
         public string Type { get; set; } // Puede ser 'file' o 'url'
         public bool Required { get; set; } // Nuevo campo
     }
-
-
 }

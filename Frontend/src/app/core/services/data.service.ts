@@ -22,8 +22,9 @@ export class DataService {
     return this.httpClient.get(url, HttpOptions);
   }
 
-  public getDocumentTemplates(): Observable<any> {
-    const url = this.URLBase + '/api/Data/DocumentTemplates';
+  public getDocumentTemplates(modality: string): Observable<any> {
+    const url =
+      this.URLBase + '/api/Data/DocumentTemplates?modality=' + modality;
     return this.httpClient.get(url, HttpOptions);
   }
 }

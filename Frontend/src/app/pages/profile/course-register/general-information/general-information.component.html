@@ -69,6 +69,11 @@
           servicio <strong>requerido</strong>.
         </mat-error>
         <div class="w-full mt-4" *ngIf="typeService === 3">
+          <label
+            for="tipo-servicio"
+            class="flex mb-1 text-base font-medium text-gray-900"
+            >Ingresa el tipo de servicio</label
+          >
           <mat-form-field appearance="fill" class="w-full">
             <mat-label>Ingresa el tipo de tu servicio aquí</mat-label>
             <input
@@ -117,31 +122,35 @@
           class="flex mb-2 text-xl font-medium text-gray-900"
           >Convenio</label
         >
-        <mat-slide-toggle
-          formControlName="agreement"
-          (change)="tieneConvenioChange($event)"
-        >
+        <!-- ...existing code... -->
+        <mat-slide-toggle (change)="tieneConvenioChange($event)">
         </mat-slide-toggle>
         <span class="ms-3 text-base font-medium text-gray-900"
           >¿Cuenta con convenio?</span
         >
+
         <div *ngIf="tieneConvenio" class="convenio-options-container py-5">
-          <label
-            for="tipo-servicio"
-            class="flex mb-1 text-base font-medium text-gray-900"
-            >Tipo de convenio</label
+          <label class="flex mb-1 text-base font-medium text-gray-900"
+            >Ingrese los datos del convenio</label
           >
           <mat-form-field class="w-full">
-            <mat-label>Seleccione una opción de convenio</mat-label>
-            <mat-select (selectionChange)="onConvenioOptionChange($event)">
-              <mat-option
-                *ngFor="let option of convenioOptions"
-                [value]="option"
-              >
-                {{ option }}
-              </mat-option>
-            </mat-select>
+            <mat-label>Detalles del convenio</mat-label>
+            <input
+              matInput
+              formControlName="agreement"
+              placeholder="Ingresa el número o descripción del convenio"
+            />
+            <mat-error
+              *ngIf="
+                formGroup.get('agreement')?.invalid &&
+                formGroup.get('agreement')?.touched
+              "
+            >
+              El convenio es <strong>requerido</strong>.
+            </mat-error>
           </mat-form-field>
+
+          <!-- ...existing code... -->
 
           <div *ngIf="selectedConvenioOption">
             <label
@@ -257,11 +266,9 @@
 
       <!-- PLATAFORMAS EDUCATIVAS  -->
       <div class="plataforma-container py-5">
-        <label
-          for="educational_platform"
-          class="flex mb-2 text-xl font-medium text-gray-900"
-          >Plataforma Educativa</label
-        >
+        <label class="flex mb-2 text-xl font-medium text-gray-900">
+          Plataforma Educativa
+        </label>
 
         <mat-form-field class="w-full">
           <mat-select
@@ -284,24 +291,32 @@
               formGroup.get('educational_platform')?.touched
             "
           >
-            Debe seleccionar al menos <strong>una</strong> plataforma o
-            especificar otra(s).
+            Debe especificar al menos <strong>una</strong> plataforma.
           </mat-error>
         </mat-form-field>
 
-        <div *ngIf="otroPlatformSelected" class="mt-1">
+        <div *ngIf="otroPlatformSelected" class="">
           <label
-            for="otra-plataforma"
+            for="tipo-servicio"
             class="flex mb-1 text-base font-medium text-gray-900"
-            >Especifica la plataforma</label
+            >Ingresa las otras plataformas</label
           >
           <mat-form-field appearance="fill" class="w-full">
-            <mat-label>Especifique la plataforma</mat-label>
+            <mat-label>Especifica otra plataforma</mat-label>
             <input
               matInput
-              placeholder="Especifica la o las plataformas a usar"
+              formControlName="custom_platform"
+              placeholder="Ingresa el nombre de la plataforma"
               (input)="onOtherPlatformChange($event)"
             />
+            <mat-error
+              *ngIf="
+                formGroup.get('custom_platform')?.invalid &&
+                formGroup.get('custom_platform')?.touched
+              "
+            >
+              Debe especificar la plataforma
+            </mat-error>
           </mat-form-field>
         </div>
       </div>

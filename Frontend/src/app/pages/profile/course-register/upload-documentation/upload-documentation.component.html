@@ -15,7 +15,20 @@
           <ng-container matColumnDef="icon">
             <mat-header-cell *matHeaderCellDef>Plantilla</mat-header-cell>
             <mat-cell *matCellDef="let element">
-              <a [href]="element.filePath" download>
+              <a
+                *ngIf="element.type === 'url'"
+                [href]="element.filePath"
+                target="_blank"
+              >
+                <mat-icon matTooltip="Abrir enlace" class="hover-blue"
+                  >link</mat-icon
+                >
+              </a>
+              <a
+                *ngIf="element.type === 'file'"
+                [href]="element.filePath"
+                download
+              >
                 <mat-icon matTooltip="Descargar plantilla" class="hover-blue"
                   >insert_drive_file</mat-icon
                 >
@@ -28,7 +41,12 @@
             <mat-header-cell *matHeaderCellDef>
               Nombre del documento
             </mat-header-cell>
-            <mat-cell *matCellDef="let element">{{ element.name }}</mat-cell>
+            <mat-cell *matCellDef="let element">
+              {{ element.name }}
+              <span *ngIf="!element.required" class="text-gray-500 text-sm">
+                &nbsp;(Opcional)</span
+              >
+            </mat-cell>
           </ng-container>
 
           <!-- Upload Column -->
@@ -83,6 +101,10 @@
           <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
           <mat-row *matRowDef="let row; columns: displayedColumns"></mat-row>
         </mat-table>
+        <mat-error *ngIf="!modality" class="mt-2 text-xs">
+          <span style="display: inline-block; width: 20px"></span>Debe
+          seleccionar una modalidad antes de subir documentación.
+        </mat-error>
       </div>
     </section>
   </div>

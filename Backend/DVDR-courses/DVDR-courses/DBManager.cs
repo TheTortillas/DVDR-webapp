@@ -168,14 +168,23 @@ namespace DVDR_courses
         }
 
 
-        public List<DocumentTemplate> GetDocumentTemplates()
+        public List<DocumentTemplate> GetDocumentTemplates(string modality)
         {
             var templates = new List<DocumentTemplate>();
             try
             {
                 using (MySqlConnection con = new MySqlConnection(_config.GetConnectionString("default")))
                 {
-                    MySqlCommand command = new MySqlCommand("SELECT id, name, filePath FROM documents_templates", con);
+                    string query = @"
+                SELECT dt.id, dt.name, dt.filePath, dt.type, da.required
+                FROM documents_templates dt
+                INNER JOIN document_access da ON dt.id = da.document_id
+                WHERE da.modality = @modality
+                ORDER BY dt.id"; // Ordena por la columna "id"
+
+                    MySqlCommand command = new MySqlCommand(query, con);
+                    command.Parameters.AddWithValue("@modality", modality);
+
                     con.Open();
                     using (MySqlDataReader reader = command.ExecuteReader())
                     {
@@ -185,10 +194,13 @@ namespace DVDR_courses
                             {
                                 Id = reader.GetInt32("id"),
                                 Name = reader.GetString("name"),
-                                FilePath = reader.GetString("filePath")
+                                FilePath = reader.GetString("filePath"),
+                                Type = reader.GetString("type"),
+                                Required = reader.GetBoolean("required") // Lee el campo 'required'
                             });
                         }
                     }
+
                     if (con.State == System.Data.ConnectionState.Open)
                     {
                         con.Close();

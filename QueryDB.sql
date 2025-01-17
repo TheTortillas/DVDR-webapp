@@ -50,7 +50,18 @@ CREATE TABLE courses (
 CREATE TABLE documents_templates (
     id INT PRIMARY KEY AUTO_INCREMENT,
     name VARCHAR(255) NOT NULL,
-    filePath VARCHAR(255) NOT NULL
+    filePath VARCHAR(2083) NOT NULL, -- Ampliado para soportar URLs largas
+    type ENUM('file', 'url') DEFAULT 'file' NOT NULL -- O es URL o es archivo
+);
+
+CREATE TABLE document_access (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    document_id INT NOT NULL, -- Relación con documents_templates
+    modality ENUM('schooled', 'non-schooled', 'mixed') NOT NULL, -- Modalidad asociada al documento
+    required TINYINT(1) NOT NULL DEFAULT 0, -- 1 si es obligatorio, 0 si no lo es
+    FOREIGN KEY (document_id) REFERENCES documents_templates(id)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
 );
 
 CREATE TABLE course_documentation (
@@ -328,13 +339,28 @@ INSERT INTO centers (name, type, identifier) VALUES
 ('Centro de Vinculación y Desarrollo Regional Unidad Tijuana', 'CVDR', 11),
 ('Centro de Vinculación y Desarrollo Regional Unidad Tampico', 'CVDR', 10);
 
-INSERT INTO documents_templates (name, filePath) VALUES
-('Formato de registro de cursos de formación a lo largo de la vida', 'assets/templates/01 FS20H 2024-2.docx'),
-('Lista de cotejo para formato de registro de cursos', 'assets/templates/01 LC20H 2024-2.xlsx'),
-('Lista de cotejo para cursos en modalidad no escolarizada', 'assets/templates/01 LC20H 2024-2.xlsx'),
-('Formato de protesta de autoría', 'assets/templates/02 FPA20H 2024.docx'),
-('Cronograma de actividades', 'assets/templates/03 CR20H 2024 .docx'),
-('Carta aval', 'assets/templates/05 CA-ejemplo.pdf');
+INSERT INTO documents_templates (name, filePath, type) VALUES
+('Formato de registro de cursos de formación a lo largo de la vida', 'assets/templates/01 FS20H 2024-2.docx', 'file'),
+('Lista de cotejo para formato de registro de cursos', 'assets/templates/01 LC20H 2024-2.xlsx', 'file'),
+('Oficio de visto bueno proporcionado por la DEV', 'https://www.youtube.com', 'url'),
+('Formato de protesta de autoría', 'assets/templates/02 FPA20H 2024.docx', 'file'),
+('Carta aval', 'assets/templates/05 CA-ejemplo.pdf', 'file');
+
+INSERT INTO document_access (document_id, modality, required) VALUES
+(3, 'non-schooled', 1), -- Obligatorio solo en modalidad no escolarizada
+(3, 'mixed', 1),
+(1, 'schooled', 1), 
+(1, 'non-schooled', 1), 
+(1, 'mixed', 1), 
+(2, 'schooled', 1), 
+(2, 'non-schooled', 1),
+(2, 'mixed', 1), 
+(4, 'schooled', 1), 
+(4, 'non-schooled', 1),
+(4, 'mixed', 1),
+(5, 'schooled', 0), 
+(5, 'non-schooled', 0),
+(5, 'mixed', 0); 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ PRUEBAS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 -- Ejemplo de cómo insertar un nuevo usuario con los nuevos campos
@@ -366,5 +392,10 @@ ON
     u.center_id = c.id;
 */
 
- -- DROP DATABASE dvdr_cursos;
+-- DROP DATABASE dvdr_cursos;
+SELECT dt.id AS document_id, dt.name AS document_name, dt.filePath, dt.type, da.modality
+FROM documents_templates dt
+JOIN document_access da ON dt.id = da.document_id
+WHERE da.modality = 'non-schooled';
+
 

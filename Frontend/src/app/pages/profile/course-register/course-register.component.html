@@ -36,7 +36,9 @@
           <mat-step [stepControl]="secondFormGroup">
             <form [formGroup]="secondFormGroup">
               <ng-template matStepLabel>Subir documentación</ng-template>
-              <app-upload-documentation></app-upload-documentation>
+              <app-upload-documentation
+                [modality]="getModalityFromCourse()"
+              ></app-upload-documentation>
               <!-- <div
                 class="text-red-500"
                 *ngIf="secondFormGroup.invalid && secondFormGroup.touched"
@@ -55,29 +57,6 @@
               </div>
             </form>
           </mat-step>
-
-          <!-- PASO 3: SOLICITAR REGISTRO -->
-          <!-- <mat-step [stepControl]="thirdFormGroup">
-            <form [formGroup]="thirdFormGroup">
-              <ng-template matStepLabel>Solicitar registro</ng-template>
-              <app-request-registration></app-request-registration>
-              <div class="stepper-buttons">
-                <button mat-flat-button matStepperPrevious>Anterior</button>
-                <button mat-flat-button matStepperNext>Siguiente</button>
-              </div>
-            </form>
-          </mat-step> -->
-
-          <!-- PASO 5: DESCARGAR CONSTANCIAS -->
-          <!-- <mat-step [stepControl]="fourthFormGroup">
-            <form [formGroup]="fourthFormGroup">
-              <ng-template matStepLabel>Descargar Constancias</ng-template>
-              <app-download-certificates></app-download-certificates>
-              <div class="stepper-buttons">
-                <button mat-flat-button matStepperPrevious>Anterior</button>
-              </div>
-            </form>
-          </mat-step> -->
         </mat-stepper>
       </div>
     </div>

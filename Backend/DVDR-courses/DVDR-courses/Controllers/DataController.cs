@@ -25,11 +25,23 @@ namespace DVDR_courses.Controllers
         }
 
         [HttpGet("DocumentTemplates", Name = "GetDocumentTemplates")]
-        public JsonResult GetDocumentTemplates()
+        public JsonResult GetDocumentTemplates([FromQuery] string modality)
         {
-            return new JsonResult(new DBManager(_config).GetDocumentTemplates());
-        }
+            if (string.IsNullOrEmpty(modality))
+            {
+                return new JsonResult(new { error = "Modality is required." }) { StatusCode = 400 };
+            }
 
+            try
+            {
+                var templates = new DBManager(_config).GetDocumentTemplates(modality);
+                return new JsonResult(templates);
+            }
+            catch (Exception ex)
+            {
+                return new JsonResult(new { error = ex.Message }) { StatusCode = 500 };
+            }
+        }
     }
 
 }

@@ -8,7 +8,7 @@ import {
   ValidationErrors,
 } from '@angular/forms';
 import { MatInputModule } from '@angular/material/input';
-import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatError, MatFormFieldModule } from '@angular/material/form-field';
 import { MatStepperModule } from '@angular/material/stepper';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -71,6 +71,7 @@ export class CourseRegisterComponent {
     modality: ['', Validators.required], // modalidad
     educational_offer: ['', Validators.required], // oferta-educativa
     educational_platform: ['', Validators.required], // plataforma-ed
+    custom_platform: [''], // plataforma-ed-personalizada
     actors: [[], [actorsValidator()]],
   });
   secondFormGroup = this._formBuilder.group({
@@ -87,6 +88,26 @@ export class CourseRegisterComponent {
     ) {
       this.secondFormGroup.markAllAsTouched();
     }
+  }
+
+  getModalityFromCourse(): string {
+    const userChoice = this.firstFormGroup.get('modality')?.value;
+
+    // Ajusta la lógica a tus necesidades reales:
+    switch (userChoice) {
+      case 'Escolarizada':
+        return 'schooled';
+      case 'No Escolarizada':
+        return 'non-schooled';
+      case 'Mixta':
+        return 'mixed';
+      default:
+        return ''; // Valor por defecto o manejo de error
+    }
+  }
+
+  printModality(): void {
+    console.log('Modalidad seleccionada:', this.getModalityFromCourse());
   }
 
   // Al presionar el segundo botón se imprimen los valores

@@ -13,6 +13,7 @@ import {
   NgForm,
   FormGroupDirective,
   FormControl,
+  Validators,
 } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
@@ -149,9 +150,13 @@ export class GeneralInformationComponent implements OnInit {
 
   tieneConvenioChange($event: MatSlideToggleChange) {
     this.tieneConvenio = $event.checked;
-    if (!this.tieneConvenio) {
-      this.selectedConvenioOption = '';
+    if (this.tieneConvenio) {
+      this.formGroup.get('agreement')?.setValidators(Validators.required);
+    } else {
+      this.formGroup.get('agreement')?.clearValidators();
+      this.formGroup.get('agreement')?.setValue('');
     }
+    this.formGroup.get('agreement')?.updateValueAndValidity();
   }
 
   onConvenioOptionChange(event: any) {
@@ -189,21 +194,37 @@ export class GeneralInformationComponent implements OnInit {
   otroPlatformSelected = false;
 
   onPlatformSelectionChange(selected: string[]) {
-    if (selected.includes('Otro')) {
-      this.otroPlatformSelected = true;
-      // Limpia el FormControl para que espere la entrada
-      this.formGroup.get('educational_platform')?.setValue([]);
+    this.otroPlatformSelected = selected.includes('Otro');
+    this.platformSelections = selected.filter((p) => p !== 'Otro');
+
+    // Update validators based on 'Otro' selection
+    if (this.otroPlatformSelected) {
+      this.formGroup.get('custom_platform')?.setValidators(Validators.required);
     } else {
-      this.otroPlatformSelected = false;
-      this.platformSelections = selected;
-      this.formGroup.get('educational_platform')?.setValue(selected);
+      this.formGroup.get('custom_platform')?.clearValidators();
+      this.formGroup.get('custom_platform')?.setValue('');
+      // Set educational_platform value directly when no custom input is needed
+      this.formGroup
+        .get('educational_platform')
+        ?.setValue(this.platformSelections);
     }
+
+    this.formGroup.get('custom_platform')?.updateValueAndValidity();
   }
 
   onOtherPlatformChange(event: any) {
-    this.formGroup.get('educational_platform')?.setValue([event.target.value]);
-  }
+    const customValue = event.target.value;
+    this.formGroup.get('custom_platform')?.setValue(customValue);
 
+    if (customValue && this.otroPlatformSelected) {
+      const platforms = [...this.platformSelections];
+      const allPlatforms =
+        platforms.length > 0
+          ? `${platforms.join(',')},${customValue}`
+          : customValue;
+      this.formGroup.get('educational_platform')?.setValue(allPlatforms);
+    }
+  }
   //-------------------------------------- AUTORES  ---------------------------------------
 
   personas: string[] = [

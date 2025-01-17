@@ -1,10 +1,17 @@
-import { Component, OnInit } from '@angular/core';
+import {
+  Component,
+  Input,
+  OnChanges,
+  SimpleChanges,
+  OnInit,
+} from '@angular/core';
 import { MatIcon } from '@angular/material/icon';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { CommonModule } from '@angular/common';
 
 import { DataService } from '../../../../core/services/data.service';
+import { MatError, MatFormFieldModule } from '@angular/material/form-field';
 
 // Interface para las filas de la tabla
 interface DocumentRow {
@@ -12,16 +19,26 @@ interface DocumentRow {
   name: string;
   filePath: string;
   uploadedFile?: File; // Nuevo campo para el archivo subido
+  type: string; // Tipo de archivo (URL o archivo)
+  required: boolean; // Indicador si el documento es obligatorio
 }
 
 @Component({
   selector: 'app-upload-documentation',
   standalone: true,
-  imports: [MatIcon, MatTooltipModule, MatTableModule, CommonModule],
+  imports: [
+    MatIcon,
+    MatTooltipModule,
+    MatTableModule,
+    CommonModule,
+    MatError,
+    MatFormFieldModule,
+  ],
   templateUrl: './upload-documentation.component.html',
   styleUrl: './upload-documentation.component.scss',
 })
-export class UploadDocumentationComponent implements OnInit {
+export class UploadDocumentationComponent implements OnChanges, OnInit {
+  @Input() modality!: string; // Recibe la modalidad del curso desde el componente padre del primer paso del stepper
   fileMap: { [key: number]: File | null } = {};
   displayedColumns: string[] = ['icon', 'name', 'files', 'actions'];
   dataSource = new MatTableDataSource<DocumentRow>([]);
@@ -29,16 +46,29 @@ export class UploadDocumentationComponent implements OnInit {
   constructor(private dataService: DataService) {}
 
   ngOnInit(): void {
-    this.loadDocumentTemplates();
+    // Si ya hay una modalidad válida al iniciar, cargar los documentos
+    if (this.modality) {
+      this.loadDocumentTemplates();
+    }
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    // Detectar cambios en la modalidad
+    if (changes['modality'] && !changes['modality'].firstChange) {
+      console.log('Modality changed:', changes['modality'].currentValue);
+      this.loadDocumentTemplates();
+    }
   }
 
   loadDocumentTemplates(): void {
-    this.dataService.getDocumentTemplates().subscribe({
+    this.dataService.getDocumentTemplates(this.modality).subscribe({
       next: (data: DocumentRow[]) => {
         this.dataSource.data = data.map((item) => ({
           id: item.id,
           name: item.name,
           filePath: item.filePath,
+          type: item.type,
+          required: item.required,
         }));
       },
       error: (err) => {

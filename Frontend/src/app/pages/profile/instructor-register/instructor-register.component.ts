@@ -16,6 +16,7 @@ import { MatStepperModule } from '@angular/material/stepper';
 import { GeneralInformationInstructorComponent } from './general-information-instructor/general-information-instructor.component';
 import { AcademicBackgroundComponent } from './academic-background/academic-background.component';
 import { WorkExperienceComponent } from './work-experience/work-experience.component';
+import { InstructorRegisterService } from '../../../core/services/instructor-register.service';
 
 @Component({
   selector: 'app-instructor-register',
@@ -44,6 +45,8 @@ import { WorkExperienceComponent } from './work-experience/work-experience.compo
 export class InstructorRegisterComponent {
   private _formBuilder = inject(FormBuilder);
 
+  constructor(private instructorRegisterService: InstructorRegisterService) {}
+
   @ViewChild(GeneralInformationInstructorComponent)
   generalInfoCmp!: GeneralInformationInstructorComponent;
   @ViewChild(AcademicBackgroundComponent)
@@ -68,6 +71,7 @@ export class InstructorRegisterComponent {
     phone: ['', Validators.required],
     mobile: ['', Validators.required],
     expertiseAreas: ['', Validators.required],
+    center: [''],
   });
 
   secondFormGroup = this._formBuilder.group({
@@ -105,7 +109,22 @@ export class InstructorRegisterComponent {
   }
 
   onSubmit() {
-    console.log('Información general:', this.firstFormGroup.value);
+    const generalInfo = this.firstFormGroup.value;
+    generalInfo.center = localStorage.getItem('center');
+
+    // Llamada al servicio para enviar la información general
+    this.instructorRegisterService
+      .registerInstructorGeneralInfo(generalInfo)
+      .subscribe({
+        next: (response) => {
+          console.log('Instructor registrado con éxito:', response);
+        },
+        error: (err) => {
+          console.error('Error al registrar el instructor:', err);
+        },
+      });
+
+    console.log('Información general:', generalInfo);
     console.log('Formación académica:', this.academicBackgroundCmp.dataSource);
     console.log('Experiencia laboral:', this.workExperienceCmp.dataSource);
   }

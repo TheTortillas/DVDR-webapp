@@ -4,11 +4,11 @@ USE dvdr_cursos;
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ TABLAS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 CREATE TABLE centers (
-    id INT AUTO_INCREMENT PRIMARY KEY,
+   id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     type ENUM('CITTA', 'CVDR', 'UA') NOT NULL,
     identifier INT NOT NULL,
-    UNIQUE KEY (type, identifier) -- Índice compuesto
+    UNIQUE KEY (type, identifier)
 );
 
 CREATE TABLE users (
@@ -79,7 +79,7 @@ CREATE TABLE actors_general_information (
     last_name VARCHAR(255) NOT NULL,
     second_last_name VARCHAR(255) NOT NULL,
     street VARCHAR(255) NOT NULL,
-    house_number VARCHAR(255) NOT NULL,
+    house_number VARCHAR(20) NOT NULL,
     neighborhood VARCHAR(255) NOT NULL,
     postal_code VARCHAR(5) NOT NULL,
     municipality VARCHAR(255) NOT NULL,
@@ -87,10 +87,11 @@ CREATE TABLE actors_general_information (
     email VARCHAR(255) NOT NULL,
     landline_phone VARCHAR(15) NOT NULL,
     mobile_phone VARCHAR(15) NOT NULL,
-    knowledge_area VARCHAR(15) NOT NULL,
-    center_type ENUM('CITTA', 'CVDR', 'UA') NOT NULL, -- Relación con el tipo de centro
-    center_identifier INT NOT NULL, -- Relación con el identificador
-    FOREIGN KEY (center_type, center_identifier) REFERENCES centers(type, identifier)
+    knowledge_area VARCHAR(255) NOT NULL,
+	center_type ENUM('CITTA', 'CVDR', 'UA') NOT NULL, -- Incluye el tipo de centro
+    center_identifier INT NOT NULL, -- Referencia al identificador único del centro
+    approval_status ENUM('pending', 'approved', 'rejected') DEFAULT 'pending' NOT NULL,
+	FOREIGN KEY (center_type, center_identifier) REFERENCES centers(type, identifier)
 );
 
 -- Tabla de historial académico, relacionada con el instructor
@@ -101,7 +102,7 @@ CREATE TABLE academic_history (
     period VARCHAR(255) NOT NULL,
     institution VARCHAR(255) NOT NULL,
     degree_awarded VARCHAR(255) NOT NULL,
-    evidence BLOB NOT NULL,
+    evidence_path VARCHAR(255) NOT NULL,
     FOREIGN KEY (actor_id) REFERENCES actors_general_information(id)
         ON DELETE CASCADE
         ON UPDATE CASCADE
@@ -116,7 +117,7 @@ CREATE TABLE professional_experience (
     organization VARCHAR(255) NOT NULL,
     position VARCHAR(255) NOT NULL,
     activity TEXT NOT NULL,
-    evidence BLOB NOT NULL,
+    evidence_path VARCHAR(255) NOT NULL,
     FOREIGN KEY (actor_id) REFERENCES actors_general_information(id)
         ON DELETE CASCADE
         ON UPDATE CASCADE
@@ -273,7 +274,7 @@ BEGIN
 END$$
 DELIMITER ;
 
--- Procedimiento para verificar si ya eciste el username
+-- Procedimiento para verificar si ya existe el username
 DELIMITER $$
 CREATE PROCEDURE sp_check_username(
     IN p_username VARCHAR(50),   
@@ -310,6 +311,98 @@ BEGIN
     COMMIT;
 END$$
 DELIMITER ;
+
+DELIMITER $$
+
+DELIMITER $$
+CREATE PROCEDURE sp_register_instructor_general_info(
+    IN p_first_name VARCHAR(255),
+    IN p_last_name VARCHAR(255),
+    IN p_second_last_name VARCHAR(255),
+    IN p_street VARCHAR(255),
+    IN p_house_number VARCHAR(255),
+    IN p_neighborhood VARCHAR(255),
+    IN p_postal_code VARCHAR(5),
+    IN p_municipality VARCHAR(255),
+    IN p_state VARCHAR(255),
+    IN p_email VARCHAR(255),
+    IN p_landline_phone VARCHAR(15),
+    IN p_mobile_phone VARCHAR(15),
+    IN p_knowledge_area VARCHAR(255),
+    IN p_center_name VARCHAR(255),
+    OUT p_status_code INT,
+    OUT p_message VARCHAR(255)
+)
+BEGIN
+    DECLARE v_center_id INT;
+
+    -- Manejo de errores
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION 
+    BEGIN
+        ROLLBACK;
+        SET p_status_code = -1;
+        SET p_message = 'Error: No se pudo registrar al instructor.';
+    END;
+
+    -- Inicio de la transacción
+    START TRANSACTION;
+
+    -- Buscar el ID del centro a partir del nombre proporcionado
+    SELECT id INTO v_center_id
+    FROM centers
+    WHERE name = p_center_name
+    LIMIT 1;
+
+    -- Validar si el centro existe
+    IF v_center_id IS NULL THEN
+        ROLLBACK;
+        SET p_status_code = -2;
+        SET p_message = 'Error: El centro especificado no existe.';
+    ELSE
+        -- Insertar el registro en la tabla de actores
+        INSERT INTO actors_general_information (
+            first_name,
+            last_name,
+            second_last_name,
+            street,
+            house_number,
+            neighborhood,
+            postal_code,
+            municipality,
+            state,
+            email,
+            landline_phone,
+            mobile_phone,
+            knowledge_area,
+            center_type,
+            center_identifier
+        )
+        VALUES (
+            p_first_name,
+            p_last_name,
+            p_second_last_name,
+            p_street,
+            p_house_number,
+            p_neighborhood,
+            p_postal_code,
+            p_municipality,
+            p_state,
+            p_email,
+            p_landline_phone,
+            p_mobile_phone,
+            p_knowledge_area,
+            (SELECT type FROM centers WHERE id = v_center_id),
+            (SELECT identifier FROM centers WHERE id = v_center_id)
+        );
+
+        -- Confirmación de éxito
+        COMMIT;
+        SET p_status_code = 1;
+        SET p_message = 'Instructor registrado con éxito.';
+    END IF;
+END$$
+DELIMITER ;
+
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ LLENADO DE TABLAS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 INSERT INTO academic_categories (name) VALUES
@@ -391,11 +484,37 @@ INNER JOIN
 ON 
     u.center_id = c.id;
 */
-
--- DROP DATABASE dvdr_cursos;
+ -- DROP DATABASE dvdr_cursos;
 SELECT dt.id AS document_id, dt.name AS document_name, dt.filePath, dt.type, da.modality
 FROM documents_templates dt
 JOIN document_access da ON dt.id = da.document_id
 WHERE da.modality = 'non-schooled';
+/*
+CALL sp_register_instructor_general_info(
+    'Juan',                     -- p_first_name
+    'Pérez',                    -- p_last_name
+    'Gómez',                    -- p_second_last_name
+    'Calle Principal',          -- p_street
+    '123',                      -- p_house_number
+    'Centro',                   -- p_neighborhood
+    '12345',                    -- p_postal_code
+    'Municipio Central',        -- p_municipality
+    'Estado Ejemplo',           -- p_state
+    'juan.perez@example.com',   -- p_email
+    '5551234567',               -- p_landline_phone
+    '5557654321',               -- p_mobile_phone
+    'Matemáticas',              -- p_knowledge_area
+    'Centro de Vinculación y Desarrollo Regional Unidad Tlaxcala',       -- p_center_name
+    @status_code,               -- p_status_code (OUT)
+    @message                    -- p_message (OUT)
+);
+
+-- Consultar los valores de los parámetros de salida
+SELECT @status_code AS status_code, @message AS message;
 
 
+
+*/
+
+SELECT * 
+FROM actors_general_information

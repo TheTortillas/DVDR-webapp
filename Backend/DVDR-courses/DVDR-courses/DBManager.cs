@@ -1,6 +1,7 @@
 ﻿using DVDR_courses.DTOs;
 using DVDR_courses.Services;
 using MySql.Data.MySqlClient;
+using System.Data;
 
 namespace DVDR_courses
 {
@@ -213,5 +214,59 @@ namespace DVDR_courses
             }
             return templates;
         }
+
+        public (int statusCode, string message) RegisterGeneralInfoInstructor(GeneralInfoInstructor instructor)
+        {
+            try
+            {
+                using (MySqlConnection con = new MySqlConnection(_config.GetConnectionString("default")))
+                {
+                    MySqlCommand cmd = new MySqlCommand("sp_register_instructor_general_info", con);
+                    cmd.CommandType = CommandType.StoredProcedure;
+
+                    cmd.Parameters.AddWithValue("p_first_name", instructor.FirstName);
+                    cmd.Parameters.AddWithValue("p_last_name", instructor.LastName);
+                    cmd.Parameters.AddWithValue("p_second_last_name", instructor.SecondLastName);
+                    cmd.Parameters.AddWithValue("p_street", instructor.Street);
+                    cmd.Parameters.AddWithValue("p_house_number", instructor.Number);
+                    cmd.Parameters.AddWithValue("p_neighborhood", instructor.Colony);
+                    cmd.Parameters.AddWithValue("p_postal_code", instructor.PostalCode);
+                    cmd.Parameters.AddWithValue("p_municipality", instructor.City);
+                    cmd.Parameters.AddWithValue("p_state", instructor.State);
+                    cmd.Parameters.AddWithValue("p_email", instructor.Email);
+                    cmd.Parameters.AddWithValue("p_landline_phone", instructor.Phone);
+                    cmd.Parameters.AddWithValue("p_mobile_phone", instructor.Mobile);
+                    cmd.Parameters.AddWithValue("p_knowledge_area", string.Join(",", instructor.ExpertiseAreas));
+                    cmd.Parameters.AddWithValue("p_center_name", instructor.Center);
+
+                    // Parámetros de salida
+                    MySqlParameter statusCodeParam = new MySqlParameter("p_status_code", MySqlDbType.Int32)
+                    {
+                        Direction = ParameterDirection.Output
+                    };
+                    cmd.Parameters.Add(statusCodeParam);
+
+                    MySqlParameter messageParam = new MySqlParameter("p_message", MySqlDbType.VarChar, 255)
+                    {
+                        Direction = ParameterDirection.Output
+                    };
+                    cmd.Parameters.Add(messageParam);
+
+                    con.Open();
+                    cmd.ExecuteNonQuery();
+
+                    int statusCode = Convert.ToInt32(statusCodeParam.Value);
+                    string message = messageParam.Value.ToString();
+
+                    return (statusCode, message);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+                return (-1, "Error interno del servidor.");
+            }
+        }
+
     }
 }

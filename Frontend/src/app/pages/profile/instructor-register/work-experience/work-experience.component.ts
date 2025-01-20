@@ -12,6 +12,7 @@ export interface WorkExperience {
   puesto: string;
   actividad: string;
   evidencia: string;
+  evidenciaFile?: File; // Archivo físico
 }
 
 @Component({
@@ -45,15 +46,28 @@ export class WorkExperienceComponent {
 
     dialogRef.afterClosed().subscribe((result: WorkExperience | undefined) => {
       if (result) {
-        this.dataSource = [...this.dataSource, result];
+        const newExperience: WorkExperience = {
+          periodo: result.periodo,
+          organizacion: result.organizacion,
+          puesto: result.puesto,
+          actividad: result.actividad,
+          evidencia: result.evidencia,
+          evidenciaFile: result.evidenciaFile, // Store the file
+        };
+
+        this.dataSource = [...this.dataSource, newExperience];
         this.dataSourceChange.emit(this.dataSource.length > 0);
       }
     });
   }
 
   verEvidencia(element: WorkExperience): void {
-    // Abre la URL del archivo en una nueva ventana
-    window.open(element.evidencia, '_blank');
+    if (element.evidenciaFile) {
+      const url = URL.createObjectURL(element.evidenciaFile);
+      window.open(url, '_blank');
+    } else if (element.evidencia) {
+      window.open(element.evidencia, '_blank');
+    }
   }
 
   eliminarEvidencia(element: WorkExperience): void {

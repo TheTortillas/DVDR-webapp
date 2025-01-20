@@ -215,29 +215,53 @@ namespace DVDR_courses
             return templates;
         }
 
-        public (int statusCode, string message) RegisterGeneralInfoInstructor(GeneralInfoInstructor instructor)
+        public (int statusCode, string message) RegisterInstructorAll(InstructorRegister request)
         {
             try
             {
                 using (MySqlConnection con = new MySqlConnection(_config.GetConnectionString("default")))
                 {
-                    MySqlCommand cmd = new MySqlCommand("sp_register_instructor_general_info", con);
+                    MySqlCommand cmd = new MySqlCommand("sp_register_instructor_all", con);
                     cmd.CommandType = CommandType.StoredProcedure;
 
-                    cmd.Parameters.AddWithValue("p_first_name", instructor.FirstName);
-                    cmd.Parameters.AddWithValue("p_last_name", instructor.LastName);
-                    cmd.Parameters.AddWithValue("p_second_last_name", instructor.SecondLastName);
-                    cmd.Parameters.AddWithValue("p_street", instructor.Street);
-                    cmd.Parameters.AddWithValue("p_house_number", instructor.Number);
-                    cmd.Parameters.AddWithValue("p_neighborhood", instructor.Colony);
-                    cmd.Parameters.AddWithValue("p_postal_code", instructor.PostalCode);
-                    cmd.Parameters.AddWithValue("p_municipality", instructor.City);
-                    cmd.Parameters.AddWithValue("p_state", instructor.State);
-                    cmd.Parameters.AddWithValue("p_email", instructor.Email);
-                    cmd.Parameters.AddWithValue("p_landline_phone", instructor.Phone);
-                    cmd.Parameters.AddWithValue("p_mobile_phone", instructor.Mobile);
-                    cmd.Parameters.AddWithValue("p_knowledge_area", string.Join(",", instructor.ExpertiseAreas));
-                    cmd.Parameters.AddWithValue("p_center_name", instructor.Center);
+                    // Información general del instructor
+                    var generalInfo = request.GeneralInfo;
+                    cmd.Parameters.AddWithValue("p_first_name", generalInfo.FirstName);
+                    cmd.Parameters.AddWithValue("p_last_name", generalInfo.LastName);
+                    cmd.Parameters.AddWithValue("p_second_last_name", generalInfo.SecondLastName);
+                    cmd.Parameters.AddWithValue("p_street", generalInfo.Street);
+                    cmd.Parameters.AddWithValue("p_house_number", generalInfo.Number);
+                    cmd.Parameters.AddWithValue("p_neighborhood", generalInfo.Colony);
+                    cmd.Parameters.AddWithValue("p_postal_code", generalInfo.PostalCode);
+                    cmd.Parameters.AddWithValue("p_municipality", generalInfo.City);
+                    cmd.Parameters.AddWithValue("p_state", generalInfo.State);
+                    cmd.Parameters.AddWithValue("p_email", generalInfo.Email);
+                    cmd.Parameters.AddWithValue("p_landline_phone", generalInfo.Phone);
+                    cmd.Parameters.AddWithValue("p_mobile_phone", generalInfo.Mobile);
+                    cmd.Parameters.AddWithValue("p_knowledge_area", string.Join(",", generalInfo.ExpertiseAreas));
+                    cmd.Parameters.AddWithValue("p_center_name", generalInfo.Center);
+
+                    // Generar rutas de evidencia en el backend
+                    var academicHistoriesJson = Newtonsoft.Json.JsonConvert.SerializeObject(request.AcademicHistories.Select(x => new
+                    {
+                        x.education_level,
+                        x.period,
+                        x.institution,
+                        x.degree_awarded,
+                        evidence_path = Path.Combine("assets", "files", "instructors-documentation", request.FolderName, "academic-history", x.Evidence.FileName)
+                    }));
+
+                    var workExperiencesJson = Newtonsoft.Json.JsonConvert.SerializeObject(request.WorkExperiences.Select(x => new
+                    {
+                        x.period,
+                        x.organization,
+                        x.position,
+                        x.activity,
+                        evidence_path = Path.Combine("assets", "files", "instructors-documentation", request.FolderName, "work-experience", x.Evidence.FileName)
+                    }));
+
+                    cmd.Parameters.AddWithValue("p_academic_history", academicHistoriesJson);
+                    cmd.Parameters.AddWithValue("p_professional_experience", workExperiencesJson);
 
                     // Parámetros de salida
                     MySqlParameter statusCodeParam = new MySqlParameter("p_status_code", MySqlDbType.Int32)
@@ -267,6 +291,5 @@ namespace DVDR_courses
                 return (-1, "Error interno del servidor.");
             }
         }
-
     }
 }

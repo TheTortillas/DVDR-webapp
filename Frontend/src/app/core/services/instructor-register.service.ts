@@ -21,4 +21,9 @@ export class InstructorRegisterService {
     const url = this.URLBase + '/api/Instructor/RegisterGeneralInfo';
     return this.httpClient.post(url, instructorData);
   }
+
+  registerInstructor(formData: FormData): Observable<any> {
+    const url = this.URLBase + '/api/Instructor/RegisterInstructor';
+    return this.httpClient.post(url, formData);
+  }
 }

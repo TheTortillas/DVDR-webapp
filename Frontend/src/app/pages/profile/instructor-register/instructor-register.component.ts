@@ -17,6 +17,7 @@ import { GeneralInformationInstructorComponent } from './general-information-ins
 import { AcademicBackgroundComponent } from './academic-background/academic-background.component';
 import { WorkExperienceComponent } from './work-experience/work-experience.component';
 import { InstructorRegisterService } from '../../../core/services/instructor-register.service';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-instructor-register',
@@ -109,24 +110,116 @@ export class InstructorRegisterComponent {
   }
 
   onSubmit() {
-    const generalInfo = this.firstFormGroup.value;
-    generalInfo.center = localStorage.getItem('center');
-
-    // Llamada al servicio para enviar la información general
-    this.instructorRegisterService
-      .registerInstructorGeneralInfo(generalInfo)
-      .subscribe({
-        next: (response) => {
-          console.log('Instructor registrado con éxito:', response);
-        },
-        error: (err) => {
-          console.error('Error al registrar el instructor:', err);
-        },
+    if (
+      this.firstFormGroup.invalid ||
+      !this.hasAcademicRecords ||
+      !this.hasWorkExperience
+    ) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Formulario incompleto',
+        text: 'Por favor, completa todos los campos requeridos.',
       });
+      return;
+    }
 
-    console.log('Información general:', generalInfo);
-    console.log('Formación académica:', this.academicBackgroundCmp.dataSource);
-    console.log('Experiencia laboral:', this.workExperienceCmp.dataSource);
+    const formData = new FormData();
+
+    // Generar carpeta aleatoria
+    const folderName = Math.random().toString(36).substring(2, 15); // Nombre aleatorio
+    formData.append('FolderName', folderName);
+
+    // Agregar información general
+    const generalInfo = {
+      ...this.firstFormGroup.value,
+      center: localStorage.getItem('center') || '',
+    };
+    formData.append('GeneralInfo.FirstName', generalInfo.firstName || '');
+    formData.append('GeneralInfo.LastName', generalInfo.lastName || '');
+    formData.append(
+      'GeneralInfo.SecondLastName',
+      generalInfo.secondLastName || ''
+    );
+    formData.append('GeneralInfo.Street', generalInfo.street || '');
+    formData.append('GeneralInfo.Number', generalInfo.number || '');
+    formData.append('GeneralInfo.Colony', generalInfo.colony || '');
+    formData.append('GeneralInfo.PostalCode', generalInfo.postalCode || '');
+    formData.append('GeneralInfo.City', generalInfo.city || '');
+    formData.append('GeneralInfo.State', generalInfo.state || '');
+    formData.append('GeneralInfo.Email', generalInfo.email || '');
+    formData.append('GeneralInfo.Phone', generalInfo.phone || '');
+    formData.append('GeneralInfo.Mobile', generalInfo.mobile || '');
+    formData.append(
+      'GeneralInfo.ExpertiseAreas',
+      JSON.stringify(generalInfo.expertiseAreas || '')
+    );
+    formData.append('GeneralInfo.Center', generalInfo.center || '');
+
+    // Agregar historial académico
+    const academicHistory = this.academicBackgroundCmp.dataSource || [];
+    academicHistory.forEach((item: any, index: number) => {
+      formData.append(
+        `AcademicHistories[${index}].education_level`,
+        item.nivelAcademico || ''
+      );
+      formData.append(`AcademicHistories[${index}].period`, item.periodo || '');
+      formData.append(
+        `AcademicHistories[${index}].institution`,
+        item.institucion || ''
+      );
+      formData.append(
+        `AcademicHistories[${index}].degree_awarded`,
+        item.tituloOtorgado || ''
+      );
+      if (item.evidenciaFile) {
+        formData.append(
+          `AcademicHistories[${index}].Evidence`,
+          item.evidenciaFile
+        );
+      }
+    });
+
+    // Agregar experiencia laboral
+    const workExperience = this.workExperienceCmp.dataSource || [];
+    workExperience.forEach((item: any, index: number) => {
+      formData.append(`WorkExperiences[${index}].period`, item.periodo || '');
+      formData.append(
+        `WorkExperiences[${index}].organization`,
+        item.organizacion || ''
+      );
+      formData.append(`WorkExperiences[${index}].position`, item.puesto || '');
+      formData.append(
+        `WorkExperiences[${index}].activity`,
+        item.actividad || ''
+      );
+      if (item.evidenciaFile) {
+        formData.append(
+          `WorkExperiences[${index}].Evidence`,
+          item.evidenciaFile
+        );
+      }
+    });
+
+    console.log('formData:', formData);
+
+    // Enviar datos al servicio
+    this.instructorRegisterService.registerInstructor(formData).subscribe({
+      next: (response) => {
+        Swal.fire({
+          icon: 'success',
+          title: 'Éxito',
+          text: 'Instructor registrado correctamente.',
+        });
+      },
+      error: (error) => {
+        console.error('Error:', error);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'Hubo un error al registrar el instructor. Verifica los datos e intenta nuevamente.',
+        });
+      },
+    });
   }
 
   onStepperSelectionChange(event: StepperSelectionEvent) {

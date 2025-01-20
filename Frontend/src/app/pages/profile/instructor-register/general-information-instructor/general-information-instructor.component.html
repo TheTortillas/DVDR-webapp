@@ -1,209 +1,310 @@
 <section class="">
-  <div class="bg-white rounded-lg p-8">
-    <form class="" [formGroup]="formGroup">
-      <h4 class="">Nombre completo</h4>
-      <!-- NOMBRE + APELLIDO PATERNO + APELLIDO MATERNO -->
+  <form [formGroup]="formGroup">
+    <div class="bg-white rounded-lg p-8">
+      <form class="" [formGroup]="formGroup">
+        <h4 class="">Nombre completo</h4>
+        <!-- NOMBRE + APELLIDO PATERNO + APELLIDO MATERNO -->
 
-      <div for="nombre-competo-container" class="flex flex-end sm:w-full mb-3">
-        <div class="instructor-first-last-name-container px-2 w-full md:w-1/3">
-          <label
-            for="apellldo-paterno-instructor"
-            class="flex mb-2 text-xl font-medium text-gray-900"
-            >Primer apellido</label
+        <div
+          for="nombre-competo-container"
+          class="flex flex-end sm:w-full mb-3"
+        >
+          <div
+            class="instructor-first-last-name-container px-2 w-full md:w-1/3"
           >
-          <mat-form-field appearance="fill" class="w-full">
-            <mat-label>Ingresa tu primer apellido</mat-label>
-            <input
-              matInput
-              placeholder="Ex. Pérez"
-              formControlName="lastName"
-            />
-            <mat-error
-              *ngIf="
-                formGroup.get('lastName')?.hasError('required') &&
-                formGroup.get('lastName')?.touched
-              "
+            <label
+              for="apellldo-paterno-instructor"
+              class="flex mb-2 text-xl font-medium text-gray-900"
+              >Primer apellido</label
             >
-              Primer apellido es <strong>requerido</strong>
-            </mat-error>
-          </mat-form-field>
-        </div>
-        <div class="instructor-second-last-name-container px-2 w-full md:w-1/3">
-          <label
-            for="apellldo-materno-instructor"
-            class="flex mb-2 text-xl font-medium text-gray-900"
-            >Segundo apellido</label
+            <mat-form-field appearance="fill" class="w-full">
+              <mat-label>Ingresa tu primer apellido</mat-label>
+              <input
+                matInput
+                placeholder="Ex. Pérez"
+                formControlName="lastName"
+              />
+              <mat-error
+                *ngIf="
+                  formGroup.get('lastName')?.hasError('required') &&
+                  formGroup.get('lastName')?.touched
+                "
+              >
+                Primer apellido es <strong>requerido</strong>
+              </mat-error>
+            </mat-form-field>
+          </div>
+          <div
+            class="instructor-second-last-name-container px-2 w-full md:w-1/3"
           >
-          <mat-form-field appearance="fill" class="w-full">
-            <mat-label>Ingresa tu segundo apellido</mat-label>
-            <input
-              matInput
-              placeholder="Ex. Sánchez"
-              formControlName="secondLastName"
-            />
-            <mat-error
-              *ngIf="
-                formGroup.get('secondLastName')?.hasError('required') &&
-                formGroup.get('secondLastName')?.touched
-              "
+            <label
+              for="apellldo-materno-instructor"
+              class="flex mb-2 text-xl font-medium text-gray-900"
+              >Segundo apellido</label
             >
-              Segundo apellido es <strong>requerido</strong>
-            </mat-error>
-          </mat-form-field>
-        </div>
-        <div class="instructor-name-container px-2 w-full md:w-1/3">
-          <label
-            for="nombre-instructor"
-            class="flex mb-2 text-xl font-medium text-gray-900"
-            >Nombre(s):</label
-          >
-          <mat-form-field appearance="fill" class="w-full">
-            <mat-label>Ingresa tu(s) nombre(s)</mat-label>
-            <input
-              matInput
-              placeholder="Ex. José Antonio"
-              formControlName="firstName"
-            />
-            <mat-error
-              *ngIf="
-                formGroup.get('firstName')?.hasError('required') &&
-                formGroup.get('firstName')?.touched
-              "
+            <mat-form-field appearance="fill" class="w-full">
+              <mat-label>Ingresa tu segundo apellido</mat-label>
+              <input
+                matInput
+                placeholder="Ex. Sánchez"
+                formControlName="secondLastName"
+              />
+              <mat-error
+                *ngIf="
+                  formGroup.get('secondLastName')?.hasError('required') &&
+                  formGroup.get('secondLastName')?.touched
+                "
+              >
+                Segundo apellido es <strong>requerido</strong>
+              </mat-error>
+            </mat-form-field>
+          </div>
+          <div class="instructor-name-container px-2 w-full md:w-1/3">
+            <label
+              for="nombre-instructor"
+              class="flex mb-2 text-xl font-medium text-gray-900"
+              >Nombre(s):</label
             >
-              Nombre es <strong>requerido</strong>
-            </mat-error>
-          </mat-form-field>
+            <mat-form-field appearance="fill" class="w-full">
+              <mat-label>Ingresa tu(s) nombre(s)</mat-label>
+              <input
+                matInput
+                placeholder="Ex. José Antonio"
+                formControlName="firstName"
+              />
+              <mat-error
+                *ngIf="
+                  formGroup.get('firstName')?.hasError('required') &&
+                  formGroup.get('firstName')?.touched
+                "
+              >
+                Nombre es <strong>requerido</strong>
+              </mat-error>
+            </mat-form-field>
+          </div>
         </div>
-      </div>
-      <mat-divider class="py-3"></mat-divider>
-      <h4 class="">Domicilio</h4>
+        <mat-divider class="py-3"></mat-divider>
+        <h4 class="">Domicilio</h4>
 
-      <!-- CALLE + NÚMERO -->
-      <div for="domicilio-container" class="w-full mb-3">
-        <div class="">
+        <!-- CALLE + NÚMERO -->
+        <div for="domicilio-container" class="w-full mb-3">
+          <div class="">
+            <div class="flex flex-end w-full mb-2">
+              <div class="street-container px-2 w-full md:w-2/3">
+                <label
+                  for="calle-domicilio"
+                  class="flex mb-2 text-xl font-medium text-gray-900"
+                  >Calle</label
+                >
+                <mat-form-field appearance="fill" class="w-full">
+                  <mat-label>Ingresa el nombre de tu calle</mat-label>
+                  <input
+                    matInput
+                    placeholder="Ex. Reforma"
+                    formControlName="street"
+                  />
+                  <mat-error
+                    *ngIf="
+                      formGroup.get('street')?.hasError('required') &&
+                      formGroup.get('street')?.touched
+                    "
+                  >
+                    Calle es <strong>requerido</strong>
+                  </mat-error>
+                </mat-form-field>
+              </div>
+              <div class="number-container px-2 w-full md:w-1/3">
+                <label
+                  for="numero-domicilio"
+                  class="flex mb-2 text-xl font-medium text-gray-900"
+                  >No.</label
+                >
+                <mat-form-field appearance="fill" class="w-full">
+                  <mat-label>No. de domicilio</mat-label>
+                  <input
+                    matInput
+                    placeholder="Ex. 4"
+                    formControlName="number"
+                  />
+                  <mat-error
+                    *ngIf="
+                      formGroup.get('number')?.hasError('required') &&
+                      formGroup.get('number')?.touched
+                    "
+                  >
+                    Número es <strong>requerido</strong>
+                  </mat-error>
+                </mat-form-field>
+              </div>
+            </div>
+          </div>
+
           <div class="flex flex-end w-full mb-2">
-            <div class="street-container px-2 w-full md:w-2/3">
+            <div class="colony-container px-2 w-full md:w-2/3">
               <label
-                for="calle-domicilio"
+                for="colonia-domicilio"
                 class="flex mb-2 text-xl font-medium text-gray-900"
-                >Calle</label
+                >Colonia</label
               >
               <mat-form-field appearance="fill" class="w-full">
-                <mat-label>Ingresa el nombre de tu calle</mat-label>
+                <mat-label>Ingresa el nombre de tu colonia</mat-label>
                 <input
                   matInput
-                  placeholder="Ex. Reforma"
-                  formControlName="street"
+                  placeholder="Ex. Altavista"
+                  formControlName="colony"
                 />
                 <mat-error
                   *ngIf="
-                    formGroup.get('street')?.hasError('required') &&
-                    formGroup.get('street')?.touched
+                    formGroup.get('colony')?.hasError('required') &&
+                    formGroup.get('colony')?.touched
                   "
                 >
-                  Calle es <strong>requerido</strong>
+                  Colonia es <strong>requerido</strong>
                 </mat-error>
               </mat-form-field>
             </div>
-            <div class="number-container px-2 w-full md:w-1/3">
+            <div class="zip-container px-2 w-full md:w-1/3">
               <label
-                for="numero-domicilio"
+                for="cp-domicilio"
                 class="flex mb-2 text-xl font-medium text-gray-900"
-                >No.</label
+                >CP</label
               >
               <mat-form-field appearance="fill" class="w-full">
-                <mat-label>No. de domicilio</mat-label>
-                <input matInput placeholder="Ex. 4" formControlName="number" />
+                <mat-label>Código Postal</mat-label>
+                <input
+                  matInput
+                  #postalCode
+                  maxlength="5"
+                  placeholder="Ex. 94105"
+                  formControlName="postalCode"
+                />
+                <mat-hint align="end"
+                  >{{ postalCode.value.length }} / 5</mat-hint
+                >
                 <mat-error
                   *ngIf="
-                    formGroup.get('number')?.hasError('required') &&
-                    formGroup.get('number')?.touched
+                    formGroup.get('postalCode')?.hasError('required') &&
+                    formGroup.get('postalCode')?.touched
                   "
                 >
-                  Número es <strong>requerido</strong>
+                  Código Postal es <strong>requerido</strong>
                 </mat-error>
               </mat-form-field>
             </div>
           </div>
+
+          <!-- MUNICIPIO + ESTADO -->
+          <div class="mb-1">
+            <div class="flex flex-end w-full">
+              <div class="city-container px-2 w-full md:w-1/2">
+                <label
+                  for="municipio-domicilio"
+                  class="flex mb-2 text-xl font-medium text-gray-900"
+                  >Municipio / Alcaldía</label
+                >
+                <mat-form-field appearance="fill" class="w-full">
+                  <mat-label
+                    >Ingresa el nombre de tu Municipio / Alcaldía
+                  </mat-label>
+                  <input
+                    matInput
+                    placeholder="Ex. Miguel Hidalgo"
+                    formControlName="city"
+                  />
+                  <mat-error
+                    *ngIf="
+                      formGroup.get('city')?.hasError('required') &&
+                      formGroup.get('city')?.touched
+                    "
+                  >
+                    Municipio / Alcaldía es <strong>requerido</strong>
+                  </mat-error>
+                </mat-form-field>
+              </div>
+              <div class="state-container px-2 w-full md:w-1/2">
+                <label
+                  for="estado-domicilio"
+                  class="flex mb-2 text-xl font-medium text-gray-900"
+                  >Estado</label
+                >
+                <mat-form-field appearance="fill" class="w-full">
+                  <mat-label>Ingresa el nombre de tu Estado</mat-label>
+                  <input
+                    matInput
+                    placeholder="Ex. Ciudad de México"
+                    formControlName="state"
+                  />
+                  <mat-error
+                    *ngIf="
+                      formGroup.get('state')?.hasError('required') &&
+                      formGroup.get('state')?.touched
+                    "
+                  >
+                    Estado es <strong>requerido</strong>
+                  </mat-error>
+                </mat-form-field>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <div class="flex flex-end w-full mb-2">
-          <div class="colony-container px-2 w-full md:w-2/3">
+        <!-- DATOS DE CONTACTO -->
+        <mat-divider class="py-3"></mat-divider>
+        <h4 class="">Contacto</h4>
+        <div class="w-full mb-3">
+          <div class="email-container px-2 mb-1">
             <label
-              for="colonia-domicilio"
-              class="flex mb-2 text-xl font-medium text-gray-900"
-              >Colonia</label
+              for="email"
+              class="block mb-2 text-xl font-medium text-gray-900"
+              >Correo:</label
             >
-            <mat-form-field appearance="fill" class="w-full">
-              <mat-label>Ingresa el nombre de tu colonia</mat-label>
+            <mat-form-field class="w-full">
+              <mat-label>Ingresa tu correo electónico</mat-label>
               <input
                 matInput
-                placeholder="Ex. Altavista"
-                formControlName="colony"
+                placeholder="nombre@ejemplo.com"
+                formControlName="email"
+                required
               />
               <mat-error
                 *ngIf="
-                  formGroup.get('colony')?.hasError('required') &&
-                  formGroup.get('colony')?.touched
+                  formGroup.get('email')?.invalid &&
+                  formGroup.get('email')?.touched
                 "
               >
-                Colonia es <strong>requerido</strong>
+                {{
+                  formGroup.get("email")?.hasError("required")
+                    ? "Debes ingresar un correo válido"
+                    : "Correo inválido"
+                }}
               </mat-error>
             </mat-form-field>
           </div>
-          <div class="zip-container px-2 w-full md:w-1/3">
-            <label
-              for="cp-domicilio"
-              class="flex mb-2 text-xl font-medium text-gray-900"
-              >CP</label
-            >
-            <mat-form-field appearance="fill" class="w-full">
-              <mat-label>Código Postal</mat-label>
-              <input
-                matInput
-                #postalCode
-                maxlength="5"
-                placeholder="Ex. 94105"
-                formControlName="postalCode"
-              />
-              <mat-hint align="end">{{ postalCode.value.length }} / 5</mat-hint>
-              <mat-error
-                *ngIf="
-                  formGroup.get('postalCode')?.hasError('required') &&
-                  formGroup.get('postalCode')?.touched
-                "
-              >
-                Código Postal es <strong>requerido</strong>
-              </mat-error>
-            </mat-form-field>
-          </div>
-        </div>
-
-        <!-- MUNICIPIO + ESTADO -->
-        <div class="mb-1">
           <div class="flex flex-end w-full">
             <div class="city-container px-2 w-full md:w-1/2">
               <label
                 for="municipio-domicilio"
                 class="flex mb-2 text-xl font-medium text-gray-900"
-                >Municipio / Alcaldía</label
+                >Teléfono particular</label
               >
               <mat-form-field appearance="fill" class="w-full">
-                <mat-label
-                  >Ingresa el nombre de tu Municipio / Alcaldía
-                </mat-label>
+                <mat-label>Ingrese su télefono particular</mat-label>
+                <span matTextPrefix>+52 &nbsp;</span>
                 <input
+                  type="tel"
                   matInput
-                  placeholder="Ex. Miguel Hidalgo"
-                  formControlName="city"
+                  maxlength="10"
+                  placeholder="555-555-1234"
+                  formControlName="phone"
                 />
+                <mat-icon matSuffix>local_phone</mat-icon>
                 <mat-error
                   *ngIf="
-                    formGroup.get('city')?.hasError('required') &&
-                    formGroup.get('city')?.touched
+                    formGroup.get('phone')?.hasError('required') &&
+                    formGroup.get('phone')?.touched
                   "
                 >
-                  Municipio / Alcaldía es <strong>requerido</strong>
+                  Teléfono particular es <strong>requerido</strong>
                 </mat-error>
               </mat-form-field>
             </div>
@@ -211,154 +312,68 @@
               <label
                 for="estado-domicilio"
                 class="flex mb-2 text-xl font-medium text-gray-900"
-                >Estado</label
+                >Celular</label
               >
+
               <mat-form-field appearance="fill" class="w-full">
-                <mat-label>Ingresa el nombre de tu Estado</mat-label>
+                <mat-label>Ingrese su teléfono celular</mat-label>
+                <span matTextPrefix>+52 &nbsp;</span>
                 <input
+                  type="tel"
                   matInput
-                  placeholder="Ex. Ciudad de México"
-                  formControlName="state"
+                  maxlength="10"
+                  placeholder="555-555-1234"
+                  formControlName="mobile"
                 />
+                <mat-icon matSuffix>phone_android</mat-icon>
                 <mat-error
                   *ngIf="
-                    formGroup.get('state')?.hasError('required') &&
-                    formGroup.get('state')?.touched
+                    formGroup.get('mobile')?.hasError('required') &&
+                    formGroup.get('mobile')?.touched
                   "
                 >
-                  Estado es <strong>requerido</strong>
+                  Celular es <strong>requerido</strong>
                 </mat-error>
               </mat-form-field>
             </div>
           </div>
         </div>
-      </div>
 
-      <!-- DATOS DE CONTACTO -->
-      <mat-divider class="py-3"></mat-divider>
-      <h4 class="">Contacto</h4>
-      <div class="w-full mb-3">
-        <div class="email-container px-2 mb-1">
-          <label
-            for="email"
-            class="block mb-2 text-xl font-medium text-gray-900"
-            >Correo:</label
-          >
-          <mat-form-field class="w-full">
-            <mat-label>Ingresa tu correo electónico</mat-label>
-            <input
-              matInput
-              placeholder="nombre@ejemplo.com"
-              formControlName="email"
-              required
-            />
-            <mat-error
-              *ngIf="
-                formGroup.get('email')?.invalid &&
-                formGroup.get('email')?.touched
-              "
-            >
-              {{
-                formGroup.get("email")?.hasError("required")
-                  ? "Debes ingresar un correo válido"
-                  : "Correo inválido"
-              }}
-            </mat-error>
-          </mat-form-field>
-        </div>
-        <div class="flex flex-end w-full">
-          <div class="city-container px-2 w-full md:w-1/2">
+        <mat-divider class="py-3"></mat-divider>
+        <h4 class="">Especialidad</h4>
+        <div class="w-full">
+          <div class="especialidad-container px-2">
             <label
-              for="municipio-domicilio"
-              class="flex mb-2 text-xl font-medium text-gray-900"
-              >Teléfono particular</label
+              for="email"
+              class="block mb-2 text-xl font-medium text-gray-900"
+              >Seleccione su(s) área(s) de expertise:</label
             >
-            <mat-form-field appearance="fill" class="w-full">
-              <mat-label>Ingrese su télefono particular</mat-label>
-              <span matTextPrefix>+52 &nbsp;</span>
-              <input
-                type="tel"
-                matInput
-                maxlength="10"
-                placeholder="555-555-1234"
-                formControlName="phone"
-              />
-              <mat-icon matSuffix>local_phone</mat-icon>
+            <mat-form-field class="w-full">
+              <mat-select
+                placeholder="Puedes seleccionar más de una"
+                formControlName="expertiseAreas"
+                (selectionChange)="onCategoryChange($event)"
+                multiple
+              >
+                <mat-option
+                  *ngFor="let category of categories"
+                  [value]="category"
+                >
+                  {{ category }}
+                </mat-option>
+              </mat-select>
               <mat-error
                 *ngIf="
-                  formGroup.get('phone')?.hasError('required') &&
-                  formGroup.get('phone')?.touched
+                  formGroup.get('expertiseAreas')?.hasError('required') &&
+                  formGroup.get('expertiseAreas')?.touched
                 "
               >
-                Teléfono particular es <strong>requerido</strong>
-              </mat-error>
-            </mat-form-field>
-          </div>
-          <div class="state-container px-2 w-full md:w-1/2">
-            <label
-              for="estado-domicilio"
-              class="flex mb-2 text-xl font-medium text-gray-900"
-              >Celular</label
-            >
-
-            <mat-form-field appearance="fill" class="w-full">
-              <mat-label>Ingrese su teléfono celular</mat-label>
-              <span matTextPrefix>+52 &nbsp;</span>
-              <input
-                type="tel"
-                matInput
-                maxlength="10"
-                placeholder="555-555-1234"
-                formControlName="mobile"
-              />
-              <mat-icon matSuffix>phone_android</mat-icon>
-              <mat-error
-                *ngIf="
-                  formGroup.get('mobile')?.hasError('required') &&
-                  formGroup.get('mobile')?.touched
-                "
-              >
-                Celular es <strong>requerido</strong>
+                Área de expertise es <strong>requerido</strong>
               </mat-error>
             </mat-form-field>
           </div>
         </div>
-      </div>
-
-      <mat-divider class="py-3"></mat-divider>
-      <h4 class="">Especialidad</h4>
-      <div class="w-full">
-        <div class="especialidad-container px-2">
-          <label
-            for="email"
-            class="block mb-2 text-xl font-medium text-gray-900"
-            >Seleccione su(s) área(s) de expertise:</label
-          >
-          <mat-form-field class="w-full">
-            <mat-select
-              placeholder="Puedes seleccionar más de una"
-              formControlName="expertiseAreas"
-              (selectionChange)="onCategoryChange($event)"
-              multiple
-            >
-              <mat-option
-                *ngFor="let category of categories"
-                [value]="category"
-              >
-                {{ category }}
-              </mat-option>
-            </mat-select>
-            <mat-error
-              *ngIf="
-                formGroup.get('expertiseAreas')?.hasError('required') &&
-                formGroup.get('expertiseAreas')?.touched
-              "
-            >
-              Área de expertise es <strong>requerido</strong>
-            </mat-error>
-          </mat-form-field>
-        </div>
-      </div>
-    </form>
-  </div>
+      </form>
+    </div>
+  </form>
 </section>

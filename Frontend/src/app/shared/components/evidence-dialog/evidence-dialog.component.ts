@@ -205,11 +205,12 @@ export class EvidenceDialogComponent {
     }
 
     if (this.evidenceForm.valid) {
-      const formData = new FormData();
-      formData.append('file', this.selectedFiles[0]);
+      const result = {
+        ...this.evidenceForm.value,
+        evidenciaFile: this.selectedFiles[0], // Include the file in the result
+      };
 
-      this.dialogRef.close(this.evidenceForm.value);
-      console.log(this.evidenceForm.value);
+      this.dialogRef.close(result);
     }
   }
 

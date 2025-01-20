@@ -12,6 +12,7 @@ export interface AcademicBackground {
   institucion: string;
   tituloOtorgado: string;
   evidencia: string;
+  evidenciaFile?: File; // Archivo físico
 }
 
 @Component({
@@ -47,15 +48,29 @@ export class AcademicBackgroundComponent {
       .afterClosed()
       .subscribe((result: AcademicBackground | undefined) => {
         if (result) {
-          this.dataSource = [...this.dataSource, result];
+          // The evidenciaFile is now included in the result
+          const newEvidence: AcademicBackground = {
+            nivelAcademico: result.nivelAcademico,
+            periodo: result.periodo,
+            institucion: result.institucion,
+            tituloOtorgado: result.tituloOtorgado,
+            evidencia: result.evidencia,
+            evidenciaFile: result.evidenciaFile, // Store the file
+          };
+
+          this.dataSource = [...this.dataSource, newEvidence];
           this.dataSourceChange.emit(this.dataSource.length > 0);
         }
       });
   }
 
   verEvidencia(element: AcademicBackground): void {
-    // Abre la URL del archivo en una nueva ventana
-    window.open(element.evidencia, '_blank');
+    if (element.evidenciaFile) {
+      const url = URL.createObjectURL(element.evidenciaFile);
+      window.open(url, '_blank');
+    } else if (element.evidencia) {
+      window.open(element.evidencia, '_blank');
+    }
   }
 
   eliminarEvidencia(element: AcademicBackground): void {

@@ -91,6 +91,7 @@ CREATE TABLE actors_general_information (
 	center_type ENUM('CITTA', 'CVDR', 'UA') NOT NULL, -- Incluye el tipo de centro
     center_identifier INT NOT NULL, -- Referencia al identificador único del centro
     approval_status ENUM('pending', 'approved', 'rejected') DEFAULT 'pending' NOT NULL,
+	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 	FOREIGN KEY (center_type, center_identifier) REFERENCES centers(type, identifier)
 );
 
@@ -112,8 +113,7 @@ CREATE TABLE academic_history (
 CREATE TABLE professional_experience (
     id INT PRIMARY KEY AUTO_INCREMENT,
     actor_id INT NOT NULL, -- Relación con el instructor
-    start_date DATE NOT NULL,
-    end_date DATE NOT NULL,
+    period VARCHAR(255) NOT NULL,
     organization VARCHAR(255) NOT NULL,
     position VARCHAR(255) NOT NULL,
     activity TEXT NOT NULL,
@@ -313,14 +313,12 @@ END$$
 DELIMITER ;
 
 DELIMITER $$
-
-DELIMITER $$
-CREATE PROCEDURE sp_register_instructor_general_info(
+CREATE PROCEDURE sp_register_instructor_all(
     IN p_first_name VARCHAR(255),
     IN p_last_name VARCHAR(255),
     IN p_second_last_name VARCHAR(255),
     IN p_street VARCHAR(255),
-    IN p_house_number VARCHAR(255),
+    IN p_house_number VARCHAR(20),
     IN p_neighborhood VARCHAR(255),
     IN p_postal_code VARCHAR(5),
     IN p_municipality VARCHAR(255),
@@ -330,76 +328,142 @@ CREATE PROCEDURE sp_register_instructor_general_info(
     IN p_mobile_phone VARCHAR(15),
     IN p_knowledge_area VARCHAR(255),
     IN p_center_name VARCHAR(255),
+
+    -- Parámetros JSON para historial académico y experiencia
+    IN p_academic_history JSON,
+    IN p_professional_experience JSON,
+
     OUT p_status_code INT,
     OUT p_message VARCHAR(255)
 )
 BEGIN
     DECLARE v_center_id INT;
+    DECLARE v_actor_id INT;
 
     -- Manejo de errores
     DECLARE EXIT HANDLER FOR SQLEXCEPTION 
     BEGIN
         ROLLBACK;
         SET p_status_code = -1;
-        SET p_message = 'Error: No se pudo registrar al instructor.';
+        SET p_message = 'Error: No se pudo registrar todo el proceso.';
     END;
 
-    -- Inicio de la transacción
     START TRANSACTION;
 
-    -- Buscar el ID del centro a partir del nombre proporcionado
-    SELECT id INTO v_center_id
+    -- Buscar el ID del centro a partir del nombre
+    SELECT id 
+    INTO v_center_id
     FROM centers
     WHERE name = p_center_name
     LIMIT 1;
 
-    -- Validar si el centro existe
     IF v_center_id IS NULL THEN
         ROLLBACK;
         SET p_status_code = -2;
         SET p_message = 'Error: El centro especificado no existe.';
-    ELSE
-        -- Insertar el registro en la tabla de actores
-        INSERT INTO actors_general_information (
-            first_name,
-            last_name,
-            second_last_name,
-            street,
-            house_number,
-            neighborhood,
-            postal_code,
-            municipality,
-            state,
-            email,
-            landline_phone,
-            mobile_phone,
-            knowledge_area,
-            center_type,
-            center_identifier
-        )
-        VALUES (
-            p_first_name,
-            p_last_name,
-            p_second_last_name,
-            p_street,
-            p_house_number,
-            p_neighborhood,
-            p_postal_code,
-            p_municipality,
-            p_state,
-            p_email,
-            p_landline_phone,
-            p_mobile_phone,
-            p_knowledge_area,
-            (SELECT type FROM centers WHERE id = v_center_id),
-            (SELECT identifier FROM centers WHERE id = v_center_id)
-        );
-
-        -- Confirmación de éxito
-        COMMIT;
-        SET p_status_code = 1;
-        SET p_message = 'Instructor registrado con éxito.';
     END IF;
+
+    -- Insertar en actors_general_information
+    INSERT INTO actors_general_information (
+      first_name,
+      last_name,
+      second_last_name,
+      street,
+      house_number,
+      neighborhood,
+      postal_code,
+      municipality,
+      state,
+      email,
+      landline_phone,
+      mobile_phone,
+      knowledge_area,
+      center_type,
+      center_identifier
+    )
+    VALUES (
+      p_first_name,
+      p_last_name,
+      p_second_last_name,
+      p_street,
+      p_house_number,
+      p_neighborhood,
+      p_postal_code,
+      p_municipality,
+      p_state,
+      p_email,
+      p_landline_phone,
+      p_mobile_phone,
+      p_knowledge_area,
+      (SELECT type FROM centers WHERE id = v_center_id),
+      (SELECT identifier FROM centers WHERE id = v_center_id)
+    );
+
+    SET v_actor_id = LAST_INSERT_ID();
+
+    -- Insertar historial académico usando JSON_TABLE (MySQL 8+)
+	INSERT INTO academic_history (
+	  actor_id,
+	  education_level,
+	  period,
+	  institution,
+	  degree_awarded,
+	  evidence_path
+	)
+	SELECT
+	  v_actor_id,
+	  t.education_level,
+	  t.period,
+	  t.institution,
+	  t.degree_awarded,
+	  t.evidence_path -- El backend ya envió este campo con la ruta generada
+	FROM
+	  JSON_TABLE(
+		p_academic_history,
+		'$[*]' 
+		COLUMNS (
+		  education_level VARCHAR(255) PATH '$.education_level',
+		  period VARCHAR(255) PATH '$.period',
+		  institution VARCHAR(255) PATH '$.institution',
+		  degree_awarded VARCHAR(255) PATH '$.degree_awarded',
+		  evidence_path VARCHAR(255) PATH '$.evidence_path'
+		)
+	  ) AS t;
+
+	-- Insertar experiencia profesional usando JSON_TABLE
+	INSERT INTO professional_experience (
+	  actor_id,
+	  period,
+	  organization,
+	  position,
+	  activity,
+	  evidence_path
+	)
+	SELECT
+	  v_actor_id,
+	  t.period,
+	  t.organization,
+	  t.position,
+	  t.activity,
+	  t.evidence_path -- El backend ya envió este campo con la ruta generada
+	FROM
+	  JSON_TABLE(
+		p_professional_experience,
+		'$[*]'
+		COLUMNS (
+		  period VARCHAR(255) PATH '$.period',
+		  organization VARCHAR(255) PATH '$.organization',
+		  position VARCHAR(255) PATH '$.position',
+		  activity TEXT PATH '$.activity',
+		  evidence_path VARCHAR(255) PATH '$.evidence_path'
+		)
+	  ) AS t;
+
+    -- Confirmar transacción
+    COMMIT;
+
+    SET p_status_code = 1;
+    SET p_message = 'Instructor, historial académico y experiencia registrados exitosamente.';
 END$$
 DELIMITER ;
 
@@ -484,7 +548,8 @@ INNER JOIN
 ON 
     u.center_id = c.id;
 */
- -- DROP DATABASE dvdr_cursos;
+-- DROP DATABASE dvdr_cursos;
+
 SELECT dt.id AS document_id, dt.name AS document_name, dt.filePath, dt.type, da.modality
 FROM documents_templates dt
 JOIN document_access da ON dt.id = da.document_id
@@ -511,10 +576,103 @@ CALL sp_register_instructor_general_info(
 
 -- Consultar los valores de los parámetros de salida
 SELECT @status_code AS status_code, @message AS message;
-
-
-
 */
 
-SELECT * 
-FROM actors_general_information
+
+SELECT * FROM actors_general_information;
+/*
+CALL sp_register_instructor_all(
+    'Juan',                       -- p_first_name
+    'Pérez',                      -- p_last_name
+    'López',                      -- p_second_last_name
+    'Calle Principal',            -- p_street
+    '123',                        -- p_house_number
+    'Colonia Centro',             -- p_neighborhood
+    '12345',                      -- p_postal_code
+    'Ciudad XYZ',                 -- p_municipality
+    'Estado ABC',                 -- p_state
+    'juan.perez@example.com',     -- p_email
+    '1234567890',                 -- p_landline_phone
+    '9876543210',                 -- p_mobile_phone
+    'Matemáticas',                -- p_knowledge_area
+    'Centro de Innovación e Integración de Tecnologías Avanzadas Chihuahua',     -- p_center_name
+
+    -- JSON con historial académico
+    JSON_ARRAY(
+        JSON_OBJECT(
+            'education_level', 'Licenciatura',
+            'period', '2010-2014',
+            'institution', 'Universidad ABC',
+            'degree_awarded', 'Matemáticas',
+            'evidence_path', '/evidence/licenciatura.pdf'
+        ),
+        JSON_OBJECT(
+            'education_level', 'Maestría',
+            'period', '2015-2017',
+            'institution', 'Universidad DEF',
+            'degree_awarded', 'Estadística',
+            'evidence_path', '/evidence/maestria.pdf'
+        )
+    ),
+
+    -- JSON con experiencia profesional
+    JSON_ARRAY(
+        JSON_OBJECT(
+            'period', '01/2018-12/2020',
+            'organization', 'Empresa ABC',
+            'position', 'Analista',
+            'activity', 'Análisis de datos financieros',
+            'evidence_path', '/evidence/experiencia1.pdf'
+        ),
+        JSON_OBJECT(
+            'period', '01/2021-06/2023',
+            'organization', 'Empresa XYZ',
+            'position', 'Consultor',
+            'activity', 'Consultoría en proyectos estadísticos',
+            'evidence_path', '/evidence/experiencia2.pdf'
+        )
+    ),
+
+    @status_code,                 -- p_status_code (salida)
+    @message                      -- p_message (salida)
+);
+CALL sp_register_instructor_all(
+    'Juan', 'Pérez', 'García', 'Calle Falsa', '123', 'Centro',
+    '12345', 'Ciudad', 'Estado', 'juan.perez@example.com',
+    '1234567890', '0987654321', 'Matemáticas, Física', 'Centro de Vinculación y Desarrollo Regional Unidad Tampico',
+    '[{"education_level": "Licenciatura", "period": "2010-2014", "institution": "Universidad ABC", "degree_awarded": "Licenciado en Matemáticas", "evidence_path": "assets/files/instructors-documentation/folder/academic-history/evidence.pdf"}]',
+    '[{"period":"09/2024 - 04/2025","organization":"DVDR","position":"Desarrollador","activity":"Desarrollo aplicación cursos","evidence_path":"assets/files/instructors-documentation/e82362d9-1f63-4acd-9fda-fc22f0b4a73f/work-experience/8c.pdf"}]',
+    @status_code, @message
+);
+
+-- Consultar los valores de salida
+SELECT @status_code AS status_code, @message AS message;*/
+SELECT 
+    agi.id AS "ID Actor",
+    agi.first_name AS "Nombre",
+    agi.last_name AS "Apellido Paterno",
+    agi.second_last_name AS "Apellido Materno",
+    agi.email AS "Correo Electrónico",
+    agi.knowledge_area AS "Área de Conocimiento",
+    agi.center_type AS "Tipo de Centro",
+    agi.center_identifier AS "Identificador del Centro",
+    agi.approval_status AS "Estatus de Aprobación",
+    ah.education_level AS "Nivel Educativo",
+    ah.period AS "Periodo Educativo",
+    ah.institution AS "Institución Educativa",
+    ah.degree_awarded AS "Título Obtenido",
+    ah.evidence_path AS "Evidencia Académica",
+    pe.period AS "Periodo Profesional",
+    pe.organization AS "Organización",
+    pe.position AS "Puesto Ocupado",
+    pe.activity AS "Actividad Profesional",
+    pe.evidence_path AS "Evidencia Profesional"
+FROM actors_general_information agi
+LEFT JOIN academic_history ah ON agi.id = ah.actor_id
+LEFT JOIN professional_experience pe ON agi.id = pe.actor_id
+WHERE agi.id = 1; -- Reemplaza '?' con el ID del actor
+
+
+
+
+

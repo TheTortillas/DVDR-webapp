@@ -189,16 +189,14 @@ export class WorkExperienceDialogComponent {
   addExperience() {
     const { fechaInicio, fechaFin } = this.experienceForm.value;
 
-    // Convertir a objetos de Moment.js si no lo son
     const inicio = moment(fechaInicio);
     const fin = moment(fechaFin);
 
-    // Formatea las fechas y establece el período
     const periodo = `${inicio.format('MM/YYYY')} - ${fin.format('MM/YYYY')}`;
     this.experienceForm.patchValue({ periodo: periodo });
 
     if (this.experienceForm.invalid) {
-      this.experienceForm.markAllAsTouched(); // Esto obliga a mostrar los errores requeridos
+      this.experienceForm.markAllAsTouched();
       return;
     }
 
@@ -212,11 +210,12 @@ export class WorkExperienceDialogComponent {
     }
 
     if (this.experienceForm.valid) {
-      const formData = new FormData();
-      formData.append('file', this.selectedFiles[0]);
+      const result = {
+        ...this.experienceForm.value,
+        evidenciaFile: this.selectedFiles[0], // Include the file in the result
+      };
 
-      this.dialogRef.close(this.experienceForm.value);
-      console.log(this.experienceForm.value);
+      this.dialogRef.close(result);
     }
   }
 

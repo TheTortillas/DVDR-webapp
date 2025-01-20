@@ -130,6 +130,7 @@ Aquí hay algunos enlaces a problemas y soluciones que hemos encontrado durante 
 - https://stackoverflow.com/questions/43447688/setting-up-swagger-asp-net-core-using-the-authorization-headers-bearer
 - https://stackoverflow.com/questions/62986290/cant-use-angular-material-date-range-date-filter
 - https://stackoverflow.com/questions/52316898/how-do-i-center-angular-material-table-column-headers-and-mat-cell-content
+- https://stackblitz.com/edit/mat-dialog-full-width?file=app%2Fapp.component.ts
 
 ## Licencia
 

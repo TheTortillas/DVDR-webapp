@@ -334,20 +334,15 @@
 
         <div class="">
           <div class="flex gap-4 mb-4">
-            <!-- Combobox para Autores / Co-Autores / Instructores -->
-            <mat-form-field appearance="fill">
-              <mat-label>Seleccionar Persona</mat-label>
-              <mat-select [(value)]="selectedPersona">
-                <mat-option value="" disabled>Seleccionar Persona</mat-option>
-                <mat-option *ngFor="let persona of personas" [value]="persona">
-                  {{ persona }}
-                </mat-option>
-              </mat-select>
-            </mat-form-field>
+            <!-- Existing combobox -->
 
-            <!-- Botón para añadir a la tabla -->
-            <button mat-raised-button color="primary" (click)="addPersona()">
-              Añadir
+            <!-- Add new button for instructors dialog -->
+            <button
+              mat-raised-button
+              color="primary"
+              (click)="openAddInstructorsDialog()"
+            >
+              <mat-icon>person_add</mat-icon>Agregar Instructores
             </button>
           </div>
         </div>

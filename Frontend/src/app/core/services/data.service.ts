@@ -32,4 +32,19 @@ export class DataService {
     const url = this.URLBase + '/api/api/Files/UploadCourseDocumentation';
     return this.httpClient.post(url, formData);
   }
+
+  public getInstructors(): Observable<any[]> {
+    const url = this.URLBase + '/api/Instructor/GetInstructors';
+    return this.httpClient.get<any[]>(url, HttpOptions);
+  }
+
+  public getExpertiseAreas(): Observable<string[]> {
+    const url = this.URLBase + '/api/Instructor/GetExpertiseAreas';
+    return this.httpClient.get<string[]>(url, HttpOptions);
+  }
+
+  public getCenters(): Observable<string[]> {
+    const url = this.URLBase + '/api/Instructor/GetCenters';
+    return this.httpClient.get<string[]>(url, HttpOptions);
+  }
 }

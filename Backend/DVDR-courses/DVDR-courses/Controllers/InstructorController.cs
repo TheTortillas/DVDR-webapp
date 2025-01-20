@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using MySql.Data.MySqlClient;
+using Newtonsoft.Json;
 using System.Data;
 
 namespace DVDR_courses.Controllers
@@ -84,6 +85,135 @@ namespace DVDR_courses.Controllers
                 _ => StatusCode(500, new { message }) // Error genérico
             };
         }
+        [HttpGet("GetInstructors", Name = "GetInstructors")]
+        public IActionResult GetInstructors()
+        {
+            try
+            {
+                using (var connection = new MySqlConnection(_config.GetConnectionString("default")))
+                {
+                    var query = @"
+                        SELECT 
+                            agi.id, 
+                            CONCAT(agi.first_name, ' ', agi.last_name, ' ', agi.second_last_name) AS nombre, 
+                            agi.knowledge_area,
+                            c.name AS centro
+                        FROM 
+                            actors_general_information agi
+                            JOIN centers c
+                                ON c.type = agi.center_type
+                                AND c.identifier = agi.center_identifier;
+                    ";
+
+                    var instructors = new List<object>();
+                    using (var command = new MySqlCommand(query, connection))
+                    {
+                        connection.Open();
+                        using (var reader = command.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                var rawArea = reader.GetString("knowledge_area");
+                                List<string> areas = new List<string>();
+
+                                // Intenta parsear como JSON, si falla, úsalo como CSV
+                                try
+                                {
+                                    areas = JsonConvert.DeserializeObject<List<string>>(rawArea);
+                                }
+                                catch
+                                {
+                                    areas = rawArea
+                                        .Split(',')
+                                        .Select(a => a.Trim())
+                                        .Where(a => !string.IsNullOrEmpty(a))
+                                        .ToList();
+                                }
+
+                                instructors.Add(new
+                                {
+                                    Id = reader.GetInt32("id"),
+                                    Nombre = reader.GetString("nombre"),
+                                    Centro = reader.GetString("centro"),
+                                    AreasExpertise = areas
+                                });
+                            }
+                        }
+                    }
+
+                    return Ok(instructors);
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Error al obtener los instructores.", error = ex.Message });
+            }
+        }
+    
+
+
+        [HttpGet("GetExpertiseAreas", Name = "GetExpertiseAreas")]
+        public IActionResult GetExpertiseAreas()
+        {
+            try
+            {
+                using (var connection = new MySqlConnection(_config.GetConnectionString("default")))
+                {
+                    var query = "SELECT name FROM academic_categories;";
+
+                    var areas = new List<string>();
+                    using (var command = new MySqlCommand(query, connection))
+                    {
+                        connection.Open();
+                        using (var reader = command.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                areas.Add(reader.GetString("name"));
+                            }
+                        }
+                    }
+
+                    return Ok(areas.Distinct().OrderBy(area => area));
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Error al obtener las áreas de expertise.", error = ex.Message });
+            }
+        }
+
+        [HttpGet("GetCenters", Name = "GetCenters")]
+        public IActionResult GetCenters()
+        {
+            try
+            {
+                using (var connection = new MySqlConnection(_config.GetConnectionString("default")))
+                {
+                    var query = @"SELECT name FROM centers;";
+                    var centers = new List<string>();
+
+                    using (var command = new MySqlCommand(query, connection))
+                    {
+                        connection.Open();
+                        using (var reader = command.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                centers.Add(reader.GetString("name"));
+                            }
+                        }
+                    }
+
+                    return Ok(centers.Distinct().OrderBy(c => c));
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Error al obtener los centros.", error = ex.Message });
+            }
+        }
+
     }
 }
 

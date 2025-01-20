@@ -50,6 +50,7 @@ import {
 import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { DataService } from '../../../../core/services/data.service';
+import { AddInstructorsDialogComponent } from '../../../../shared/components/add-instructors-dialog/add-instructors-dialog.component';
 
 /** Error when invalid control is dirty, touched, or submitted. */
 export class MyErrorStateMatcher implements ErrorStateMatcher {
@@ -101,7 +102,7 @@ export class GeneralInformationComponent implements OnInit {
   @Input() formGroup!: FormGroup;
   matcher = new MyErrorStateMatcher();
 
-  constructor(private dataService: DataService) {}
+  constructor(private dataService: DataService, private dialog: MatDialog) {}
 
   ngOnInit() {
     this.dataService.getCategoriasAcademicas().subscribe((data: any) => {
@@ -226,6 +227,34 @@ export class GeneralInformationComponent implements OnInit {
     }
   }
   //-------------------------------------- AUTORES  ---------------------------------------
+
+  openAddInstructorsDialog() {
+    const dialogRef = this.dialog.open(AddInstructorsDialogComponent, {
+      width: '60%',
+      height: '70%',
+      maxWidth: '100vw',
+      maxHeight: '100vh',
+      autoFocus: false,
+    });
+
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result) {
+        const newInstructors = result.map((instructor: any) => ({
+          id: instructor.id,
+          nombre: instructor.nombre,
+          rol: 'Instructor',
+        }));
+
+        // Agrega los nuevos instructores seleccionados
+        this.seleccionados = [...this.seleccionados, ...newInstructors];
+        this.dataSource.data = this.seleccionados;
+
+        // Actualiza el formulario
+        this.formGroup.get('actors')?.setValue(this.seleccionados);
+        this.formGroup.get('actors')?.markAsTouched();
+      }
+    });
+  }
 
   personas: string[] = [
     'Juan Pérez',

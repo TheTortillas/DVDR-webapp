@@ -291,5 +291,47 @@ namespace DVDR_courses
                 return (-1, "Error interno del servidor.");
             }
         }
+
+
+        public List<InstructorDTO> GetInstructors()
+        {
+            var instructors = new List<InstructorDTO>();
+            try
+            {
+                using (var con = new MySqlConnection(_config.GetConnectionString("default")))
+                {
+                    string query = @"
+                SELECT 
+                    id, 
+                    CONCAT(first_name, ' ', last_name, ' ', second_last_name) AS nombre, 
+                    knowledge_area 
+                FROM actors_general_information";
+
+                    using (var cmd = new MySqlCommand(query, con))
+                    {
+                        con.Open();
+                        using (var reader = cmd.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                instructors.Add(new InstructorDTO
+                                {
+                                    Id = reader.GetInt32("id"),
+                                    Nombre = reader.GetString("nombre"),
+                                    AreasExpertise = reader.GetString("knowledge_area").Split(',').ToList()
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+            }
+
+            return instructors;
+        }
+
     }
 }

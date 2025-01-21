@@ -25,15 +25,16 @@ CREATE TABLE users (
 
 CREATE TABLE courses (
     id INT PRIMARY KEY AUTO_INCREMENT,
-    course_name VARCHAR(255),
-    service_type VARCHAR(255),
-    category VARCHAR(255),
+    course_name VARCHAR(255) NOT NULL, 
+    service_type VARCHAR(255) NOT NULL,
+    category VARCHAR(255) NOT NULL,
     agreement VARCHAR(255),
-    total_duration INT,
-    modality VARCHAR(255),
-    educational_offer VARCHAR(255),
-    educational_platform VARCHAR(255),
-    course_key VARCHAR(50),
+    total_duration INT NOT NULL,
+    modality VARCHAR(255) NOT NULL,
+    educational_offer VARCHAR(255) NOT NULL,
+    educational_platform VARCHAR(255) NOT NULL,
+    other_educationals_platforms VARCHAR(255),
+    course_key VARCHAR(50) NOT NULL,
     status ENUM('draft', 'submitted') DEFAULT 'draft' NOT NULL,
     approval_status ENUM('pending', 'approved', 'rejected') DEFAULT 'pending' NOT NULL,
     admin_notes TEXT,
@@ -227,6 +228,7 @@ BEGIN
 END$$
 DELIMITER ;
 
+-- Procedimiento para verificar si un usuario corresponde con su contraseña
 DELIMITER $$
 CREATE PROCEDURE sp_verify_user(
     IN p_username VARCHAR(50),
@@ -312,6 +314,7 @@ BEGIN
 END$$
 DELIMITER ;
 
+-- Procedimiento para dar de alta un instructor: Datos generales, historial académico e información laboral
 DELIMITER $$
 CREATE PROCEDURE sp_register_instructor_all(
     IN p_first_name VARCHAR(255),
@@ -467,6 +470,127 @@ BEGIN
 END$$
 DELIMITER ;
 
+-- Procedimiento para dar de alta un curso: Datos generales, actores y documentación
+DELIMITER $$
+CREATE PROCEDURE sp_register_course(
+    IN p_course_name VARCHAR(255),
+    IN p_service_type VARCHAR(255),
+    IN p_category VARCHAR(255),
+    IN p_agreement VARCHAR(255),
+    IN p_total_duration INT,
+    IN p_modality VARCHAR(255),
+    IN p_educational_offer VARCHAR(255),
+    IN p_educational_platform VARCHAR(255),
+    IN p_other_educationals_platforms VARCHAR(255), -- Nuevo parámetro opcional
+    IN p_course_key VARCHAR(50),
+    IN p_user_id INT,
+    IN p_documentation JSON,
+    IN p_actor_roles JSON,
+    OUT p_status_code INT,
+    OUT p_message VARCHAR(255)
+)
+BEGIN
+    DECLARE v_course_id INT;
+
+    -- Manejo de errores
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION 
+    BEGIN
+        ROLLBACK;
+        SET p_status_code = -1;
+        SET p_message = 'Error: No se pudo registrar el curso.';
+    END;
+
+    START TRANSACTION;
+
+    -- Validar que el usuario existe
+    IF NOT EXISTS (
+        SELECT 1 FROM users WHERE id = p_user_id
+    ) THEN
+        ROLLBACK;
+        SET p_status_code = -2;
+        SET p_message = 'Error: El usuario especificado no existe.';
+    END IF;
+
+    -- Insertar los datos del curso, incluyendo el nuevo campo
+    INSERT INTO courses (
+        course_name,
+        service_type,
+        category,
+        agreement,
+        total_duration,
+        modality,
+        educational_offer,
+        educational_platform,
+        other_educationals_platforms,
+        course_key,
+        user_id
+    )
+    VALUES (
+        p_course_name,
+        p_service_type,
+        p_category,
+        p_agreement,
+        p_total_duration,
+        p_modality,
+        p_educational_offer,
+        p_educational_platform,
+        p_other_educationals_platforms,
+        p_course_key,
+        p_user_id
+    );
+
+    SET v_course_id = LAST_INSERT_ID();
+
+    -- Registrar la documentación asociada al curso
+    IF p_documentation IS NOT NULL THEN
+        INSERT INTO course_documentation (
+            course_id,
+            document_id,
+            filePath
+        )
+        SELECT
+            v_course_id,
+            doc.document_id,
+            doc.filePath
+        FROM
+            JSON_TABLE(
+                p_documentation,
+                '$[*]' COLUMNS (
+                    document_id INT PATH '$.document_id',
+                    filePath VARCHAR(255) PATH '$.filePath'
+                )
+            ) AS doc;
+    END IF;
+
+    -- Registrar los actores asociados al curso con sus roles
+    IF p_actor_roles IS NOT NULL THEN
+        INSERT INTO course_actor_roles (
+            course_id,
+            actor_id,
+            role
+        )
+        SELECT
+            v_course_id,
+            actor.actor_id,
+            actor.role
+        FROM
+            JSON_TABLE(
+                p_actor_roles,
+                '$[*]' COLUMNS (
+                    actor_id INT PATH '$.actor_id',
+                    role VARCHAR(50) PATH '$.role'
+                )
+            ) AS actor;
+    END IF;
+
+    -- Confirmar la transacción
+    COMMIT;
+
+    SET p_status_code = 1;
+    SET p_message = 'Curso registrado exitosamente.';
+END$$
+DELIMITER ;
+
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ LLENADO DE TABLAS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 INSERT INTO academic_categories (name) VALUES
@@ -499,7 +623,7 @@ INSERT INTO centers (name, type, identifier) VALUES
 INSERT INTO documents_templates (name, filePath, type) VALUES
 ('Formato de registro de cursos de formación a lo largo de la vida', 'assets/templates/01 FS20H 2024-2.docx', 'file'),
 ('Lista de cotejo para formato de registro de cursos', 'assets/templates/01 LC20H 2024-2.xlsx', 'file'),
-('Oficio de visto bueno proporcionado por la DEV', 'https://www.youtube.com', 'url'),
+('Oficio de visto bueno proporcionado por la DEV', 'https://www.ipn.mx/dev/servicios/evaluacion-rdd.html', 'url'),
 ('Formato de protesta de autoría', 'assets/templates/02 FPA20H 2024.docx', 'file'),
 ('Carta aval', 'assets/templates/05 CA-ejemplo.pdf', 'file');
 
@@ -529,7 +653,7 @@ CALL sp_insert_user('admin', 'admin', 'Sebastián', 'Morales', 'Palacios', 'Cent
 -- CALL sp_check_username('admin', @user_exists);
 -- SELECT @user_exists;
 
-SELECT * FROM users;
+-- SELECT * FROM users;
 /*
 SELECT 
     u.id AS user_id,
@@ -579,7 +703,7 @@ SELECT @status_code AS status_code, @message AS message;
 */
 
 
-SELECT * FROM actors_general_information;
+-- SELECT * FROM actors_general_information;
 /*
 CALL sp_register_instructor_all(
     'Juan',                       -- p_first_name
@@ -647,6 +771,7 @@ CALL sp_register_instructor_all(
 
 -- Consultar los valores de salida
 SELECT @status_code AS status_code, @message AS message;*/
+/*
 SELECT 
     agi.id AS "ID Actor",
     agi.first_name AS "Nombre",
@@ -672,7 +797,7 @@ LEFT JOIN academic_history ah ON agi.id = ah.actor_id
 LEFT JOIN professional_experience pe ON agi.id = pe.actor_id
 WHERE agi.id = 1; -- Reemplaza '?' con el ID del actor
 
-
+*/
 
 
 

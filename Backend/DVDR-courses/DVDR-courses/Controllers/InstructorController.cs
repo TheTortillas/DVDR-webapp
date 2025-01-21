@@ -149,8 +149,6 @@ namespace DVDR_courses.Controllers
                 return StatusCode(500, new { message = "Error al obtener los instructores.", error = ex.Message });
             }
         }
-    
-
 
         [HttpGet("GetExpertiseAreas", Name = "GetExpertiseAreas")]
         public IActionResult GetExpertiseAreas()

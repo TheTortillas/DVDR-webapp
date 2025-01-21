@@ -16,6 +16,7 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { SelectionModel } from '@angular/cdk/collections';
 import { DataService } from '../../../core/services/data.service';
 import { MatIcon } from '@angular/material/icon';
+import { MatDivider } from '@angular/material/divider';
 
 interface Instructor {
   id: number;
@@ -39,6 +40,7 @@ interface Instructor {
     MatTableModule,
     MatCheckboxModule,
     MatIcon,
+    MatDivider,
   ],
   templateUrl: './add-instructors-dialog.component.html',
   styleUrl: './add-instructors-dialog.component.scss',

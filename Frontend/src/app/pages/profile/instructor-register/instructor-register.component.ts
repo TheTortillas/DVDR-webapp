@@ -200,8 +200,6 @@ export class InstructorRegisterComponent {
       }
     });
 
-    console.log('formData:', formData);
-
     // Enviar datos al servicio
     this.instructorRegisterService.registerInstructor(formData).subscribe({
       next: (response) => {

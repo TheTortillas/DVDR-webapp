@@ -21,6 +21,7 @@ import {
 } from '@angular/cdk/stepper';
 
 import { FilesService } from '../../../core/services/files.service';
+import Swal from 'sweetalert2';
 
 // Custom validator function
 function actorsValidator() {
@@ -62,9 +63,7 @@ export class CourseRegisterComponent {
   private uploadDocChild!: UploadDocumentationComponent;
 
   private _formBuilder = inject(FormBuilder);
-  constructor(
-    private filesService: FilesService // Inyectamos el servicio
-  ) {}
+  constructor(private filesService: FilesService) {}
 
   firstFormGroup = this._formBuilder.group({
     // Mapeo con los campos de la base de datos
@@ -82,18 +81,31 @@ export class CourseRegisterComponent {
     custom_platform: [''], // plataforma-ed-personalizada
     actors: [[], [actorsValidator()]],
   });
-  secondFormGroup = this._formBuilder.group({
-    secondCtrl: ['', Validators.required],
-  });
+
+  secondFormGroup = this._formBuilder.group(
+    {},
+    {
+      validators: () => {
+        // Si el componente hijo no está inicializado, no mostrar error aún
+        if (!this.uploadDocChild?.dataSource?.data) {
+          return { requiredDocsMissing: true };
+        }
+
+        // Usar la misma lógica que funciona en el método areAllRequiredDocsUploaded
+        const hasAllRequired = this.uploadDocChild.areAllRequiredDocsUploaded();
+        return hasAllRequired ? null : { requiredDocsMissing: true };
+      },
+    }
+  );
+
   isLinear = false;
 
   onStepperSelectionChange(event: StepperSelectionEvent) {
     if (event.previouslySelectedIndex === 0 && this.firstFormGroup.invalid) {
       this.firstFormGroup.markAllAsTouched();
-    } else if (
-      event.previouslySelectedIndex === 1 &&
-      this.secondFormGroup.invalid
-    ) {
+    }
+    if (event.previouslySelectedIndex === 1) {
+      this.secondFormGroup.updateValueAndValidity();
       this.secondFormGroup.markAllAsTouched();
     }
   }
@@ -120,13 +132,27 @@ export class CourseRegisterComponent {
 
   // Al presionar el segundo botón se imprimen los valores
   onCompleteSecondStep() {
+    if (!this.uploadDocChild.areAllRequiredDocsUploaded()) {
+      Swal.fire(
+        'Documentos requeridos',
+        'Por favor suba toda la documentación requerida.',
+        'warning'
+      );
+      this.secondFormGroup.setErrors({ requiredDocsMissing: true });
+      return;
+    }
     // 1) Obtenemos los archivos subidos desde el hijo
     const uploadedDocs = this.uploadDocChild.getUploadedDocuments();
     console.log('Archivos subidos en el hijo:', uploadedDocs);
 
     // 2) Si no hay archivos, podemos hacer alguna validación
     if (!uploadedDocs.length) {
-      console.warn('No hay documentos subidos');
+      Swal.fire(
+        'Documentos requeridos',
+        'No ha subido ningun documento',
+        'warning'
+      );
+      this.secondFormGroup.setErrors({ requiredDocsMissing: true });
       return;
     }
 

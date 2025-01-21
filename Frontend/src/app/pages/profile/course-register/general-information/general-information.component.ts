@@ -1,9 +1,11 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  EventEmitter,
   inject,
   Input,
   OnInit,
+  Output,
 } from '@angular/core';
 //import { StepperIndicatorComponent } from "../../components/stepper-indicator/stepper-indicator.component";
 import {
@@ -100,6 +102,7 @@ interface Persona {
 })
 export class GeneralInformationComponent implements OnInit {
   @Input() formGroup!: FormGroup;
+  @Output() actorsChange = new EventEmitter<boolean>();
   matcher = new MyErrorStateMatcher();
 
   constructor(private dataService: DataService, private dialog: MatDialog) {}
@@ -255,14 +258,6 @@ export class GeneralInformationComponent implements OnInit {
       }
     });
   }
-
-  personas: string[] = [
-    'Juan Pérez',
-    'María Gómez',
-    'Carlos López',
-    'Ana Martínez',
-    'Jorge Rodríguez',
-  ];
 
   selectedPersona: string = '';
   seleccionados: { nombre: string; rol: string }[] = [];

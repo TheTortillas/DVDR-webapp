@@ -120,4 +120,10 @@ export class UploadDocumentationComponent implements OnChanges, OnInit {
   /*
   Ojo: Si necesitas todas las filas (con o sin archivo), podrías retornar this.dataSource.data, pero normalmente te interesa solo lo que el usuario efectivamente subió.
   */
+
+  areAllRequiredDocsUploaded(): boolean {
+    return this.dataSource.data.every(
+      (row) => !row.required || row.uploadedFile
+    );
+  }
 }

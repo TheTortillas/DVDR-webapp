@@ -33,7 +33,10 @@
           </mat-step>
 
           <!-- PASO 2: SUBIR DOCUMENTACIÓN -->
-          <mat-step [stepControl]="secondFormGroup">
+          <mat-step
+            [stepControl]="secondFormGroup"
+            errorMessage="Debe subir toda la documentación requerida"
+          >
             <form [formGroup]="secondFormGroup">
               <ng-template matStepLabel>Subir documentación</ng-template>
               <app-upload-documentation

@@ -55,6 +55,7 @@
         >
           <mat-option value="">Todos</mat-option>
           <mat-option *ngFor="let center of centers" [value]="center">
+            <mat-divider></mat-divider>
             {{ center }}
           </mat-option>
         </mat-select>

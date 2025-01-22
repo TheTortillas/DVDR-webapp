@@ -646,11 +646,23 @@ INSERT INTO document_access (document_id, modality, required) VALUES
 (5, 'mixed', 0); 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ PRUEBAS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
--- Ejemplo de cómo insertar un nuevo usuario con los nuevos campos
-CALL sp_insert_user('admin', 'admin', 'Sebastián', 'Morales', 'Palacios', 'Centro de Innovación e Integración de Tecnologías Avanzadas Veracruz');
--- Llamar al procedimiento para verificar usuario y contraseña
- CALL sp_verify_user('admin', 'admin', @is_valid, @user_center);
- -- SELECT @is_valid;
+-- Insertar administrador para cada centro
+CALL sp_insert_user('admin_chihuahua', 'pass_chihuahua', 'Carlos', 'Hernández', 'López', 'Centro de Innovación e Integración de Tecnologías Avanzadas Chihuahua');
+CALL sp_insert_user('admin_puebla', 'pass_puebla', 'María', 'García', 'Martínez', 'Centro de Innovación e Integración de Tecnologías Avanzadas Puebla');
+CALL sp_insert_user('admin_veracruz', 'pass_veracruz', 'Sebastián', 'Morales', 'Palacios', 'Centro de Innovación e Integración de Tecnologías Avanzadas Veracruz');
+CALL sp_insert_user('admin_cajeme', 'pass_cajeme', 'Ana', 'Martínez', 'Pérez', 'Centro de Vinculación y Desarrollo Regional Unidad Cajeme');
+CALL sp_insert_user('admin_campeche', 'pass_campeche', 'Jorge', 'Díaz', 'Ramírez', 'Centro de Vinculación y Desarrollo Regional Unidad Campeche');
+CALL sp_insert_user('admin_cancun', 'pass_cancun', 'Sofía', 'Jiménez', 'Vargas', 'Centro de Vinculación y Desarrollo Regional Unidad Cancún');
+CALL sp_insert_user('admin_culiacan', 'pass_culiacan', 'Roberto', 'Torres', 'Morales', 'Centro de Vinculación y Desarrollo Regional Culiacán');
+CALL sp_insert_user('admin_durango', 'pass_durango', 'Daniela', 'Sánchez', 'Ortega', 'Centro de Vinculación y Desarrollo Regional Durango');
+CALL sp_insert_user('admin_losmochis', 'pass_losmochis', 'Ricardo', 'Pérez', 'Castillo', 'Centro de Vinculación y Desarrollo Regional Unidad Los Mochis');
+CALL sp_insert_user('admin_mazatlan', 'pass_mazatlan', 'Fernanda', 'Ruiz', 'Gómez', 'Centro de Desarrollo y Vinculación Regional Unidad Mazatlán');
+CALL sp_insert_user('admin_morelia', 'pass_morelia', 'Miguel', 'Hernández', 'Lara', 'Centro de Vinculación y Desarrollo Regional Unidad Morelia');
+CALL sp_insert_user('admin_tlaxcala', 'pass_tlaxcala', 'Valeria', 'Castillo', 'Núñez', 'Centro de Vinculación y Desarrollo Regional Unidad Tlaxcala');
+CALL sp_insert_user('admin_oaxaca', 'pass_oaxaca', 'Héctor', 'Cruz', 'Mendoza', 'Centro de Vinculación y Desarrollo Regional Unidad Oaxaca');
+CALL sp_insert_user('admin_tijuana', 'pass_tijuana', 'Gabriela', 'Flores', 'Ramos', 'Centro de Vinculación y Desarrollo Regional Unidad Tijuana');
+CALL sp_insert_user('admin_tampico', 'pass_tampico', 'Eduardo', 'Rojas', 'Peña', 'Centro de Vinculación y Desarrollo Regional Unidad Tampico');
+
 
 -- CALL sp_check_username('admin', @user_exists);
 -- SELECT @user_exists;
@@ -891,7 +903,4 @@ SELECT
 FROM courses c
 INNER JOIN users u ON c.user_id = u.id
 ORDER BY u.username, c.created_at;
-*/
-
-
-
+*/   

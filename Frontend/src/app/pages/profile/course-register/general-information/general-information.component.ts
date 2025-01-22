@@ -217,19 +217,6 @@ export class GeneralInformationComponent implements OnInit {
     this.formGroup.get('custom_platform')?.updateValueAndValidity();
   }
 
-  onOtherPlatformChange(event: any) {
-    const customValue = event.target.value;
-    this.formGroup.get('custom_platform')?.setValue(customValue);
-
-    if (customValue && this.otroPlatformSelected) {
-      const platforms = [...this.platformSelections];
-      const allPlatforms =
-        platforms.length > 0
-          ? `${platforms.join(',')},${customValue}`
-          : customValue;
-      this.formGroup.get('educational_platform')?.setValue(allPlatforms);
-    }
-  }
   //-------------------------------------- AUTORES  ---------------------------------------
 
   openAddInstructorsDialog() {

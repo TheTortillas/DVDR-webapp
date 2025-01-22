@@ -70,6 +70,7 @@ export class MyErrorStateMatcher implements ErrorStateMatcher {
 }
 
 interface Persona {
+  id?: number;
   nombre: string;
   rol: string;
 }

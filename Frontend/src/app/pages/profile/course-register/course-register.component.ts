@@ -21,6 +21,7 @@ import {
 } from '@angular/cdk/stepper';
 
 import { FilesService } from '../../../core/services/files.service';
+import { CoursesService } from '../../../core/services/courses.service';
 import Swal from 'sweetalert2';
 
 // Custom validator function
@@ -59,11 +60,16 @@ function actorsValidator() {
   ],
 })
 export class CourseRegisterComponent {
+  @ViewChild(GeneralInformationComponent)
+  private generalInfoChild!: GeneralInformationComponent;
   @ViewChild(UploadDocumentationComponent)
   private uploadDocChild!: UploadDocumentationComponent;
 
   private _formBuilder = inject(FormBuilder);
-  constructor(private filesService: FilesService) {}
+  constructor(
+    private filesService: FilesService,
+    private coursesService: CoursesService
+  ) {}
 
   firstFormGroup = this._formBuilder.group({
     // Mapeo con los campos de la base de datos
@@ -181,6 +187,113 @@ export class CourseRegisterComponent {
       error: (err) => {
         console.error('Error subiendo los documentos:', err);
         // Manejo de error
+      },
+    });
+  }
+
+  onSubmit() {
+    if (
+      this.firstFormGroup.invalid ||
+      !this.uploadDocChild.areAllRequiredDocsUploaded()
+    ) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Formulario incompleto',
+        text: 'Por favor, completa todos los campos requeridos.',
+      });
+      return;
+    }
+
+    const formData = new FormData();
+
+    // Obtener el username del localStorage
+    const username = localStorage.getItem('username');
+    if (!username) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'No se encontró el nombre de usuario. Por favor, inicie sesión nuevamente.',
+      });
+      return;
+    }
+    // Generar carpeta aleatoria (aunque el backend ya la maneja, no afecta)
+    const folderName = Math.random().toString(36).substring(2, 15);
+    formData.append('Username', username);
+    formData.append('FolderName', folderName); // Opcional
+
+    // Agregar información general del curso
+    const generalInfo = this.firstFormGroup.value;
+    formData.append('CourseInfo.CourseName', generalInfo.course_name || '');
+    formData.append('CourseInfo.ServiceType', generalInfo.service_type || '');
+    formData.append('CourseInfo.Category', generalInfo.category || '');
+    formData.append('CourseInfo.Agreement', generalInfo.agreement || '');
+    formData.append(
+      'CourseInfo.TotalDuration',
+      generalInfo.total_duration?.toString() || ''
+    );
+    formData.append('CourseInfo.Modality', generalInfo.modality || '');
+    formData.append(
+      'CourseInfo.EducationalOffer',
+      generalInfo.educational_offer || ''
+    );
+    formData.append(
+      'CourseInfo.EducationalPlatform',
+      JSON.stringify(generalInfo.educational_platform) || ''
+    );
+    formData.append(
+      'CourseInfo.CustomPlatform',
+      generalInfo.custom_platform || ''
+    );
+
+    const actors = (this.firstFormGroup.get('actors')?.value || []).map(
+      (actor: any) => ({
+        id: actor.id,
+        name: actor.nombre, // Ensure using correct property names
+        role: actor.rol, // Ensure using correct property names
+      })
+    );
+    actors.forEach((actor, index) => {
+      formData.append(`CourseInfo.Actors[${index}].Id`, actor.id.toString());
+      formData.append(`CourseInfo.Actors[${index}].Name`, actor.name);
+      formData.append(`CourseInfo.Actors[${index}].Role`, actor.role);
+    });
+
+    // formData.append('CourseInfo.Actors', JSON.stringify(actors));
+
+    // Agregar documentación
+    const uploadedDocs = this.uploadDocChild.getUploadedDocuments();
+    uploadedDocs.forEach((doc, index) => {
+      if (doc.uploadedFile) {
+        formData.append(`Documents[${index}].DocumentId`, doc.id.toString());
+        formData.append(
+          `Documents[${index}].File`,
+          doc.uploadedFile,
+          doc.uploadedFile.name
+        );
+        formData.append(`Documents[${index}].Name`, doc.name);
+        formData.append(
+          `Documents[${index}].Required`,
+          doc.required.toString()
+        );
+      }
+    });
+
+    // Enviar los datos al servicio
+    this.coursesService.registerCourse(formData).subscribe({
+      next: (response) => {
+        Swal.fire({
+          icon: 'success',
+          title: 'Éxito',
+          text: 'Curso registrado correctamente.',
+        });
+      },
+      error: (error) => {
+        console.error('Error:', error);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'Hubo un error al registrar el curso. Verifica los datos e intenta nuevamente.',
+        });
       },
     });
   }

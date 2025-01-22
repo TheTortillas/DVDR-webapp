@@ -27,7 +27,9 @@
               </div> -->
 
               <div class="flex justify-end">
-                <button mat-flat-button matStepperNext>Siguiente</button>
+                <button mat-flat-button matStepperNext (click)="onSubmit()">
+                  Siguiente
+                </button>
               </div>
             </form>
           </mat-step>
@@ -50,11 +52,7 @@
               </div> -->
               <div class="stepper-buttons">
                 <button mat-flat-button matStepperPrevious>Anterior</button>
-                <button
-                  mat-flat-button
-                  matStepperNext
-                  (click)="onCompleteSecondStep()"
-                >
+                <button mat-flat-button matStepperNext (click)="onSubmit()">
                   Enviar
                 </button>
               </div>

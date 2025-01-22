@@ -61,6 +61,7 @@ export class AddInstructorsDialogComponent implements OnInit {
   areasExpertise: string[] = [];
   instructores: Instructor[] = [];
   centers: string[] = [];
+  selectedCenters: string[] = [];
 
   constructor(
     private dialogRef: MatDialogRef<AddInstructorsDialogComponent>,
@@ -107,6 +108,13 @@ export class AddInstructorsDialogComponent implements OnInit {
     if (this.selectedCenter.trim()) {
       filteredData = filteredData.filter(
         (inst) => inst.centro === this.selectedCenter
+      );
+    }
+
+    // Filtrar por centros múltiples
+    if (this.selectedCenters.length > 0) {
+      filteredData = filteredData.filter((inst) =>
+        this.selectedCenters.includes(inst.centro)
       );
     }
 

@@ -49,11 +49,11 @@
         <mat-label>Filtrar por centro</mat-label>
         <span matTextPrefix><mat-icon>location_city </mat-icon> &nbsp;</span>
         <mat-select
-          [(ngModel)]="selectedCenter"
+          multiple
+          [(ngModel)]="selectedCenters"
           (selectionChange)="applyFilter()"
-          placeholder="Seleccionar centro"
+          placeholder="Seleccionar centros"
         >
-          <mat-option value="">Todos</mat-option>
           <mat-option *ngFor="let center of centers" [value]="center">
             <mat-divider></mat-divider>
             {{ center }}

@@ -1,6 +1,7 @@
 ﻿using DVDR_courses.DTOs;
 using DVDR_courses.Services;
 using MySql.Data.MySqlClient;
+using Newtonsoft.Json;
 using System.Data;
 
 namespace DVDR_courses
@@ -333,5 +334,75 @@ namespace DVDR_courses
             return instructors;
         }
 
+        public (int statusCode, string message) RegisterCourseAll(CourseRegister request, string username)
+        {
+            try
+            {
+                using (var con = new MySqlConnection(_config.GetConnectionString("default")))
+                {
+                    var cmd = new MySqlCommand("sp_register_course", con)
+                    {
+                        CommandType = CommandType.StoredProcedure
+                    };
+
+                    // Información general del curso
+                    var courseInfo = request.CourseInfo;
+                    cmd.Parameters.AddWithValue("p_course_name", courseInfo.CourseName);
+                    cmd.Parameters.AddWithValue("p_service_type", courseInfo.ServiceType);
+                    cmd.Parameters.AddWithValue("p_category", courseInfo.Category);
+                    cmd.Parameters.AddWithValue("p_agreement", string.IsNullOrEmpty(courseInfo.Agreement) ? DBNull.Value : courseInfo.Agreement);
+                    cmd.Parameters.AddWithValue("p_total_duration", courseInfo.TotalDuration);
+                    cmd.Parameters.AddWithValue("p_modality", courseInfo.Modality);
+                    cmd.Parameters.AddWithValue("p_educational_offer", courseInfo.EducationalOffer);
+                    cmd.Parameters.AddWithValue("p_educational_platform", string.Join(",", courseInfo.EducationalPlatform ?? new List<string>()));
+                    cmd.Parameters.AddWithValue("p_other_educationals_platforms", string.IsNullOrEmpty(courseInfo.CustomPlatform) ? DBNull.Value : courseInfo.CustomPlatform);
+                    cmd.Parameters.AddWithValue("p_course_key", new Random().Next(1, 1000000).ToString()); // Generar un número aleatorio para pruebas
+
+                    //cmd.Parameters.AddWithValue("p_course_key", Guid.NewGuid().ToString());
+                    cmd.Parameters.AddWithValue("p_username", username); // Nuevo parámetro
+
+                    // Convertir documentos y roles a JSON
+                    var documentationJson = JsonConvert.SerializeObject(request.Documents.Select(d => new
+                    {
+                        DocumentID = d.DocumentId,
+                        FilePath = Path.Combine(
+                        "assets",
+                        "files",
+                        "courses-documentation",
+                        request.FolderName,
+                        d.File.FileName
+                    )}));
+                    cmd.Parameters.AddWithValue("p_documentation", documentationJson);
+                    Console.WriteLine(documentationJson);
+
+                    var actorRolesJson = JsonConvert.SerializeObject(courseInfo.Actors.Select(a => new
+                    {
+                        actor_id = a.Id,
+                        role = a.Role
+                    }));
+                    cmd.Parameters.AddWithValue("p_actor_roles", actorRolesJson);
+                    Console.WriteLine(actorRolesJson);
+
+                    // Parámetros de salida
+                    var statusCodeParam = new MySqlParameter("p_status_code", MySqlDbType.Int32) { Direction = ParameterDirection.Output };
+                    var messageParam = new MySqlParameter("p_message", MySqlDbType.VarChar, 255) { Direction = ParameterDirection.Output };
+                    cmd.Parameters.Add(statusCodeParam);
+                    cmd.Parameters.Add(messageParam);
+
+                    con.Open();
+                    cmd.ExecuteNonQuery();
+
+                    int statusCode = Convert.ToInt32(statusCodeParam.Value);
+                    string message = messageParam.Value.ToString();
+
+                    return (statusCode, message);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+                return (-1, "Error interno del servidor.");
+            }
+        }
     }
 }

@@ -470,7 +470,6 @@ BEGIN
 END$$
 DELIMITER ;
 
--- Procedimiento para dar de alta un curso: Datos generales, actores y documentación
 DELIMITER $$
 CREATE PROCEDURE sp_register_course(
     IN p_course_name VARCHAR(255),
@@ -481,37 +480,42 @@ CREATE PROCEDURE sp_register_course(
     IN p_modality VARCHAR(255),
     IN p_educational_offer VARCHAR(255),
     IN p_educational_platform VARCHAR(255),
-    IN p_other_educationals_platforms VARCHAR(255), -- Nuevo parámetro opcional
+    IN p_other_educationals_platforms VARCHAR(255),
     IN p_course_key VARCHAR(50),
-    IN p_user_id INT,
+    IN p_username VARCHAR(50),
     IN p_documentation JSON,
     IN p_actor_roles JSON,
     OUT p_status_code INT,
     OUT p_message VARCHAR(255)
 )
 BEGIN
+    DECLARE v_user_id INT;
     DECLARE v_course_id INT;
 
     -- Manejo de errores
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION 
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
     BEGIN
         ROLLBACK;
         SET p_status_code = -1;
-        SET p_message = 'Error: No se pudo registrar el curso.';
+        SET p_message = 'Error: No se pudo con el foquin el curso.';
     END;
 
     START TRANSACTION;
 
-    -- Validar que el usuario existe
-    IF NOT EXISTS (
-        SELECT 1 FROM users WHERE id = p_user_id
-    ) THEN
+    -- Obtener el ID del usuario a partir del username
+    SELECT id
+    INTO v_user_id
+    FROM users
+    WHERE username = p_username
+    LIMIT 1;
+
+    IF v_user_id IS NULL THEN
         ROLLBACK;
         SET p_status_code = -2;
-        SET p_message = 'Error: El usuario especificado no existe.';
+        SET p_message = 'Error: Usuario no encontrado.';
     END IF;
 
-    -- Insertar los datos del curso, incluyendo el nuevo campo
+    -- Insertar en la tabla de cursos
     INSERT INTO courses (
         course_name,
         service_type,
@@ -536,52 +540,50 @@ BEGIN
         p_educational_platform,
         p_other_educationals_platforms,
         p_course_key,
-        p_user_id
+        v_user_id
     );
 
     SET v_course_id = LAST_INSERT_ID();
 
-    -- Registrar la documentación asociada al curso
-    IF p_documentation IS NOT NULL THEN
-        INSERT INTO course_documentation (
-            course_id,
-            document_id,
-            filePath
-        )
-        SELECT
-            v_course_id,
-            doc.document_id,
-            doc.filePath
-        FROM
-            JSON_TABLE(
-                p_documentation,
-                '$[*]' COLUMNS (
-                    document_id INT PATH '$.document_id',
-                    filePath VARCHAR(255) PATH '$.filePath'
-                )
-            ) AS doc;
-    END IF;
+    -- Insertar documentación relacionada con el curso usando JSON_TABLE
+    INSERT INTO course_documentation (
+        course_id,
+        document_id,
+        filePath
+    )
+    SELECT
+        v_course_id,
+        d.document_id,
+        d.filePath
+    FROM
+        JSON_TABLE(
+            p_documentation,
+            '$[*]'
+            COLUMNS (
+                document_id INT PATH '$.DocumentID',
+                filePath VARCHAR(255) PATH '$.FilePath'
+            )
+        ) AS d;
 
-    -- Registrar los actores asociados al curso con sus roles
-    IF p_actor_roles IS NOT NULL THEN
-        INSERT INTO course_actor_roles (
-            course_id,
-            actor_id,
-            role
-        )
-        SELECT
-            v_course_id,
-            actor.actor_id,
-            actor.role
-        FROM
-            JSON_TABLE(
-                p_actor_roles,
-                '$[*]' COLUMNS (
-                    actor_id INT PATH '$.actor_id',
-                    role VARCHAR(50) PATH '$.role'
-                )
-            ) AS actor;
-    END IF;
+    -- Insertar roles de actores asociados al curso usando JSON_TABLE
+    INSERT INTO course_actor_roles (
+        course_id,
+        actor_id,
+        role
+    )
+    SELECT
+        v_course_id,
+        t.actor_id,
+        t.role
+    FROM
+        JSON_TABLE(
+            p_actor_roles,
+            '$[*]'
+            COLUMNS (
+                actor_id INT PATH '$.actor_id',
+                role VARCHAR(50) PATH '$.role'
+            )
+        ) AS t;
 
     -- Confirmar la transacción
     COMMIT;
@@ -628,7 +630,7 @@ INSERT INTO documents_templates (name, filePath, type) VALUES
 ('Carta aval', 'assets/templates/05 CA-ejemplo.pdf', 'file');
 
 INSERT INTO document_access (document_id, modality, required) VALUES
-(3, 'non-schooled', 1), -- Obligatorio solo en modalidad no escolarizada
+(3, 'non-schooled', 1),
 (3, 'mixed', 1),
 (1, 'schooled', 1), 
 (1, 'non-schooled', 1), 
@@ -673,11 +675,11 @@ ON
     u.center_id = c.id;
 */
 -- DROP DATABASE dvdr_cursos;
-
+/*
 SELECT dt.id AS document_id, dt.name AS document_name, dt.filePath, dt.type, da.modality
 FROM documents_templates dt
 JOIN document_access da ON dt.id = da.document_id
-WHERE da.modality = 'non-schooled';
+WHERE da.modality = 'non-schooled';*/
 /*
 CALL sp_register_instructor_general_info(
     'Juan',                     -- p_first_name
@@ -797,6 +799,98 @@ LEFT JOIN academic_history ah ON agi.id = ah.actor_id
 LEFT JOIN professional_experience pe ON agi.id = pe.actor_id
 WHERE agi.id = 1; -- Reemplaza '?' con el ID del actor
 
+*/
+/*
+CALL sp_register_course(
+    'Curso de Programación',
+    'Capacitación',
+    'Tecnología',
+    'Acuerdo123',
+    40,
+    'Presencial',
+    'Oferta Educativa A',
+    '[""Google Meet"",""Microsoft Teams""]',
+    'Plataforma Y',
+    'CURS123',
+    'admin',
+    '[{"document_id": 1, "filePath": "ruta/documento1.pdf"}, {"document_id": 2, "filePath": "ruta/documento2.pdf"}]',
+    '[{"actor_id": 1, "role": "Instructor"}]',
+    @status_code,
+    @message
+);
+
+SELECT @status_code, @message; 
+*/
+
+-- CURSOS
+ /*
+SELECT 
+    c.id AS course_id,
+    c.course_name,
+    c.service_type,
+    c.category,
+    c.modality,
+    c.educational_offer,
+    c.course_key,
+    u.username AS registered_by,
+    c.created_at
+FROM courses c
+INNER JOIN users u ON c.user_id = u.id;
+
+SELECT 
+    c.course_name,
+    agi.first_name AS actor_first_name,
+    agi.last_name AS actor_last_name,
+    car.role
+FROM course_actor_roles car
+INNER JOIN courses c ON car.course_id = c.id
+INNER JOIN actors_general_information agi ON car.actor_id = agi.id
+ORDER BY c.course_name, car.role;
+
+
+SELECT 
+    c.course_name,
+    dt.name AS document_name,
+    cd.filePath AS uploaded_file_path
+FROM course_documentation cd
+INNER JOIN courses c ON cd.course_id = c.id
+INNER JOIN documents_templates dt ON cd.document_id = dt.id
+ORDER BY c.course_name, dt.name;
+
+
+SELECT 
+    c.course_name,
+    c.status AS current_status,
+    c.approval_status,
+    c.admin_notes
+FROM courses c
+ORDER BY c.approval_status, c.course_name;
+
+SELECT 
+    c.course_name,
+    COUNT(car.id) AS total_actors
+FROM courses c
+LEFT JOIN course_actor_roles car ON c.id = car.course_id
+GROUP BY c.id
+ORDER BY total_actors DESC, c.course_name;
+
+
+SELECT 
+    c.course_name,
+    COUNT(cd.id) AS total_documents
+FROM courses c
+LEFT JOIN course_documentation cd ON c.id = cd.course_id
+GROUP BY c.id
+ORDER BY total_documents DESC, c.course_name;
+
+
+SELECT 
+    u.username,
+    c.course_name,
+    c.created_at
+FROM courses c
+INNER JOIN users u ON c.user_id = u.id
+ORDER BY u.username, c.created_at;
 */
 
 

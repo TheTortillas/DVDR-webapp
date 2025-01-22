@@ -15,6 +15,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { GeneralInformationComponent } from './general-information/general-information.component';
 import { UploadDocumentationComponent } from './upload-documentation/upload-documentation.component';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 import {
   STEPPER_GLOBAL_OPTIONS,
   StepperSelectionEvent,
@@ -67,6 +68,7 @@ export class CourseRegisterComponent {
 
   private _formBuilder = inject(FormBuilder);
   constructor(
+    private router: Router,
     private filesService: FilesService,
     private coursesService: CoursesService
   ) {}
@@ -281,10 +283,12 @@ export class CourseRegisterComponent {
     // Enviar los datos al servicio
     this.coursesService.registerCourse(formData).subscribe({
       next: (response) => {
-        Swal.fire({
-          icon: 'success',
-          title: 'Éxito',
-          text: 'Curso registrado correctamente.',
+        Swal.fire(
+          'Éxito',
+          'El curso se ha registrado exitosamente',
+          'success'
+        ).then(() => {
+          this.router.navigate(['/profile/my-courses']);
         });
       },
       error: (error) => {

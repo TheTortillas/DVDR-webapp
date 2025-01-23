@@ -28,7 +28,11 @@
         <ng-container matColumnDef="solicitar">
           <th mat-header-cell *matHeaderCellDef>Acción</th>
           <td mat-cell *matCellDef="let course">
-            <button mat-button (click)="solicitarApertura(course)">
+            <button
+              mat-button
+              [disabled]="!isSolicitudHabilitada(course)"
+              (click)="solicitarApertura(course)"
+            >
               Solicitar
             </button>
           </td>

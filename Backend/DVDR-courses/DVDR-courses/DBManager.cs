@@ -340,68 +340,134 @@ namespace DVDR_courses
             {
                 using (var con = new MySqlConnection(_config.GetConnectionString("default")))
                 {
-                    var cmd = new MySqlCommand("sp_register_course", con)
-                    {
-                        CommandType = CommandType.StoredProcedure
-                    };
-
-                    // Información general del curso
-                    var courseInfo = request.CourseInfo;
-                    cmd.Parameters.AddWithValue("p_course_name", courseInfo.CourseName);
-                    cmd.Parameters.AddWithValue("p_service_type", courseInfo.ServiceType);
-                    cmd.Parameters.AddWithValue("p_category", courseInfo.Category);
-                    cmd.Parameters.AddWithValue("p_agreement", string.IsNullOrEmpty(courseInfo.Agreement) ? DBNull.Value : courseInfo.Agreement);
-                    cmd.Parameters.AddWithValue("p_total_duration", courseInfo.TotalDuration);
-                    cmd.Parameters.AddWithValue("p_modality", courseInfo.Modality);
-                    cmd.Parameters.AddWithValue("p_educational_offer", courseInfo.EducationalOffer);
-                    cmd.Parameters.AddWithValue("p_educational_platform", string.Join(",", courseInfo.EducationalPlatform ?? new List<string>()));
-                    cmd.Parameters.AddWithValue("p_other_educationals_platforms", string.IsNullOrEmpty(courseInfo.CustomPlatform) ? DBNull.Value : courseInfo.CustomPlatform);
-                    cmd.Parameters.AddWithValue("p_course_key", new Random().Next(1, 1000000).ToString()); // Generar un número aleatorio para pruebas
-
-                    //cmd.Parameters.AddWithValue("p_course_key", Guid.NewGuid().ToString());
-                    cmd.Parameters.AddWithValue("p_username", username); // Nuevo parámetro
-
-                    // Convertir documentos y roles a JSON
-                    var documentationJson = JsonConvert.SerializeObject(request.Documents.Select(d => new
-                    {
-                        DocumentID = d.DocumentId,
-                        FilePath = Path.Combine(
-                        "assets",
-                        "files",
-                        "courses-documentation",
-                        request.FolderName,
-                        d.File.FileName
-                    )}));
-                    cmd.Parameters.AddWithValue("p_documentation", documentationJson);
-                    Console.WriteLine(documentationJson);
-
-                    var actorRolesJson = JsonConvert.SerializeObject(courseInfo.Actors.Select(a => new
-                    {
-                        actor_id = a.Id,
-                        role = a.Role
-                    }));
-                    cmd.Parameters.AddWithValue("p_actor_roles", actorRolesJson);
-                    Console.WriteLine(actorRolesJson);
-
-                    // Parámetros de salida
-                    var statusCodeParam = new MySqlParameter("p_status_code", MySqlDbType.Int32) { Direction = ParameterDirection.Output };
-                    var messageParam = new MySqlParameter("p_message", MySqlDbType.VarChar, 255) { Direction = ParameterDirection.Output };
-                    cmd.Parameters.Add(statusCodeParam);
-                    cmd.Parameters.Add(messageParam);
-
                     con.Open();
-                    cmd.ExecuteNonQuery();
 
-                    int statusCode = Convert.ToInt32(statusCodeParam.Value);
-                    string message = messageParam.Value.ToString();
+                    // Obtener el center_id del usuario
+                    var getUserCenterCmd = new MySqlCommand("SELECT center_id FROM users WHERE username = @username", con);
+                    getUserCenterCmd.Parameters.AddWithValue("@username", username);
+                    var centerId = Convert.ToInt32(getUserCenterCmd.ExecuteScalar());
 
-                    return (statusCode, message);
+                    // Obtener el type y identifier del centro
+                    var getCenterInfoCmd = new MySqlCommand("SELECT type, identifier FROM centers WHERE id = @centerId", con);
+                    getCenterInfoCmd.Parameters.AddWithValue("@centerId", centerId);
+                    using (var reader = getCenterInfoCmd.ExecuteReader())
+                    {
+                        if (!reader.Read())
+                        {
+                            return (-1, "Centro no encontrado.");
+                        }
+
+                        var centerType = reader.GetString("type");
+                        var centerIdentifier = reader.GetInt32("identifier").ToString("D2"); // Rellenar con ceros a la izquierda
+
+                        reader.Close(); // Cerrar el DataReader antes de ejecutar la siguiente consulta
+
+                        // Contar los cursos registrados en el año actual
+                        var currentYear = DateTime.Now.Year;
+                        var countCoursesCmd = new MySqlCommand("SELECT COUNT(*) FROM courses WHERE YEAR(created_at) = @currentYear", con);
+                        countCoursesCmd.Parameters.AddWithValue("@currentYear", currentYear);
+                        var courseCount = (Convert.ToInt32(countCoursesCmd.ExecuteScalar()) + 1).ToString("D3"); // Rellenar con ceros a la izquierda
+
+                        // Generar la course_key
+                        var courseKey = $"DVDR/{centerType}/{centerIdentifier}/{courseCount}";
+
+                        // Crear el comando para registrar el curso
+                        var cmd = new MySqlCommand("sp_register_course", con)
+                        {
+                            CommandType = CommandType.StoredProcedure
+                        };
+
+                        // Información general del curso
+                        var courseInfo = request.CourseInfo;
+                        cmd.Parameters.AddWithValue("p_course_name", courseInfo.CourseName);
+                        cmd.Parameters.AddWithValue("p_service_type", courseInfo.ServiceType);
+                        cmd.Parameters.AddWithValue("p_category", courseInfo.Category);
+                        cmd.Parameters.AddWithValue("p_agreement", string.IsNullOrEmpty(courseInfo.Agreement) ? DBNull.Value : courseInfo.Agreement);
+                        cmd.Parameters.AddWithValue("p_total_duration", courseInfo.TotalDuration);
+                        cmd.Parameters.AddWithValue("p_modality", courseInfo.Modality);
+                        cmd.Parameters.AddWithValue("p_educational_offer", courseInfo.EducationalOffer);
+                        cmd.Parameters.AddWithValue("p_educational_platform", string.Join(",", courseInfo.EducationalPlatform ?? new List<string>()));
+                        cmd.Parameters.AddWithValue("p_other_educationals_platforms", string.IsNullOrEmpty(courseInfo.CustomPlatform) ? DBNull.Value : courseInfo.CustomPlatform);
+                        cmd.Parameters.AddWithValue("p_course_key", courseKey); // Usar la course_key generada
+                        cmd.Parameters.AddWithValue("p_username", username);
+
+                        // Convertir documentos y roles a JSON
+                        var documentationJson = JsonConvert.SerializeObject(request.Documents.Select(d => new
+                        {
+                            DocumentID = d.DocumentId,
+                            FilePath = Path.Combine(
+                            "assets",
+                            "files",
+                            "courses-documentation",
+                            request.FolderName,
+                            d.File.FileName
+                        )
+                        }));
+                        cmd.Parameters.AddWithValue("p_documentation", documentationJson);
+                        Console.WriteLine(documentationJson);
+
+                        var actorRolesJson = JsonConvert.SerializeObject(courseInfo.Actors.Select(a => new
+                        {
+                            actor_id = a.Id,
+                            role = a.Role
+                        }));
+                        cmd.Parameters.AddWithValue("p_actor_roles", actorRolesJson);
+                        Console.WriteLine(actorRolesJson);
+
+                        // Parámetros de salida
+                        var statusCodeParam = new MySqlParameter("p_status_code", MySqlDbType.Int32) { Direction = ParameterDirection.Output };
+                        var messageParam = new MySqlParameter("p_message", MySqlDbType.VarChar, 255) { Direction = ParameterDirection.Output };
+                        cmd.Parameters.Add(statusCodeParam);
+                        cmd.Parameters.Add(messageParam);
+
+                        cmd.ExecuteNonQuery();
+
+                        int statusCode = Convert.ToInt32(statusCodeParam.Value);
+                        string message = messageParam.Value.ToString();
+
+                        return (statusCode, message);
+                    }
                 }
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error: {ex.Message}");
                 return (-1, "Error interno del servidor.");
+            }
+        }
+
+        public List<CourseDTO> GetCoursesByUser(string username)
+        {
+            using (var con = new MySqlConnection(_config.GetConnectionString("default")))
+            {
+                var cmd = new MySqlCommand(@"
+            SELECT 
+                c.id, 
+                c.course_name AS Title, 
+                c.course_key AS Clave,
+                c.status AS Status,
+                c.approval_status AS ApprovalStatus
+            FROM courses c
+            INNER JOIN users u ON c.user_id = u.id
+            WHERE u.username = @username", con);
+                cmd.Parameters.AddWithValue("@username", username);
+
+                con.Open();
+                var reader = cmd.ExecuteReader();
+
+                var courses = new List<CourseDTO>();
+                while (reader.Read())
+                {
+                    courses.Add(new CourseDTO
+                    {
+                        Id = reader.GetInt32("id"),
+                        Title = reader.GetString("Title"),
+                        Clave = reader.GetString("Clave"),
+                        Status = reader.GetString("Status"),
+                        ApprovalStatus = reader.GetString("ApprovalStatus")
+                    });
+                }
+                return courses;
             }
         }
     }

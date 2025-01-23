@@ -16,4 +16,10 @@ export class CoursesService {
     const url = this.URLBase + '/api/Course/RegisterCourse';
     return this.httpClient.post(url, formData);
   }
+
+  getCoursesByUser(username: string): Observable<any> {
+    const url =
+      this.URLBase + `/api/Course/GetCoursesByUser?username=${username}`;
+    return this.httpClient.get(url);
+  }
 }

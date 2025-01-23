@@ -1,40 +1,64 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
+import { Router, ActivatedRoute } from '@angular/router';
 import { MatTableModule } from '@angular/material/table';
+import { CoursesService } from '../../../core/services/courses.service';
+import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { RouterOutlet } from '@angular/router';
+
+interface Course {
+  id: number;
+  title: string;
+  clave: string;
+  status: string;
+  approvalStatus: string;
+}
 
 @Component({
   selector: 'app-request-aperture',
   standalone: true,
-  imports: [MatTableModule, MatButtonModule],
+  imports: [CommonModule, MatTableModule, MatButtonModule],
   templateUrl: './request-aperture.component.html',
   styleUrls: ['./request-aperture.component.scss'],
 })
-export class RequestApertureComponent {
+export class RequestApertureComponent implements OnInit {
   displayedColumns: string[] = ['no', 'title', 'clave', 'solicitar'];
-  courses = [
-    {
-      title: 'Gerencia y liderazgo en enfermería',
-      clave: 'DVDR/C/2504_1/2024-2026',
-    },
-    {
-      title: 'Microservicios con .NET y kubernetes',
-      clave: 'DVDR/C/2505_1/2024-2026',
-    },
-  ];
-  dataSource = this.courses;
+  dataSource: Course[] = [];
+  username: string | null = localStorage.getItem('username');
 
-  constructor(private router: Router, private route: ActivatedRoute) {}
+  constructor(
+    private courseService: CoursesService,
+    private router: Router,
+    private route: ActivatedRoute
+  ) {}
 
-  solicitarApertura(course: { title: string; clave: string }) {
+  ngOnInit() {
+    if (this.username) {
+      this.courseService.getCoursesByUser(this.username).subscribe({
+        next: (courses: Course[]) => {
+          this.dataSource = courses.filter(
+            (course) => course.status !== 'draft'
+          );
+        },
+        error: (err) => {
+          console.error('Error al obtener los cursos:', err);
+        },
+      });
+    }
+  }
+
+  solicitarApertura(course: Course) {
     console.log(`Solicitud de apertura para el curso: ${course.title}`);
     this.router.navigate(['../aperture-info'], {
       relativeTo: this.route,
       queryParams: {
+        id: course.id,
         title: course.title,
         clave: course.clave,
       },
     });
+  }
+
+  isSolicitudHabilitada(course: Course): boolean {
+    return course.approvalStatus === 'approved';
   }
 }

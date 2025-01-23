@@ -102,6 +102,26 @@ namespace DVDR_courses.Controllers
                 _ => StatusCode(500, new { message }) // Error genérico
             };
         }
+
+        [HttpGet("GetCoursesByUser")]
+        public IActionResult GetCoursesByUser([FromQuery] string username)
+        {
+            if (string.IsNullOrEmpty(username))
+            {
+                return BadRequest(new { message = "El username es requerido." });
+            }
+
+            try
+            {
+                var dbManager = new DBManager(_config);
+                var courses = dbManager.GetCoursesByUser(username);
+                return Ok(courses);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Error al obtener los cursos.", error = ex.Message });
+            }
+        }
     }
 }
 

@@ -368,8 +368,11 @@ namespace DVDR_courses
                         countCoursesCmd.Parameters.AddWithValue("@currentYear", currentYear);
                         var courseCount = (Convert.ToInt32(countCoursesCmd.ExecuteScalar()) + 1).ToString("D3"); // Rellenar con ceros a la izquierda
 
+                        // Calcular la vigencia
+                        var vigencia = $"{currentYear}-{currentYear + 2}";
+
                         // Generar la course_key
-                        var courseKey = $"DVDR/{centerType}/{centerIdentifier}/{courseCount}";
+                        var courseKey = $"DVDR/{centerType}/{centerIdentifier}/{courseCount}/{vigencia}";
 
                         // Crear el comando para registrar el curso
                         var cmd = new MySqlCommand("sp_register_course", con)

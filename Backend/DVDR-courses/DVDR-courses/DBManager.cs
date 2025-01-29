@@ -362,26 +362,56 @@ namespace DVDR_courses
 
                         reader.Close(); // Cerrar el DataReader antes de ejecutar la siguiente consulta
 
-                        // Contar los cursos registrados en el año actual
-                        var currentYear = DateTime.Now.Year;
-                        var countCoursesCmd = new MySqlCommand("SELECT COUNT(*) FROM courses WHERE YEAR(created_at) = @currentYear", con);
-                        countCoursesCmd.Parameters.AddWithValue("@currentYear", currentYear);
-                        var courseCount = (Convert.ToInt32(countCoursesCmd.ExecuteScalar()) + 1).ToString("D3"); // Rellenar con ceros a la izquierda
+                        var currentDate = DateTime.Now;  // Obtener la fecha actual
+                        var expirationDate = currentDate.AddYears(2); // Sumar 2 años a la fecha actual
 
-                        // Calcular la vigencia
-                        var vigencia = $"{currentYear}-{currentYear + 2}";
-                        var expirationDate = new DateTime(currentYear + 2, 1, 1);
+                        int renewalCount = 0;
+                        int? parentCourseId = request.ParentCourseId;
 
-                        // Generar la course_key
-                        var courseKey = $"DVDR/{centerType}/{centerIdentifier}/{courseCount}/{vigencia}";
+                        string courseKey;
+                        if (parentCourseId == null)
+                        {
+                            // **CASO: NUEVO CURSO**
+                            var countCoursesCmd = new MySqlCommand("SELECT COUNT(*) FROM courses WHERE YEAR(created_at) = @currentYear", con);
+                            countCoursesCmd.Parameters.AddWithValue("@currentYear", currentDate.Year);
+                            var courseCount = (Convert.ToInt32(countCoursesCmd.ExecuteScalar()) + 1).ToString("D3");
 
-                        // Crear el comando para registrar el curso
+                            // Generar course_key normal
+                            var vigencia = $"{currentDate.Year}-{currentDate.Year + 2}";
+                            courseKey = $"DVDR/{centerType}/{centerIdentifier}/{courseCount}/{vigencia}";
+                        }
+                        else
+                        {
+                            // **CASO: RENOVACIÓN**
+                            var getParentCourseCmd = new MySqlCommand("SELECT course_key, renewal_count FROM courses WHERE id = @parentCourseId", con);
+                            getParentCourseCmd.Parameters.AddWithValue("@parentCourseId", parentCourseId);
+                            using (var parentReader = getParentCourseCmd.ExecuteReader())
+                            {
+                                if (!parentReader.Read())
+                                {
+                                    return (-3, "Curso a renovar no encontrado.");
+                                }
+
+                                var parentCourseKey = parentReader.GetString("course_key");
+                                renewalCount = parentReader.GetInt32("renewal_count") + 1;
+                            }
+
+                            // Obtener el nuevo número de curso en el año
+                            var countCoursesCmd = new MySqlCommand("SELECT COUNT(*) FROM courses WHERE YEAR(created_at) = @currentYear", con);
+                            countCoursesCmd.Parameters.AddWithValue("@currentYear", currentDate.Year);
+                            var courseCount = (Convert.ToInt32(countCoursesCmd.ExecuteScalar()) + 1).ToString("D3");
+
+                            // Generar nueva course_key
+                            var vigencia = $"{currentDate.Year}-{currentDate.Year + 2}";
+                            courseKey = $"DVDR/{centerType}/{centerIdentifier}/{courseCount}_{renewalCount}/{vigencia}";
+                        }
+
+                        // Llamar al procedimiento almacenado
                         var cmd = new MySqlCommand("sp_register_course", con)
                         {
                             CommandType = CommandType.StoredProcedure
                         };
 
-                        // Información general del curso
                         var courseInfo = request.CourseInfo;
                         cmd.Parameters.AddWithValue("p_course_name", courseInfo.CourseName);
                         cmd.Parameters.AddWithValue("p_service_type", courseInfo.ServiceType);
@@ -392,25 +422,24 @@ namespace DVDR_courses
                         cmd.Parameters.AddWithValue("p_educational_offer", courseInfo.EducationalOffer);
                         cmd.Parameters.AddWithValue("p_educational_platform", string.Join(",", courseInfo.EducationalPlatform ?? new List<string>()));
                         cmd.Parameters.AddWithValue("p_other_educationals_platforms", string.IsNullOrEmpty(courseInfo.CustomPlatform) ? DBNull.Value : courseInfo.CustomPlatform);
-                        cmd.Parameters.AddWithValue("p_course_key", courseKey); // Usar la course_key generada
+                        cmd.Parameters.AddWithValue("p_course_key", courseKey);
                         cmd.Parameters.AddWithValue("p_username", username);
-                        cmd.Parameters.AddWithValue("p_expiration_date", expirationDate); // Añadir la fecha de vencimiento
-                        cmd.Parameters.AddWithValue("p_renewal_count", 0); // Inicializar el contador de renovaciones
+                        cmd.Parameters.AddWithValue("p_expiration_date", expirationDate);
+                        cmd.Parameters.AddWithValue("p_renewal_count", renewalCount);
+                        cmd.Parameters.AddWithValue("p_parent_course_id", parentCourseId ?? (object)DBNull.Value);
 
-                        // Convertir documentos y roles a JSON
                         var documentationJson = JsonConvert.SerializeObject(request.Documents.Select(d => new
                         {
                             DocumentID = d.DocumentId,
                             FilePath = Path.Combine(
-                            "assets",
-                            "files",
-                            "courses-documentation",
-                            request.FolderName,
-                            d.File.FileName
-                        )
+                                "assets",
+                                "files",
+                                "courses-documentation",
+                                request.FolderName,
+                                d.File.FileName
+                            )
                         }));
                         cmd.Parameters.AddWithValue("p_documentation", documentationJson);
-                        Console.WriteLine(documentationJson);
 
                         var actorRolesJson = JsonConvert.SerializeObject(courseInfo.Actors.Select(a => new
                         {
@@ -418,9 +447,7 @@ namespace DVDR_courses
                             role = a.Role
                         }));
                         cmd.Parameters.AddWithValue("p_actor_roles", actorRolesJson);
-                        Console.WriteLine(actorRolesJson);
 
-                        // Parámetros de salida
                         var statusCodeParam = new MySqlParameter("p_status_code", MySqlDbType.Int32) { Direction = ParameterDirection.Output };
                         var messageParam = new MySqlParameter("p_message", MySqlDbType.VarChar, 255) { Direction = ParameterDirection.Output };
                         cmd.Parameters.Add(statusCodeParam);
@@ -437,10 +464,10 @@ namespace DVDR_courses
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error: {ex.Message}");
                 return (-1, "Error interno del servidor.");
             }
         }
+
 
         public List<CourseDTO> GetCoursesByUser(string username)
         {

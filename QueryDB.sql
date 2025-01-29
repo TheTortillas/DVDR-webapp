@@ -686,6 +686,7 @@ CALL sp_insert_user('admin_tampico', 'pass_tampico', 'Eduardo', 'Rojas', 'Peña'
 -- CALL sp_check_username('admin', @user_exists);
 -- SELECT @user_exists;
  SELECT * FROM courses;
+ SELECT * FROM actors_general_information;
 /*
 SELECT 
     u.id AS user_id,
@@ -926,9 +927,9 @@ ORDER BY u.username, c.created_at;
 /*
 UPDATE courses
 SET approval_status = 'pending'
-WHERE id = 1;
+WHERE id = 3;
 
 UPDATE courses
 SET status = 'submitted'
-WHERE id = 4;
+WHERE id = 3;
 */

@@ -4,8 +4,9 @@
     {
         public CourseInfo CourseInfo { get; set; }
         public List<Document> Documents { get; set; }
-        public string Username { get; set; } // Usuario asociado
-        public string FolderName { get; set; } // Carpeta base
+        public string Username { get; set; }
+        public string FolderName { get; set; }
+        public int? ParentCourseId { get; set; } // Nuevo: ID del curso a renovar
     }
 
     public class CourseInfo

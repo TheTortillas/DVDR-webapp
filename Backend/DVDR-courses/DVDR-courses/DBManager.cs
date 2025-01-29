@@ -370,6 +370,7 @@ namespace DVDR_courses
 
                         // Calcular la vigencia
                         var vigencia = $"{currentYear}-{currentYear + 2}";
+                        var expirationDate = new DateTime(currentYear + 2, 1, 1);
 
                         // Generar la course_key
                         var courseKey = $"DVDR/{centerType}/{centerIdentifier}/{courseCount}/{vigencia}";
@@ -393,6 +394,8 @@ namespace DVDR_courses
                         cmd.Parameters.AddWithValue("p_other_educationals_platforms", string.IsNullOrEmpty(courseInfo.CustomPlatform) ? DBNull.Value : courseInfo.CustomPlatform);
                         cmd.Parameters.AddWithValue("p_course_key", courseKey); // Usar la course_key generada
                         cmd.Parameters.AddWithValue("p_username", username);
+                        cmd.Parameters.AddWithValue("p_expiration_date", expirationDate); // Añadir la fecha de vencimiento
+                        cmd.Parameters.AddWithValue("p_renewal_count", 0); // Inicializar el contador de renovaciones
 
                         // Convertir documentos y roles a JSON
                         var documentationJson = JsonConvert.SerializeObject(request.Documents.Select(d => new

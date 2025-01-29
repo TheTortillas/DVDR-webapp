@@ -24,28 +24,35 @@ CREATE TABLE users (
 );
 
 CREATE TABLE courses (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    course_name VARCHAR(255) NOT NULL, 
-    service_type VARCHAR(255) NOT NULL,
-    category VARCHAR(255) NOT NULL,
-    agreement VARCHAR(255),
-    total_duration INT NOT NULL,
-    modality VARCHAR(255) NOT NULL,
-    educational_offer VARCHAR(255) NOT NULL,
-    educational_platform VARCHAR(255) NOT NULL,
-    other_educationals_platforms VARCHAR(255),
-    course_key VARCHAR(50) NOT NULL,
-    status ENUM('draft', 'submitted') DEFAULT 'draft' NOT NULL,
-    approval_status ENUM('pending', 'approved', 'rejected') DEFAULT 'pending' NOT NULL,
-    admin_notes TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    
-    user_id INT NOT NULL,
-    FOREIGN KEY (user_id) REFERENCES users(id) 
-        ON DELETE CASCADE,
-    
-    UNIQUE (course_key, status)
+   id INT PRIMARY KEY AUTO_INCREMENT,
+   course_name VARCHAR(255) NOT NULL, 
+   service_type VARCHAR(255) NOT NULL,
+   category VARCHAR(255) NOT NULL,
+   agreement VARCHAR(255),
+   total_duration INT NOT NULL,
+   modality VARCHAR(255) NOT NULL,
+   educational_offer VARCHAR(255) NOT NULL,
+   educational_platform VARCHAR(255) NOT NULL,
+   other_educationals_platforms VARCHAR(255),
+   course_key VARCHAR(50) NOT NULL,
+   status ENUM('draft', 'submitted') DEFAULT 'draft' NOT NULL,
+   approval_status ENUM('pending', 'approved', 'rejected') DEFAULT 'pending' NOT NULL,
+   admin_notes TEXT,
+   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+   
+   -- CAMPOS para manejar vigencia y renovaciones
+   expiration_date DATE NOT NULL,         -- Fecha de vencimiento
+   renewal_count INT DEFAULT 0,           -- Cuántas veces ha sido renovado (si es el original = 0)
+   parent_course_id INT NULL,             -- FK al curso original (o al padre de la última renovación) NULL si es el original
+
+   user_id INT NOT NULL,
+   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+
+   -- Relación para la “herencia” entre curso original y renovaciones
+   FOREIGN KEY (parent_course_id) REFERENCES courses(id) ON DELETE CASCADE,
+
+   UNIQUE (course_key, status)
 );
 
 CREATE TABLE documents_templates (
@@ -470,6 +477,7 @@ BEGIN
 END$$
 DELIMITER ;
 
+-- Procedimiento para registrar un nuevo curso (original o no)
 DELIMITER $$
 CREATE PROCEDURE sp_register_course(
     IN p_course_name VARCHAR(255),
@@ -483,8 +491,14 @@ CREATE PROCEDURE sp_register_course(
     IN p_other_educationals_platforms VARCHAR(255),
     IN p_course_key VARCHAR(50),
     IN p_username VARCHAR(50),
+
+    IN p_expiration_date DATE,
+    IN p_renewal_count INT,
+    IN p_parent_course_id INT,  -- Si es 0 o NULL, se asume que es curso original
+
     IN p_documentation JSON,
     IN p_actor_roles JSON,
+
     OUT p_status_code INT,
     OUT p_message VARCHAR(255)
 )
@@ -497,7 +511,7 @@ BEGIN
     BEGIN
         ROLLBACK;
         SET p_status_code = -1;
-        SET p_message = 'Error: No se pudo con el foquin el curso.';
+        SET p_message = 'Error: No se pudo registrar el curso (o renovación).';
     END;
 
     START TRANSACTION;
@@ -527,7 +541,10 @@ BEGIN
         educational_platform,
         other_educationals_platforms,
         course_key,
-        user_id
+        user_id,
+        expiration_date,
+        renewal_count,
+        parent_course_id
     )
     VALUES (
         p_course_name,
@@ -540,7 +557,10 @@ BEGIN
         p_educational_platform,
         p_other_educationals_platforms,
         p_course_key,
-        v_user_id
+        v_user_id,
+        p_expiration_date,
+        p_renewal_count,
+        CASE WHEN p_parent_course_id = 0 THEN NULL ELSE p_parent_course_id END
     );
 
     SET v_course_id = LAST_INSERT_ID();
@@ -585,11 +605,10 @@ BEGIN
             )
         ) AS t;
 
-    -- Confirmar la transacción
     COMMIT;
 
     SET p_status_code = 1;
-    SET p_message = 'Curso registrado exitosamente.';
+    SET p_message = 'Curso (o renovación) registrado exitosamente.';
 END$$
 DELIMITER ;
 

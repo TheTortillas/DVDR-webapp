@@ -503,5 +503,88 @@ namespace DVDR_courses
                 return courses;
             }
         }
+
+        public CourseResponse? GetCourseById(int courseId)
+        {
+            try
+            {
+                using (var con = new MySqlConnection(_config.GetConnectionString("default")))
+                {
+                    con.Open();
+
+                    var cmd = new MySqlCommand("sp_get_course_by_id", con)
+                    {
+                        CommandType = CommandType.StoredProcedure
+                    };
+                    cmd.Parameters.AddWithValue("p_course_id", courseId);
+
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        // 1. Leer datos generales del curso
+                        CourseResponse course = null;
+                        if (reader.Read())
+                        {
+                            course = new CourseResponse
+                            {
+                                CourseId = reader.GetInt32("course_id"),
+                                CourseKey = reader.GetString("course_key"),
+                                CourseInfo = new CourseInfo
+                                {
+                                    CourseName = reader.GetString("course_name"),
+                                    ServiceType = reader.GetString("service_type"),
+                                    Category = reader.GetString("category"),
+                                    Agreement = reader.IsDBNull("agreement") ? null : reader.GetString("agreement"),
+                                    TotalDuration = reader.IsDBNull("total_duration") ? (int?)null : reader.GetInt32("total_duration"),
+                                    Modality = reader.GetString("modality"),
+                                    EducationalOffer = reader.GetString("educational_offer"),
+                                    EducationalPlatform = reader.GetString("educational_platform").Split(",").ToList(),
+                                    CustomPlatform = reader.IsDBNull("other_educationals_platforms") ? null : reader.GetString("other_educationals_platforms"),
+                                    Actors = new List<Actor>() // Se llenará en la siguiente lectura
+                                },
+                                CreatedBy = reader.GetString("created_by"),
+                                ExpirationDate = reader.GetDateTime("expiration_date"),
+                                RenewalCount = reader.GetInt32("renewal_count"),
+                                ParentCourseId = reader.IsDBNull("parent_course_id") ? (int?)null : reader.GetInt32("parent_course_id"),
+                                Documents = new List<DocumentResponse>() // Se llenará en la siguiente lectura
+                            };
+                        }
+
+                        if (course == null) return null;
+
+                        // 2. Leer actores y roles
+                        reader.NextResult();
+                        while (reader.Read())
+                        {
+                            course.CourseInfo.Actors.Add(new Actor
+                            {
+                                Id = reader.GetInt32("actor_id"),
+                                Name = reader.GetString("actor_name"),
+                                Role = reader.GetString("role")
+                            });
+                        }
+
+                        // 3. Leer documentación del curso
+                        reader.NextResult();
+                        while (reader.Read())
+                        {
+                            course.Documents.Add(new DocumentResponse
+                            {
+                                DocumentId = reader.GetInt32("document_id"),
+                                Name = reader.GetString("document_name"),
+                                FilePath = reader.GetString("filePath")
+                            });
+                        }
+
+                        return course;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+                return null;
+            }
+        }
+
     }
 }

@@ -92,6 +92,18 @@ namespace DVDR_courses.Controllers
                 return StatusCode(500, new { message = "Error al obtener los cursos.", error = ex.Message });
             }
         }
+
+        [HttpGet("GetCourse/{id}")]
+        public IActionResult GetCourseById(int id)
+        {
+            var dbManager = new DBManager(_config);
+            var course = dbManager.GetCourseById(id);
+
+            if (course == null)
+                return NotFound(new { message = "Curso no encontrado" });
+
+            return Ok(course);
+        }
     }
 }
 

@@ -18,6 +18,7 @@ import {
   Validators,
 } from '@angular/forms';
 import Swal from 'sweetalert2';
+import { ApertureStateService } from '../../../core/services/aperture-state.service';
 
 interface ScheduleEntry {
   dateKey?: string;
@@ -59,7 +60,11 @@ export class ApertureInfoComponent {
   // Definir el FormGroup para las validaciones
   solicitudForm: FormGroup;
 
-  constructor(private route: ActivatedRoute, private fb: FormBuilder) {
+  constructor(
+    private route: ActivatedRoute,
+    private fb: FormBuilder,
+    private apertureState: ApertureStateService
+  ) {
     this.route.queryParams.subscribe((params) => {
       this.title = params['title'] || '';
       this.clave = params['clave'] || '';
@@ -71,6 +76,25 @@ export class ApertureInfoComponent {
       costoUnitario: ['', [Validators.required, Validators.min(0)]],
       numParticipantes: ['', [Validators.required, Validators.min(1)]],
     });
+  }
+
+  ngOnInit() {
+    // Validar que se acceda correctamente con datos del curso
+    if (!this.apertureState.validateAccess()) {
+      return;
+    }
+
+    const courseInfo = this.apertureState.getCourseInfo();
+    if (courseInfo) {
+      this.title = courseInfo.title;
+      this.clave = courseInfo.clave;
+      this.totalDuration = courseInfo.totalDuration;
+    }
+  }
+
+  ngOnDestroy() {
+    // Limpiar el estado al salir del componente
+    this.apertureState.clearCourseInfo();
   }
 
   openDialog(

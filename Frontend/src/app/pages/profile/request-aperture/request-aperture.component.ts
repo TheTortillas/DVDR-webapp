@@ -4,6 +4,7 @@ import { MatTableModule } from '@angular/material/table';
 import { CoursesService } from '../../../core/services/courses.service';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
+import { ApertureStateService } from '../../../core/services/aperture-state.service';
 
 interface Course {
   id: number;
@@ -29,7 +30,8 @@ export class RequestApertureComponent implements OnInit {
   constructor(
     private courseService: CoursesService,
     private router: Router,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private apertureState: ApertureStateService
   ) {}
 
   ngOnInit() {
@@ -48,15 +50,14 @@ export class RequestApertureComponent implements OnInit {
   }
 
   solicitarApertura(course: Course) {
-    console.log(`Solicitud de apertura para el curso: ${course.title}`);
+    this.apertureState.setCourseInfo({
+      id: course.id,
+      title: course.title,
+      clave: course.clave,
+      totalDuration: course.totalDuration,
+    });
     this.router.navigate(['../aperture-info'], {
       relativeTo: this.route,
-      queryParams: {
-        id: course.id,
-        title: course.title,
-        clave: course.clave,
-        totalDuration: course.totalDuration,
-      },
     });
   }
 

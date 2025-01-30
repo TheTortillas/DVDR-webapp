@@ -1,4 +1,9 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  Input,
+  OnInit,
+} from '@angular/core';
 import { MatNativeDateModule } from '@angular/material/core';
 import {
   FormGroup,
@@ -43,7 +48,8 @@ import { MatSelectModule } from '@angular/material/select';
   styleUrl: './periodic-schedule.component.scss',
   providers: [provideNativeDateAdapter()],
 })
-export class PeriodicScheduleComponent {
+export class PeriodicScheduleComponent implements OnInit {
+  @Input() totalDuration: number = 0;
   form: FormGroup;
 
   daysOfWeek = [
@@ -62,7 +68,7 @@ export class PeriodicScheduleComponent {
         start: new FormControl(null, Validators.required),
         end: new FormControl(null, Validators.required),
       }),
-      totalHours: new FormControl(null, Validators.required),
+      totalHours: new FormControl(0),
       startTime: new FormGroup({
         hours: new FormControl(null, [
           Validators.required,
@@ -98,6 +104,12 @@ export class PeriodicScheduleComponent {
         saturday: new FormControl(false),
         sunday: new FormControl(false),
       }),
+    });
+  }
+
+  ngOnInit() {
+    this.form.patchValue({
+      totalHours: this.totalDuration,
     });
   }
 

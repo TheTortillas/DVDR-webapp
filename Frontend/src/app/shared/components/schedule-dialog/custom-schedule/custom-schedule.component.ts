@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import {
   MatFormField,
@@ -62,7 +62,8 @@ const ELEMENT_DATA: customSchedule[] = [];
     provideMomentDateAdapter(),
   ],
 })
-export class CustomScheduleComponent {
+export class CustomScheduleComponent implements OnInit {
+  @Input() totalDuration: number = 0;
   displayedColumns: string[] = ['date', 'start', 'end', 'actions'];
   dataSource = ELEMENT_DATA;
 
@@ -97,7 +98,13 @@ export class CustomScheduleComponent {
     });
 
     this.totalHoursForm = this.fb.group({
-      totalHours: [null, Validators.required],
+      totalHours: [0],
+    });
+  }
+
+  ngOnInit() {
+    this.totalHoursForm.patchValue({
+      totalHours: this.totalDuration,
     });
   }
 

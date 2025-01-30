@@ -3,22 +3,7 @@
   <div class="w-full md:w-1/2">
     <!-- FORM PARA LA DURACIÓN TOTAL DEL CURSO EN HORAS -->
     <form [formGroup]="totalHoursForm">
-      <div class="duracion-container mb-4 mt-4">
-        <label for="duracion" class="flex mb-2 text-x font-medium text-gray-900"
-          >Duración total del curso (en horas)</label
-        >
-        <mat-form-field class="w-full">
-          <mat-label>¿Cuántas horas durará el curso?</mat-label>
-          <input
-            matInput
-            placeholder="Ex. 40"
-            type="number"
-            id="duracionTotal"
-            min="0"
-            formControlName="totalHours"
-          />
-        </mat-form-field>
-      </div>
+      <input type="hidden" [formControlName]="'totalHours'" />
     </form>
 
     <mat-divider></mat-divider>

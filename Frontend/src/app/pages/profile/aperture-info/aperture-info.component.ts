@@ -50,6 +50,7 @@ export class ApertureInfoComponent {
 
   title = '';
   clave = '';
+  totalDuration = 0;
 
   displayedColumns: string[] = ['dateDisplay', 'start', 'end'];
 
@@ -62,6 +63,7 @@ export class ApertureInfoComponent {
     this.route.queryParams.subscribe((params) => {
       this.title = params['title'] || '';
       this.clave = params['clave'] || '';
+      this.totalDuration = params['totalDuration'] || 0;
     });
 
     // Inicializar el formulario con validaciones
@@ -76,6 +78,7 @@ export class ApertureInfoComponent {
     exitAnimationDuration: string
   ): void {
     const dialogRef = this.dialog.open(ScheduleDialogComponent, {
+      data: { totalDuration: this.totalDuration },
       autoFocus: false,
       maxWidth: '100vh',
       maxHeight: '100vh',

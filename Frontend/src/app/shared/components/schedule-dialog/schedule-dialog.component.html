@@ -1,5 +1,7 @@
 <div class="h-full">
-  <h2 mat-dialog-title>Cronograma</h2>
+  <h2 mat-dialog-title class="text-center">
+    Duración total del curso: <b>{{ totalDuration }} horas</b>
+  </h2>
 
   <mat-dialog-content class="flex flex-wrap h-full">
     <mat-tab-group (selectedTabChange)="onTabChange($event)">

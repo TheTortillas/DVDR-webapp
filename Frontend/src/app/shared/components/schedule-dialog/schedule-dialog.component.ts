@@ -1,4 +1,10 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  Inject,
+  Input,
+  OnInit,
+} from '@angular/core';
 import { MatNativeDateModule } from '@angular/material/core';
 import {
   FormGroup,
@@ -37,6 +43,7 @@ import {
   MatDialogTitle,
   MatDialogModule,
   MatDialogRef,
+  MAT_DIALOG_DATA,
 } from '@angular/material/dialog';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { PeriodicScheduleComponent } from './periodic-schedule/periodic-schedule.component';
@@ -76,7 +83,9 @@ import Swal from 'sweetalert2';
     provideMomentDateAdapter(),
   ],
 })
-export class ScheduleDialogComponent {
+export class ScheduleDialogComponent implements OnInit {
+  @Input() totalDuration: number = 0;
+
   @ViewChild(PeriodicScheduleComponent)
   periodicScheduleComponent!: PeriodicScheduleComponent;
 
@@ -85,7 +94,30 @@ export class ScheduleDialogComponent {
 
   activeTab: string = 'Fechas periódicas';
 
-  constructor(private dialogRef: MatDialogRef<ScheduleDialogComponent>) {}
+  constructor(
+    private dialogRef: MatDialogRef<ScheduleDialogComponent>,
+    @Inject(MAT_DIALOG_DATA) public data: { totalDuration: number }
+  ) {
+    this.totalDuration = data.totalDuration;
+  }
+
+  ngOnInit() {
+    // Wait for next tick to ensure child components are initialized
+    setTimeout(() => {
+      if (this.periodicScheduleComponent) {
+        this.periodicScheduleComponent.totalDuration = this.totalDuration;
+        this.periodicScheduleComponent.form.patchValue({
+          totalHours: this.totalDuration,
+        });
+      }
+      if (this.customScheduleComponent) {
+        this.customScheduleComponent.totalDuration = this.totalDuration;
+        this.customScheduleComponent.totalHoursForm.patchValue({
+          totalHours: this.totalDuration,
+        });
+      }
+    });
+  }
 
   onTabChange(event: any) {
     this.activeTab = event.tab.textLabel;

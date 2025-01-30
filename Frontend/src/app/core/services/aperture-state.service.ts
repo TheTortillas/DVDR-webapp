@@ -7,6 +7,7 @@ interface CourseInfo {
   title: string;
   clave: string;
   totalDuration: number;
+  expirationDate?: string;
 }
 
 @Injectable({

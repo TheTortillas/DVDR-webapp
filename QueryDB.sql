@@ -966,13 +966,19 @@ FROM courses c
 INNER JOIN users u ON c.user_id = u.id
 ORDER BY u.username, c.created_at;
 */ 
-  
+
 /*
 UPDATE courses
 SET approval_status = 'approved'
-WHERE id = 3;
+WHERE id = 1;
 
 UPDATE courses
 SET status = 'submitted'
 WHERE id = 3;
 */
+/*
+ALTER TABLE courses MODIFY COLUMN expiration_date DATE NULL;
+
+UPDATE courses 
+SET expiration_date = '2020-01-29' 
+WHERE id = 1;*/

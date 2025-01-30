@@ -13,6 +13,7 @@ interface Course {
   status: string;
   approvalStatus: string;
   totalDuration: number;
+  expirationDate: string;
 }
 
 @Component({
@@ -23,7 +24,7 @@ interface Course {
   styleUrls: ['./request-aperture.component.scss'],
 })
 export class RequestApertureComponent implements OnInit {
-  displayedColumns: string[] = ['no', 'title', 'clave', 'solicitar'];
+  displayedColumns: string[] = ['no', 'title', 'clave', 'accion'];
   dataSource: Course[] = [];
   username: string | null = localStorage.getItem('username');
 
@@ -62,6 +63,32 @@ export class RequestApertureComponent implements OnInit {
   }
 
   isSolicitudHabilitada(course: Course): boolean {
+    const today = new Date();
+    const expirationDate = new Date(course.expirationDate);
+    return expirationDate > today;
+  }
+
+  isCursoExpirado(course: Course): boolean {
+    const today = new Date();
+    const expirationDate = new Date(course.expirationDate);
+    return expirationDate <= today;
+  }
+
+  isCursoAprobado(course: Course): boolean {
     return course.approvalStatus === 'approved';
+  }
+
+  renovarCurso(course: Course) {
+    this.apertureState.setCourseInfo({
+      id: course.id, // Se usará como `parentCourseId`
+      title: course.title,
+      clave: course.clave,
+      totalDuration: course.totalDuration,
+      expirationDate: course.expirationDate,
+    });
+
+    this.router.navigate(['/register-course'], {
+      queryParams: { renewal: true, parentCourseId: course.id },
+    });
   }
 }

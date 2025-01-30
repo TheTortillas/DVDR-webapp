@@ -25,19 +25,29 @@
         </ng-container>
 
         <!-- Botón Solicitar -->
-        <ng-container matColumnDef="solicitar">
+        <ng-container matColumnDef="accion">
           <th mat-header-cell *matHeaderCellDef>Acción</th>
           <td mat-cell *matCellDef="let course">
             <button
               mat-button
-              [disabled]="!isSolicitudHabilitada(course)"
+              *ngIf="!isCursoExpirado(course)"
+              [disabled]="!isCursoAprobado(course)"
               (click)="solicitarApertura(course)"
             >
               Solicitar
             </button>
+
+            <button
+              mat-button
+              *ngIf="isCursoExpirado(course)"
+              [disabled]="!isCursoAprobado(course)"
+              class="bg-red-500 text-white px-4 py-2 rounded"
+              (click)="renovarCurso(course)"
+            >
+              Renovar
+            </button>
           </td>
         </ng-container>
-
         <!-- Header y filas -->
         <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
         <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>

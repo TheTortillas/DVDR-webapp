@@ -3,6 +3,16 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 
+export interface Course {
+  id: number;
+  title: string;
+  clave: string;
+  status: string;
+  approvalStatus: string;
+  totalDuration: number;
+  expirationDate: string;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -17,9 +27,9 @@ export class CoursesService {
     return this.httpClient.post(url, formData);
   }
 
-  getCoursesByUser(username: string): Observable<any> {
+  getCoursesByUser(username: string): Observable<Course[]> {
     const url =
       this.URLBase + `/api/Course/GetCoursesByUser?username=${username}`;
-    return this.httpClient.get(url);
+    return this.httpClient.get<Course[]>(url);
   }
 }

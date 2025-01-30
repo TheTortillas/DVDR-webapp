@@ -35,7 +35,7 @@ CREATE TABLE courses (
    educational_platform VARCHAR(255) NOT NULL,
    other_educationals_platforms VARCHAR(255),
    course_key VARCHAR(50) NOT NULL,
-   status ENUM('draft', 'submitted') DEFAULT 'draft' NOT NULL,
+   status ENUM('draft', 'submitted') DEFAULT 'submitted' NOT NULL,
    approval_status ENUM('pending', 'approved', 'rejected') DEFAULT 'pending' NOT NULL,
    admin_notes TEXT,
    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -613,7 +613,6 @@ END$$
 DELIMITER ;
 
 DELIMITER $$
-
 CREATE PROCEDURE sp_get_course_by_id(IN p_course_id INT)
 BEGIN
     -- Seleccionar datos generales del curso
@@ -655,9 +654,8 @@ BEGIN
     JOIN documents_templates d ON cd.document_id = d.id
     WHERE cd.course_id = p_course_id;
 END$$
-
 DELIMITER ;
-
+ 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ LLENADO DE TABLAS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 INSERT INTO academic_categories (name) VALUES
 ('Ingeniería y Ciencias Físico-Matemáticas'),
@@ -971,7 +969,7 @@ ORDER BY u.username, c.created_at;
   
 /*
 UPDATE courses
-SET approval_status = 'pending'
+SET approval_status = 'approved'
 WHERE id = 3;
 
 UPDATE courses

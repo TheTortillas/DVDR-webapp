@@ -7,5 +7,7 @@
         public string Clave { get; set; }
         public string Status { get; set; }
         public string ApprovalStatus { get; set; }
+        public int TotalDuration { get; set; }  // Add this field
+
     }
 }

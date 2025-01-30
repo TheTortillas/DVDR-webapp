@@ -11,6 +11,7 @@ interface Course {
   clave: string;
   status: string;
   approvalStatus: string;
+  totalDuration: number;
 }
 
 @Component({
@@ -54,6 +55,7 @@ export class RequestApertureComponent implements OnInit {
         id: course.id,
         title: course.title,
         clave: course.clave,
+        totalDuration: course.totalDuration,
       },
     });
   }

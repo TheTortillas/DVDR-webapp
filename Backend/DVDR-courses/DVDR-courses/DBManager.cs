@@ -474,15 +474,16 @@ namespace DVDR_courses
             using (var con = new MySqlConnection(_config.GetConnectionString("default")))
             {
                 var cmd = new MySqlCommand(@"
-            SELECT 
-                c.id, 
-                c.course_name AS Title, 
-                c.course_key AS Clave,
-                c.status AS Status,
-                c.approval_status AS ApprovalStatus
-            FROM courses c
-            INNER JOIN users u ON c.user_id = u.id
-            WHERE u.username = @username", con);
+                SELECT 
+                    c.id, 
+                    c.course_name AS Title, 
+                    c.course_key AS Clave,
+                    c.status AS Status,
+                    c.approval_status AS ApprovalStatus,
+                    c.total_duration AS TotalDuration 
+                FROM courses c
+                INNER JOIN users u ON c.user_id = u.id
+                WHERE u.username = @username", con);
                 cmd.Parameters.AddWithValue("@username", username);
 
                 con.Open();
@@ -497,7 +498,8 @@ namespace DVDR_courses
                         Title = reader.GetString("Title"),
                         Clave = reader.GetString("Clave"),
                         Status = reader.GetString("Status"),
-                        ApprovalStatus = reader.GetString("ApprovalStatus")
+                        ApprovalStatus = reader.GetString("ApprovalStatus"),
+                        TotalDuration = reader.GetInt32("TotalDuration"),  
                     });
                 }
                 return courses;

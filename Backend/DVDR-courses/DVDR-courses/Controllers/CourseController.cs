@@ -117,6 +117,19 @@ namespace DVDR_courses.Controllers
             }
             return BadRequest(new { message = result.message });
         }
+
+        [HttpGet("UserCoursesWithSessions", Name = "GetUserCoursesWithSessions")]
+        public IActionResult GetUserCoursesWithSessions([FromQuery] string username)
+        {
+   
+            var dbManager = new DBManager(_config);
+            var courses = dbManager.GetCoursesWithSessions(username);
+
+            if (courses == null || !courses.Any())
+                return NotFound(new { message = "No se encontraron cursos registrados para este usuario." });
+
+            return Ok(courses);
+        }
     }
 }
 

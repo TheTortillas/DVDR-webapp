@@ -707,6 +707,48 @@ BEGIN
 END$$
 DELIMITER ;
 
+DELIMITER $$
+CREATE PROCEDURE sp_get_courses_with_sessions(
+    IN p_username VARCHAR(50)
+)
+BEGIN
+    DECLARE v_user_id INT;
+
+    -- Obtener el ID del usuario
+    SELECT id INTO v_user_id FROM users WHERE username = p_username LIMIT 1;
+
+    IF v_user_id IS NULL THEN
+        SIGNAL SQLSTATE '45000' 
+            SET MESSAGE_TEXT = 'Error: Usuario no encontrado.';
+    END IF;
+
+    -- Obtener todos los cursos (incluyendo renovaciones) del usuario
+    SELECT 
+        c.id AS course_id,
+        c.course_name AS title,
+        c.course_key AS clave,
+        c.renewal_count,
+        c.expiration_date
+    FROM courses c
+    WHERE c.user_id = v_user_id
+    ORDER BY c.course_name, c.renewal_count;
+
+    -- Obtener las sesiones de cada curso y sus renovaciones
+    SELECT 
+        cs.course_id,
+        cs.period AS periodo,
+        cs.number_of_participants AS participantes,
+        cs.number_of_certificates AS constancias,
+        cs.status AS estatus
+    FROM course_sessions cs
+    JOIN courses c ON cs.course_id = c.id
+    WHERE c.user_id = v_user_id
+    ORDER BY c.course_name, cs.period;
+    
+END $$
+DELIMITER ;
+
+
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ LLENADO DE TABLAS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 INSERT INTO academic_categories (name) VALUES
 ('Ingeniería y Ciencias Físico-Matemáticas'),
@@ -781,6 +823,7 @@ CALL sp_insert_user('admin_tampico', 'pass_tampico', 'Eduardo', 'Rojas', 'Peña'
 -- SELECT @user_exists;
  SELECT * FROM courses;
  SELECT * FROM course_sessions;
+ SELECT * FROM course_schedules WHERE session_id = 2;
 
  /*
 SET FOREIGN_KEY_CHECKS = 0;

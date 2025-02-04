@@ -654,5 +654,73 @@ namespace DVDR_courses
                 return (-1, "Error interno del servidor.");
             }
         }
+
+        public List<CourseWithSessionsResponse> GetCoursesWithSessions(string username)
+        {
+            List<CourseWithSessionsResponse> courses = new List<CourseWithSessionsResponse>();
+
+            using (var con = new MySqlConnection(_config.GetConnectionString("default")))
+            {
+                con.Open();
+
+                var cmd = new MySqlCommand("sp_get_courses_with_sessions", con)
+                {
+                    CommandType = CommandType.StoredProcedure
+                };
+                cmd.Parameters.AddWithValue("p_username", username);
+
+                using (var reader = cmd.ExecuteReader())
+                {
+                    Dictionary<string, CourseWithSessionsResponse> courseMap = new Dictionary<string, CourseWithSessionsResponse>();
+
+                    // Leer los cursos
+                    while (reader.Read())
+                    {
+                        string title = reader.GetString("title");
+
+                        if (!courseMap.ContainsKey(title))
+                        {
+                            courseMap[title] = new CourseWithSessionsResponse
+                            {
+                                Title = title,
+                                CourseKeys = new List<string> { reader.GetString("clave") },
+                                Sessions = new List<SessionResponse>()
+                            };
+                        }
+                        else
+                        {
+                            courseMap[title].CourseKeys.Add(reader.GetString("clave"));
+                        }
+                    }
+
+                    // Leer las sesiones
+                    if (reader.NextResult())
+                    {
+                        while (reader.Read())
+                        {
+                            string courseKey = reader.GetString("clave"); // Ahora usamos la clave correcta
+                            foreach (var course in courseMap.Values)
+                            {
+                                if (course.CourseKeys.Contains(courseKey))
+                                {
+                                    course.Sessions.Add(new SessionResponse
+                                    {
+                                        Clave = courseKey, // Ahora se almacena correctamente
+                                        Periodo = reader.GetString("periodo"),
+                                        Participantes = reader.GetInt32("participantes"),
+                                        Constancias = reader.GetInt32("constancias"),
+                                        Estatus = reader.GetString("estatus")
+                                    });
+                                }
+                            }
+                        }
+                    }
+
+                    courses = courseMap.Values.ToList();
+                }
+            }
+
+            return courses;
+        }
     }
 }

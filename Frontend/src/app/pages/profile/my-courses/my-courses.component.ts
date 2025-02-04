@@ -3,17 +3,19 @@ import { MatExpansionModule } from '@angular/material/expansion';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { CommonModule } from '@angular/common';
+import { CoursesService } from '../../../core/services/courses.service';
+
+interface Session {
+  clave: string;
+  periodo: string;
+  participantes: number;
+  constancias: number;
+  estatus: string;
+}
 
 interface Course {
   title: string;
-  dataSource: {
-    no: number;
-    clave: string;
-    periodo: string;
-    participantes: number;
-    constancias: number;
-    estatus: string;
-  }[];
+  dataSource: Session[];
 }
 
 @Component({
@@ -25,8 +27,8 @@ interface Course {
 })
 export class MyCoursesComponent implements OnInit {
   readonly panelOpenState = signal(false);
+  username: string | null = localStorage.getItem('username');
   displayedColumns: string[] = [
-    'no',
     'clave',
     'periodo',
     'participantes',
@@ -35,58 +37,38 @@ export class MyCoursesComponent implements OnInit {
   ];
   courses: Course[] = [];
 
+  constructor(private coursesService: CoursesService) {}
+
   ngOnInit() {
-    this.courses = [
-      {
-        title: 'Gerencia y liderazgo en enfermería',
-        dataSource: [
-          {
-            no: 1,
-            clave: 'DVDR/C/2504_1/2024-2026',
-            periodo: 'ENE2024-MAR2024',
-            participantes: 30,
-            constancias: 15,
-            estatus: 'Aperturado',
-          },
-          {
-            no: 2,
-            clave: 'DVDR/C/2504_2/2024-2026',
-            periodo: 'ABR2024-MAY2024',
-            participantes: 25,
-            constancias: 13,
-            estatus: 'Concluido',
-          },
-        ],
-      },
-      {
-        title: 'Microservicios con .NET y kubernetes',
-        dataSource: [
-          {
-            no: 1,
-            clave: 'DVDR/C/2505_1/2024-2026',
-            periodo: 'ENE2024-MAR2024',
-            participantes: 28,
-            constancias: 14,
-            estatus: 'En espera',
-          },
-          {
-            no: 2,
-            clave: 'DVDR/C/2505_2/2024-2026',
-            periodo: 'ABR2024-MAY2024',
-            participantes: 32,
-            constancias: 20,
-            estatus: 'Aperturado',
-          },
-          {
-            no: 3,
-            clave: 'DVDR/C/2505_3/2024-2026',
-            periodo: 'AGO2024-DIC2024',
-            participantes: 29,
-            constancias: 15,
-            estatus: 'Concluido',
-          },
-        ],
-      },
-    ];
+    this.loadCourses();
+  }
+
+  loadCourses() {
+    if (this.username) {
+      this.coursesService.getUserCoursesWithSessions(this.username).subscribe({
+        next: (response) => {
+          console.log('Datos recbidos del backend:', response);
+
+          this.courses = response.map((course: any) => ({
+            title: course.title,
+            dataSource: course.sessions.map((session: any) => ({
+              clave: session.clave, // Ahora usamos la clave correcta
+              periodo: session.periodo,
+              participantes: session.participantes,
+              constancias: session.constancias,
+              estatus:
+                session.estatus === 'pending'
+                  ? 'En espera'
+                  : session.estatus === 'opened'
+                  ? 'Aperturado'
+                  : 'Concluido',
+            })),
+          }));
+        },
+        error: (err) => {
+          console.error('Error al obtener los cursos:', err);
+        },
+      });
+    }
   }
 }

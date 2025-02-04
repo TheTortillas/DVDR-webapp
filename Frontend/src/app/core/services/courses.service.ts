@@ -1,4 +1,4 @@
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
@@ -35,6 +35,12 @@ export class CoursesService {
 
   getCourseById(courseId: number): Observable<any> {
     const url = this.URLBase + `/api/Course/GetCourse/${courseId}`;
+    return this.httpClient.get(url);
+  }
+
+  getUserCoursesWithSessions(username: string): Observable<any> {
+    const url =
+      this.URLBase + '/api/Course/UserCoursesWithSessions?username=' + username;
     return this.httpClient.get(url);
   }
 }

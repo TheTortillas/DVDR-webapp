@@ -153,7 +153,7 @@ CREATE TABLE course_sessions (
     period VARCHAR(255) NOT NULL, -- Periodo en el que se impartió el curso (Ene2024-Mar2024)
     number_of_participants INT NOT NULL, -- Número de personas que tomaron el curso
     number_of_certificates INT NOT NULL, -- Constancias entregadas
-    status VARCHAR(255) NOT NULL, -- Estatus del curso (Aperturado, Concluido, En espera)
+    status ENUM('pending', 'opened', 'completed') NOT NULL DEFAULT 'pending', -- Estatus del curso (Aperturado, Concluido, En espera)
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
     FOREIGN KEY (course_id) REFERENCES courses(id) 
@@ -164,10 +164,10 @@ CREATE TABLE course_sessions (
 -- Tabla para registrar el cronograma de cada sesión de un curso
 CREATE TABLE course_schedules (
     id INT PRIMARY KEY AUTO_INCREMENT,
-    session_id INT NOT NULL, -- Relación con la tabla de sesiones del curso
-    date DATE NOT NULL, -- Fecha específica
-    start_time TIME NOT NULL, -- Hora de inicio en esa fecha
-    end_time TIME NOT NULL, -- Hora de fin en esa fecha
+    session_id INT NOT NULL, 	-- Relación con la tabla de sesiones del curso
+    date DATE NOT NULL, 		-- Fecha específica
+    start_time TIME NOT NULL, 	-- Hora de inicio en esa fecha
+    end_time TIME NOT NULL, 	-- Hora de fin en esa fecha
 
     FOREIGN KEY (session_id) REFERENCES course_sessions(id)
         ON DELETE CASCADE
@@ -655,7 +655,58 @@ BEGIN
     WHERE cd.course_id = p_course_id;
 END$$
 DELIMITER ;
- 
+
+DELIMITER $$
+CREATE PROCEDURE sp_register_course_session(
+    IN p_course_id INT,
+    IN p_period VARCHAR(255),
+    IN p_number_of_participants INT,
+    IN p_number_of_certificates INT,
+    IN p_schedule_json JSON,
+    OUT p_status_code INT,
+    OUT p_message VARCHAR(255)
+)
+BEGIN
+    DECLARE v_session_id INT;
+
+    -- Manejo de errores con transacción
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION 
+    BEGIN
+        ROLLBACK;
+        SET p_status_code = -1;
+        SET p_message = 'Error: No se pudo registrar la sesión del curso.';
+    END;
+
+    START TRANSACTION;
+
+    --  Insertar sesión del curso (status = 'pending' por defecto)
+    INSERT INTO course_sessions (course_id, period, number_of_participants, number_of_certificates)
+    VALUES (p_course_id, p_period, p_number_of_participants, p_number_of_certificates);
+
+    -- Obtener el ID de la sesión recién insertada
+    SET v_session_id = LAST_INSERT_ID();
+
+    --  Insertar cronograma usando JSON_TABLE
+    INSERT INTO course_schedules (session_id, date, start_time, end_time)
+    SELECT v_session_id, t.date, t.start_time, t.end_time
+    FROM JSON_TABLE(
+        p_schedule_json,
+        '$[*]'
+        COLUMNS (
+            date DATE PATH '$.date',
+            start_time TIME PATH '$.start_time',
+            end_time TIME PATH '$.end_time'
+        )
+    ) AS t;
+
+    COMMIT;
+
+    --  Confirmación de éxito
+    SET p_status_code = 1;
+    SET p_message = 'Sesión de curso y cronograma guardados exitosamente.';
+END$$
+DELIMITER ;
+
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ LLENADO DE TABLAS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 INSERT INTO academic_categories (name) VALUES
 ('Ingeniería y Ciencias Físico-Matemáticas'),
@@ -729,6 +780,15 @@ CALL sp_insert_user('admin_tampico', 'pass_tampico', 'Eduardo', 'Rojas', 'Peña'
 -- CALL sp_check_username('admin', @user_exists);
 -- SELECT @user_exists;
  SELECT * FROM courses;
+ SELECT * FROM course_sessions;
+
+ /*
+SET FOREIGN_KEY_CHECKS = 0;
+TRUNCATE TABLE nombre_de_la_tabla;
+SET FOREIGN_KEY_CHECKS = 1;
+*/
+
+ 
 -- SELECT * FROM actors_general_information;
 /*
 SELECT 

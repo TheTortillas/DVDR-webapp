@@ -19,6 +19,7 @@ import {
 } from '@angular/forms';
 import Swal from 'sweetalert2';
 import { ApertureStateService } from '../../../core/services/aperture-state.service';
+import { ApertureCoursesSessionsService } from '../../../core/services/aperture-courses-sessions.service';
 
 interface ScheduleEntry {
   dateKey?: string;
@@ -63,7 +64,8 @@ export class ApertureInfoComponent {
   constructor(
     private route: ActivatedRoute,
     private fb: FormBuilder,
-    private apertureState: ApertureStateService
+    private apertureState: ApertureStateService,
+    private apertureCoursesService: ApertureCoursesSessionsService
   ) {
     this.route.queryParams.subscribe((params) => {
       this.title = params['title'] || '';
@@ -168,25 +170,44 @@ export class ApertureInfoComponent {
       cancelButtonText: 'Cancelar',
     }).then((result) => {
       if (result.isConfirmed) {
-        // Aquí puedes agregar la lógica para enviar los datos al backend
-        // Por ahora, mostraremos una alerta de éxito
-
         // Obtener los valores del formulario
         const costoUnitario = this.solicitudForm.value.costoUnitario;
         const numParticipantes = this.solicitudForm.value.numParticipantes;
         const costoTotal = costoUnitario * numParticipantes;
+        const period = this.generatePeriod();
 
-        // Imprimir en consola
-        console.log('Número de participantes:', numParticipantes);
-        console.log('Costo unitario:', costoUnitario);
-        console.log('Costo total:', costoTotal);
-        console.log('Cronograma generado:', this.generatedSchedule);
-        Swal.fire({
-          title: 'Solicitud Enviada',
-          text: 'Su solicitud de apertura de curso ha sido enviada exitosamente.',
-          icon: 'success',
-          confirmButtonText: 'Aceptar',
-        });
+        const sessionRequest = {
+          courseKey: this.clave, // 🔍 Enviamos el CourseKey
+          period,
+          numberOfParticipants: numParticipantes,
+          numberOfCertificates: 0,
+          schedule: this.generatedSchedule.map((entry) => ({
+            date: entry.dateKey!,
+            start: entry.start,
+            end: entry.end,
+          })),
+        };
+
+        this.apertureCoursesService
+          .registerCourseSession(sessionRequest)
+          .subscribe({
+            next: () => {
+              Swal.fire(
+                'Éxito',
+                'La apertura se ha registrado correctamente.',
+                'success'
+              );
+              this.solicitudForm.reset();
+              this.generatedSchedule = [];
+            },
+            error: () => {
+              Swal.fire(
+                'Error',
+                'Hubo un problema al registrar la apertura.',
+                'error'
+              );
+            },
+          });
 
         // Opcional: Reiniciar el formulario y el cronograma
         this.solicitudForm.reset();
@@ -214,5 +235,57 @@ export class ApertureInfoComponent {
       return 'Debe haber al menos 1 participante.';
     }
     return '';
+  }
+
+  /**
+   * Genera el periodo del curso basado en las fechas del cronograma.
+   *
+   * @returns {string} Periodo en formato "Ene 2025 - Mar 2025" o "Ene 2025"
+   */
+  private generatePeriod(): string {
+    if (this.generatedSchedule.length === 0) {
+      return 'Periodo desconocido';
+    }
+
+    // Obtener fechas de inicio y fin
+    const dates = this.generatedSchedule.map(
+      (entry) => new Date(entry.dateKey!)
+    );
+    const startDate = new Date(Math.min(...dates.map((d) => d.getTime())));
+    const endDate = new Date(Math.max(...dates.map((d) => d.getTime())));
+
+    // Obtener nombres de meses en español
+    const monthNames = [
+      'Ene',
+      'Feb',
+      'Mar',
+      'Abr',
+      'May',
+      'Jun',
+      'Jul',
+      'Ago',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dic',
+    ];
+
+    const startMonth = monthNames[startDate.getMonth()];
+    const endMonth = monthNames[endDate.getMonth()];
+    const startYear = startDate.getFullYear();
+    const endYear = endDate.getFullYear();
+
+    // Si el mes y el año son iguales, solo mostramos el mes y año
+    if (startMonth === endMonth && startYear === endYear) {
+      return `${startMonth} ${startYear}`;
+    }
+
+    // Si los años son distintos, incluir el año en ambos meses
+    if (startYear !== endYear) {
+      return `${startMonth} ${startYear} - ${endMonth} ${endYear}`;
+    }
+
+    // Caso general: mismo año, pero diferente mes
+    return `${startMonth} - ${endMonth} ${startYear}`;
   }
 }

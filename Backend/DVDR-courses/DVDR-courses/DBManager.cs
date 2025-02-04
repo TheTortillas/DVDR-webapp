@@ -599,6 +599,60 @@ namespace DVDR_courses
                 return null;
             }
         }
+        public (int statusCode, string message) RegisterCourseSession(CourseSessionRequest request)
+        {
+            try
+            {
+                using (var con = new MySqlConnection(_config.GetConnectionString("default")))
+                {
+                    con.Open();
 
+                    // 🔍 Obtener el course_id basado en la clave del curso
+                    var courseCmd = new MySqlCommand("SELECT id FROM courses WHERE course_key = @course_key", con);
+                    courseCmd.Parameters.AddWithValue("@course_key", request.CourseKey);
+                    var courseId = Convert.ToInt32(courseCmd.ExecuteScalar());
+
+                    if (courseId <= 0)
+                    {
+                        return (-1, "Error: No se encontró un curso con la clave proporcionada.");
+                    }
+
+                    // 🔄 Convertir el cronograma a JSON con formato correcto de 24 horas
+                    var scheduleJson = JsonConvert.SerializeObject(
+                        request.Schedule.Select(entry => new
+                        {
+                            date = DateTime.Parse(entry.Date).ToString("yyyy-MM-dd"),
+                            start_time = DateTime.Parse(entry.Start).ToString("HH:mm:ss"),
+                            end_time = DateTime.Parse(entry.End).ToString("HH:mm:ss")
+                        })
+                    );
+
+                    // 🔥 Llamada al procedimiento almacenado sin `status`
+                    var cmd = new MySqlCommand("CALL sp_register_course_session(@course_id, @period, @num_participants, @num_certificates, @schedule_json, @status_code, @message)", con);
+                    cmd.Parameters.AddWithValue("@course_id", courseId);
+                    cmd.Parameters.AddWithValue("@period", request.Period);
+                    cmd.Parameters.AddWithValue("@num_participants", request.NumberOfParticipants);
+                    cmd.Parameters.AddWithValue("@num_certificates", request.NumberOfCertificates);
+                    cmd.Parameters.AddWithValue("@schedule_json", scheduleJson);
+
+                    var statusCodeParam = new MySqlParameter("@status_code", MySqlDbType.Int32) { Direction = ParameterDirection.Output };
+                    var messageParam = new MySqlParameter("@message", MySqlDbType.VarChar, 255) { Direction = ParameterDirection.Output };
+                    cmd.Parameters.Add(statusCodeParam);
+                    cmd.Parameters.Add(messageParam);
+
+                    cmd.ExecuteNonQuery();
+
+                    int statusCode = Convert.ToInt32(statusCodeParam.Value);
+                    string message = messageParam.Value.ToString();
+
+                    return (statusCode, message);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+                return (-1, "Error interno del servidor.");
+            }
+        }
     }
 }

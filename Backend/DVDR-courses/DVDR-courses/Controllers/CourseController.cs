@@ -104,6 +104,19 @@ namespace DVDR_courses.Controllers
 
             return Ok(course);
         }
+      
+        [HttpPost("RegisterCourseSession", Name = "PostRegisterCourseSession")]
+        public IActionResult RegisterCourseSession([FromBody] CourseSessionRequest request)
+        {
+            var dbManager = new DBManager(_config);
+            var result = dbManager.RegisterCourseSession(request);
+
+            if (result.statusCode == 1)
+            {
+                return Ok(new { message = "Sesión del curso registrada exitosamente" });
+            }
+            return BadRequest(new { message = result.message });
+        }
     }
 }
 

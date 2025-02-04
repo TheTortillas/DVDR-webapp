@@ -48,14 +48,15 @@
         >
         <mat-radio-group
           formControlName="service_type"
-          (change)="onServiceTypeChange($event)"
           class="flex flex-wrap gap-4"
         >
-          <mat-radio-button class="flex-1" [value]="1">Curso</mat-radio-button>
-          <mat-radio-button class="flex-1" [value]="2"
+          <mat-radio-button class="flex-1" value="Curso"
+            >Curso</mat-radio-button
+          >
+          <mat-radio-button class="flex-1" value="Diplomado"
             >Diplomado</mat-radio-button
           >
-          <mat-radio-button class="flex-1" [value]="3">Otro</mat-radio-button>
+          <mat-radio-button class="flex-1" value="Otro">Otro</mat-radio-button>
         </mat-radio-group>
 
         <mat-error

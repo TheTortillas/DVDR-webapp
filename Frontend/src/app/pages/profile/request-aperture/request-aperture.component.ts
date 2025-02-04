@@ -79,15 +79,9 @@ export class RequestApertureComponent implements OnInit {
   }
 
   renovarCurso(course: Course) {
-    this.apertureState.setCourseInfo({
-      id: course.id, // Se usará como `parentCourseId`
-      title: course.title,
-      clave: course.clave,
-      totalDuration: course.totalDuration,
-      expirationDate: course.expirationDate,
-    });
+    localStorage.setItem('renewalCourse', JSON.stringify(course));
 
-    this.router.navigate(['/register-course'], {
+    this.router.navigate(['/profile/course-register'], {
       queryParams: { renewal: true, parentCourseId: course.id },
     });
   }

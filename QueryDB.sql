@@ -25,16 +25,16 @@ CREATE TABLE users (
 
 CREATE TABLE courses (
    id INT PRIMARY KEY AUTO_INCREMENT,
-   course_name VARCHAR(255) NOT NULL, 
-   service_type VARCHAR(255) NOT NULL,
-   category VARCHAR(255) NOT NULL,
+   course_name VARCHAR(255), 
+   service_type VARCHAR(255),
+   category VARCHAR(255),
    agreement VARCHAR(255),
-   total_duration INT NOT NULL,
-   modality VARCHAR(255) NOT NULL,
-   educational_offer VARCHAR(255) NOT NULL,
-   educational_platform VARCHAR(255) NOT NULL,
+   total_duration INT,
+   modality VARCHAR(255),
+   educational_offer VARCHAR(255),
+   educational_platform VARCHAR(255),
    other_educationals_platforms VARCHAR(255),
-   course_key VARCHAR(50) NOT NULL,
+   course_key VARCHAR(50),
    status ENUM('draft', 'submitted') DEFAULT 'submitted' NOT NULL,
    approval_status ENUM('pending', 'approved', 'rejected') DEFAULT 'pending' NOT NULL,
    admin_notes TEXT,
@@ -725,11 +725,11 @@ CALL sp_insert_user('admin_oaxaca', 'pass_oaxaca', 'Héctor', 'Cruz', 'Mendoza',
 CALL sp_insert_user('admin_tijuana', 'pass_tijuana', 'Gabriela', 'Flores', 'Ramos', 'Centro de Vinculación y Desarrollo Regional Unidad Tijuana');
 CALL sp_insert_user('admin_tampico', 'pass_tampico', 'Eduardo', 'Rojas', 'Peña', 'Centro de Vinculación y Desarrollo Regional Unidad Tampico');
 
-
+-- SELECT COUNT(*) FROM courses WHERE YEAR(created_at) = 2025;
 -- CALL sp_check_username('admin', @user_exists);
 -- SELECT @user_exists;
  SELECT * FROM courses;
- SELECT * FROM actors_general_information;
+-- SELECT * FROM actors_general_information;
 /*
 SELECT 
     u.id AS user_id,

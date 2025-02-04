@@ -372,9 +372,18 @@ namespace DVDR_courses
                         if (parentCourseId == null)
                         {
                             // **CASO: NUEVO CURSO**
-                            var countCoursesCmd = new MySqlCommand("SELECT COUNT(*) FROM courses WHERE YEAR(created_at) = @currentYear", con);
-                            countCoursesCmd.Parameters.AddWithValue("@currentYear", currentDate.Year);
-                            var courseCount = (Convert.ToInt32(countCoursesCmd.ExecuteScalar()) + 1).ToString("D3");
+                            var maxCourseNumberCmd = new MySqlCommand(@"
+                                SELECT MAX(CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(course_key, '/', -2), '_', 1) AS UNSIGNED))
+                                FROM courses
+                                WHERE YEAR(created_at) = @currentYear", con);
+
+                            maxCourseNumberCmd.Parameters.AddWithValue("@currentYear", currentDate.Year);
+
+                            var maxCourseNumber = maxCourseNumberCmd.ExecuteScalar();
+                            int nextCourseNumber = (maxCourseNumber == DBNull.Value) ? 1 : Convert.ToInt32(maxCourseNumber) + 1;
+
+                            var courseCount = nextCourseNumber.ToString("D3");  // Convertir a formato 3 dígitos
+
 
                             // Generar course_key normal
                             var vigencia = $"{currentDate.Year}-{currentDate.Year + 2}";

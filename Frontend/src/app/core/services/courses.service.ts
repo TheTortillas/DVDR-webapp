@@ -32,4 +32,9 @@ export class CoursesService {
       this.URLBase + `/api/Course/GetCoursesByUser?username=${username}`;
     return this.httpClient.get<Course[]>(url);
   }
+
+  getCourseById(courseId: number): Observable<any> {
+    const url = this.URLBase + `/api/Course/GetCourse/${courseId}`;
+    return this.httpClient.get(url);
+  }
 }

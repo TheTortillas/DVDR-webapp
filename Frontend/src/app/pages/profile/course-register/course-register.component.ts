@@ -1,4 +1,4 @@
-import { Component, inject, ViewChild } from '@angular/core';
+import { Component, inject, OnInit, ViewChild } from '@angular/core';
 import {
   FormBuilder,
   Validators,
@@ -15,7 +15,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { GeneralInformationComponent } from './general-information/general-information.component';
 import { UploadDocumentationComponent } from './upload-documentation/upload-documentation.component';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import {
   STEPPER_GLOBAL_OPTIONS,
   StepperSelectionEvent,
@@ -60,15 +60,19 @@ function actorsValidator() {
     },
   ],
 })
-export class CourseRegisterComponent {
+export class CourseRegisterComponent implements OnInit {
   @ViewChild(GeneralInformationComponent)
   private generalInfoChild!: GeneralInformationComponent;
   @ViewChild(UploadDocumentationComponent)
   private uploadDocChild!: UploadDocumentationComponent;
 
+  isRenewal: boolean = false;
+  parentCourseId: number | null = null;
+
   private _formBuilder = inject(FormBuilder);
   constructor(
     private router: Router,
+    private route: ActivatedRoute,
     private filesService: FilesService,
     private coursesService: CoursesService
   ) {}
@@ -85,7 +89,7 @@ export class CourseRegisterComponent {
     ], // duracion-total
     modality: ['', Validators.required], // modalidad
     educational_offer: ['', Validators.required], // oferta-educativa
-    educational_platform: ['', Validators.required], // plataforma-ed
+    educational_platform: [[] as string[], Validators.required], // plataforma-ed
     custom_platform: [''], // plataforma-ed-personalizada
     actors: [[], [actorsValidator()]],
   });
@@ -107,6 +111,95 @@ export class CourseRegisterComponent {
   );
 
   isLinear = false;
+
+  ngOnInit() {
+    this.route.queryParams.subscribe((params) => {
+      if (params['renewal']) {
+        this.isRenewal = true;
+        this.parentCourseId = params['parentCourseId'];
+
+        if (this.parentCourseId) {
+          // ✅ Hacer la petición al backend para obtener los datos completos
+          this.coursesService.getCourseById(this.parentCourseId).subscribe({
+            next: (courseInfo) => {
+              this.loadCourseData(courseInfo);
+            },
+            error: (err) => {
+              console.error('Error al obtener el curso:', err);
+            },
+          });
+        }
+      }
+    });
+  }
+
+  private loadCourseData(courseInfo: any) {
+    // ✅ Convertir el tipo de servicio en un string (Curso, Diplomado, Otro)
+    let serviceTypeValue = 'Curso'; // Por defecto "Curso"
+    if (courseInfo.courseInfo.serviceType === 'Diplomado')
+      serviceTypeValue = 'Diplomado';
+    if (courseInfo.courseInfo.serviceType === 'Otro') serviceTypeValue = 'Otro';
+
+    // ✅ Convertir plataformas en array (para el multi-select)
+    let platforms: string[] = [];
+
+    if (typeof courseInfo.courseInfo.educationalPlatform === 'string') {
+      platforms = courseInfo.courseInfo.educationalPlatform
+        .split(',')
+        .map((p: string) => p.trim());
+    } else if (Array.isArray(courseInfo.courseInfo.educationalPlatform)) {
+      platforms = courseInfo.courseInfo.educationalPlatform;
+    }
+    console.log('Plataformas cargadas:', platforms); // 🔍 Verificar en consola
+
+    // ✅ Verificar si "Otro" está seleccionado
+    const customPlatformUsed = platforms.includes('Otro');
+    const customPlatformValue = customPlatformUsed
+      ? courseInfo.courseInfo.customPlatform
+      : '';
+
+    // Primero establecemos los valores
+    this.firstFormGroup.patchValue(
+      {
+        course_name: courseInfo.courseInfo.courseName,
+        service_type: serviceTypeValue,
+        category: courseInfo.courseInfo.category,
+        agreement: courseInfo.courseInfo.agreement,
+        total_duration: courseInfo.courseInfo.totalDuration,
+        modality: courseInfo.courseInfo.modality,
+        educational_offer: courseInfo.courseInfo.educationalOffer,
+        educational_platform:
+          platforms.length > 0 ? platforms : ([] as string[]),
+        custom_platform: customPlatformValue,
+        actors: courseInfo.courseInfo.actors,
+      },
+      { emitEvent: true }
+    );
+
+    // Usamos setTimeout para asegurar que el ciclo de detección de cambios se complete
+    setTimeout(() => {
+      // Después deshabilitamos los campos
+      this.firstFormGroup.controls['course_name'].disable();
+      this.firstFormGroup.controls['service_type'].disable();
+      this.firstFormGroup.controls['category'].disable();
+      this.firstFormGroup.controls['total_duration'].disable();
+      this.firstFormGroup.controls['modality'].disable();
+      this.firstFormGroup.controls['educational_offer'].disable();
+
+      // Forzamos la actualización del valor de category
+      this.firstFormGroup.get('category')?.updateValueAndValidity();
+      this.firstFormGroup.get('educational_platform')?.updateValueAndValidity();
+    }, 0);
+
+    // ✅ Deshabilitar campos que no pueden modificarse
+    this.firstFormGroup.controls['course_name'].disable();
+    this.firstFormGroup.controls['service_type'].disable();
+    this.firstFormGroup.controls['category'].disable();
+    this.firstFormGroup.controls['total_duration'].disable();
+    this.firstFormGroup.controls['modality'].disable();
+    this.firstFormGroup.controls['educational_offer'].disable();
+    // this.firstFormGroup.controls['educational_platform'].disable();
+  }
 
   onStepperSelectionChange(event: StepperSelectionEvent) {
     if (event.previouslySelectedIndex === 0 && this.firstFormGroup.invalid) {
@@ -224,7 +317,7 @@ export class CourseRegisterComponent {
     formData.append('FolderName', folderName); // Opcional
 
     // Agregar información general del curso
-    const generalInfo = this.firstFormGroup.value;
+    const generalInfo = this.firstFormGroup.getRawValue();
     formData.append('CourseInfo.CourseName', generalInfo.course_name || '');
     formData.append('CourseInfo.ServiceType', generalInfo.service_type || '');
     formData.append('CourseInfo.Category', generalInfo.category || '');
@@ -279,6 +372,14 @@ export class CourseRegisterComponent {
         );
       }
     });
+
+    // Asegurar que ParentCourseId se envíe si es una renovación
+    if (this.isRenewal && this.parentCourseId) {
+      formData.append('ParentCourseId', this.parentCourseId.toString());
+    }
+
+    console.log('Información enviada:', generalInfo);
+    console.log('ParentCourseId:', this.parentCourseId);
 
     // Enviar los datos al servicio
     this.coursesService.registerCourse(formData).subscribe({

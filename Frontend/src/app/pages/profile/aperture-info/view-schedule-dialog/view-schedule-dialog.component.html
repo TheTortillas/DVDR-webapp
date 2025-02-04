@@ -1,0 +1,41 @@
+<div class="p-8">
+  <h2 mat-dialog-title class="dialog-title">Cronograma Generado</h2>
+  <mat-dialog-content class="dialog-content">
+    <mat-table [dataSource]="data.schedule" class="mat-elevation-z8">
+      <ng-container matColumnDef="dateDisplay">
+        <mat-header-cell *matHeaderCellDef>Fecha</mat-header-cell>
+        <mat-cell *matCellDef="let element">{{ element.dateDisplay }}</mat-cell>
+      </ng-container>
+      <ng-container matColumnDef="start">
+        <mat-header-cell *matHeaderCellDef>Inicio</mat-header-cell>
+        <mat-cell *matCellDef="let element">{{ element.start }}</mat-cell>
+      </ng-container>
+      <ng-container matColumnDef="end">
+        <mat-header-cell *matHeaderCellDef>Fin</mat-header-cell>
+        <mat-cell *matCellDef="let element">{{ element.end }}</mat-cell>
+      </ng-container>
+
+      <mat-header-row
+        *matHeaderRowDef="['dateDisplay', 'start', 'end']"
+      ></mat-header-row>
+      <mat-row
+        *matRowDef="let row; columns: ['dateDisplay', 'start', 'end']"
+      ></mat-row>
+    </mat-table>
+  </mat-dialog-content>
+  <mat-dialog-actions align="end" class="dialog-actions">
+    <a
+      mat-flat-button
+      extended
+      class="w-full dialog-actions"
+      (click)="closeDialog()"
+    >
+      <div
+        class="content-center align-middle"
+        style="display: inline-flex; align-items: center"
+      >
+        Cerrar
+      </div>
+    </a>
+  </mat-dialog-actions>
+</div>

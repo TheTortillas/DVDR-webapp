@@ -20,6 +20,7 @@ import {
 import Swal from 'sweetalert2';
 import { ApertureStateService } from '../../../core/services/aperture-state.service';
 import { ApertureCoursesSessionsService } from '../../../core/services/aperture-courses-sessions.service';
+import { ViewScheduleDialogComponent } from './view-schedule-dialog/view-schedule-dialog.component';
 
 interface ScheduleEntry {
   dateKey?: string;
@@ -125,6 +126,16 @@ export class ApertureInfoComponent {
       if (result && result.length > 0) {
         this.generatedSchedule = result;
       }
+    });
+  }
+
+  viewSchedule() {
+    this.dialog.open(ViewScheduleDialogComponent, {
+      data: { schedule: this.generatedSchedule },
+      autoFocus: false,
+      width: '45%',
+      maxWidth: '100vh',
+      maxHeight: '100vh',
     });
   }
 

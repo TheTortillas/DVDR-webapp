@@ -96,38 +96,10 @@
 
         <!-- MAT-TABLE PARA MOSTRAR EL CRONOGRAMA GENERADO -->
         <div *ngIf="generatedSchedule.length > 0" class="mt-8">
-          <h2 class="text-2xl font-semibold mb-4">
-            Cronograma para la Apertura
-          </h2>
-          <table
-            mat-table
-            [dataSource]="generatedSchedule"
-            class="mat-elevation-z8 w-full"
-          >
-            <!-- Fecha Column -->
-            <ng-container matColumnDef="dateDisplay">
-              <th mat-header-cell *matHeaderCellDef>Fecha</th>
-              <td mat-cell *matCellDef="let element">
-                {{ element.dateDisplay || element.date }}
-              </td>
-            </ng-container>
-
-            <!-- Hora Inicio Column -->
-            <ng-container matColumnDef="start">
-              <th mat-header-cell *matHeaderCellDef>Hora Inicio</th>
-              <td mat-cell *matCellDef="let element">{{ element.start }}</td>
-            </ng-container>
-
-            <!-- Hora Fin Column -->
-            <ng-container matColumnDef="end">
-              <th mat-header-cell *matHeaderCellDef>Hora Fin</th>
-              <td mat-cell *matCellDef="let element">{{ element.end }}</td>
-            </ng-container>
-
-            <!-- Definir columnas a mostrar -->
-            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-            <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
-          </table>
+          <button mat-stroked-button (click)="viewSchedule()">
+            <mat-icon>calendar_view_month</mat-icon>
+            Ver cronograma generado
+          </button>
         </div>
 
         <!-- Botón "Solicitar apertura de Curso" -->

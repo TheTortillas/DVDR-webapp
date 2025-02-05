@@ -15,6 +15,7 @@ import { DashboardComponent } from './pages/profile/dashboard/dashboard.componen
 import { AuthGuard } from './core/guards/auth.guard';
 import { InstructorsCatalogComponent } from './pages/profile/instructors-catalog/instructors-catalog.component';
 import { PruebasFicherosComponent } from './pages/pruebas-ficheros/pruebas-ficheros.component';
+import { RequestCertificatesComponent } from './pages/profile/request-certificates/request-certificates.component';
 export const routes: Routes = [
   {
     path: 'home',
@@ -89,6 +90,10 @@ export const routes: Routes = [
       {
         path: 'aperture-info',
         component: ApertureInfoComponent,
+      },
+      {
+        path: 'request-certificates',
+        component: RequestCertificatesComponent,
       },
       {
         path: '',

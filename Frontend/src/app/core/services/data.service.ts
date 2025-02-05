@@ -52,4 +52,9 @@ export class DataService {
     const url = this.URLBase + '/api/Instructor/GetCenters';
     return this.httpClient.get<string[]>(url, HttpOptions);
   }
+
+  public requestCertificates(formData: FormData): Observable<any> {
+    const url = this.URLBase + '/api/Course/RequestCertificates';
+    return this.httpClient.post(url, formData);
+  }
 }

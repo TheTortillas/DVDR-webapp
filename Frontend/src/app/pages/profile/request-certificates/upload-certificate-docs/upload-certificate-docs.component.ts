@@ -111,12 +111,33 @@ export class UploadCertificateDocsComponent implements OnInit {
       return;
     }
 
-    Swal.fire({
-      icon: 'success',
-      title: 'Documentos enviados correctamente',
-      text: 'Los documentos han sido enviados para su revisión',
+    const formData = new FormData();
+    formData.append('sessionId', this.sessionId.toString());
+
+    this.dataSource.data.forEach((doc, index) => {
+      if (doc.uploadedFile) {
+        formData.append(`documents[${index}].documentId`, doc.id.toString());
+        formData.append(`documents[${index}].file`, doc.uploadedFile);
+      }
     });
 
-    this.dialogRef.close(this.dataSource.data);
+    this.dataService.requestCertificates(formData).subscribe({
+      next: (response) => {
+        Swal.fire({
+          icon: 'success',
+          title: 'Documentos enviados correctamente',
+          text: 'Los documentos han sido enviados para su revisión',
+        });
+        this.dialogRef.close(true);
+      },
+      error: (error) => {
+        console.error('Error:', error);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'Hubo un error al enviar los documentos',
+        });
+      },
+    });
   }
 }

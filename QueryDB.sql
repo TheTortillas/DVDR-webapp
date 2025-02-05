@@ -163,11 +163,30 @@ CREATE TABLE course_sessions (
     number_of_participants INT NOT NULL, -- Número de personas que tomaron el curso
     number_of_certificates INT NOT NULL, -- Constancias entregadas
     status ENUM('pending', 'opened', 'completed') NOT NULL DEFAULT 'pending', -- Estatus del curso (Aperturado, Concluido, En espera)
+    certificates_requested TINYINT(1) DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
     FOREIGN KEY (course_id) REFERENCES courses(id) 
         ON DELETE CASCADE
         ON UPDATE CASCADE
+);
+
+CREATE TABLE session_certificates_request_documentation (
+	id INT PRIMARY KEY AUTO_INCREMENT,
+    session_id INT NOT NULL, -- Relación con cursos
+    document_id INT NOT NULL, -- Relación con plantillas de documentos
+    filePath VARCHAR(255) NOT NULL, -- Ruta al documento cargado o personalizado
+    FOREIGN KEY (session_id) REFERENCES course_sessions(id) ON DELETE CASCADE,
+    FOREIGN KEY (document_id) REFERENCES certificate_documents_templates(id) ON DELETE CASCADE
+);
+
+-- para relacionar la sesión del curso con el acuse que sube el administrador
+CREATE TABLE session_certificate (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    session_id INT NOT NULL, -- Relación con la sesión del curso
+    filePath VARCHAR(255) NOT NULL, -- Ruta al documento de acuse
+    uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (session_id) REFERENCES course_sessions(id) ON DELETE CASCADE
 );
 
 -- Tabla para registrar el cronograma de cada sesión de un curso
@@ -766,7 +785,58 @@ END $$
 DELIMITER ;
 
 
+DELIMITER $$
+CREATE PROCEDURE sp_request_certificates(
+    IN p_session_id INT,
+    IN p_documentation JSON,
+    OUT p_status_code INT,
+    OUT p_message VARCHAR(255)
+)
+BEGIN
+    -- Manejo de errores
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION 
+    BEGIN
+        ROLLBACK;
+        SET p_status_code = -1;
+        SET p_message = 'Error: No se pudo registrar la solicitud de constancias.';
+    END;
 
+    START TRANSACTION;
+
+    -- Actualizar la bandera de solicitud de constancias
+    UPDATE course_sessions
+    SET certificates_requested = 1
+    WHERE id = p_session_id;
+
+    -- Insertar documentación relacionada con la solicitud de constancias usando JSON_TABLE
+    INSERT INTO session_certificates_request_documentation (
+        session_id,
+        document_id,
+        filePath
+    )
+    SELECT
+        p_session_id,
+        d.document_id,
+        d.filePath
+    FROM
+        JSON_TABLE(
+            p_documentation,
+            '$[*]'
+            COLUMNS (
+                document_id INT PATH '$.document_id',
+                filePath VARCHAR(255) PATH '$.filePath'
+            )
+        ) AS d;
+
+    COMMIT;
+
+    -- Confirmación de éxito
+    SET p_status_code = 1;
+    SET p_message = 'Solicitud de constancias registrada exitosamente.';
+END$$
+DELIMITER ;
+
+select * from session_certificates_request_documentation;
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ LLENADO DE TABLAS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 INSERT INTO academic_categories (name) VALUES
 ('Ingeniería y Ciencias Físico-Matemáticas'),
@@ -846,6 +916,7 @@ CALL sp_insert_user('admin_tampico', 'pass_tampico', 'Eduardo', 'Rojas', 'Peña'
 -- SELECT @user_exists;
  SELECT * FROM courses;
  SELECT * FROM course_sessions;
+
 -- SELECT * FROM course_schedules WHERE session_id = 2;
 /*
 UPDATE course_sessions 

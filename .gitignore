@@ -54,5 +54,7 @@ Thumbs.db
 # Documentation folders
 /Frontend/public/assets/files/courses-documentation/**/*
 /Frontend/public/assets/files/instructors-documentation/**/*
+/Frontend/public/assets/files/request-certificates-documentation/**/*
 !/Frontend/public/assets/files/courses-documentation/.gitkeep
 !/Frontend/public/assets/files/instructors-documentation/.gitkeep
+!/Frontend/public/assets/files/request-certificates-documentation/.gitkeep

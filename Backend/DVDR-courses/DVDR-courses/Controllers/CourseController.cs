@@ -130,6 +130,31 @@ namespace DVDR_courses.Controllers
 
             return Ok(courses);
         }
+
+        [HttpPost("RequestCertificates", Name = "PostRequestCertificates")]
+        public async Task<IActionResult> RequestCertificates([FromForm] CertificateRequestDTO request)
+        {
+            if (request == null || request.Documents == null || !request.Documents.Any())
+            {
+                return BadRequest(new { message = "La información proporcionada es inválida." });
+            }
+
+            try
+            {
+                var dbManager = new DBManager(_config);
+                var (statusCode, message) = dbManager.RequestCertificates(request.SessionId, request.Documents);
+
+                if (statusCode == 1)
+                {
+                    return Ok(new { message });
+                }
+                return StatusCode(500, new { message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Error al procesar la solicitud.", error = ex.Message });
+            }
+        }
     }
 }
 

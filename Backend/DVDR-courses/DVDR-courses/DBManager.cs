@@ -764,5 +764,84 @@ namespace DVDR_courses
 
             return courses;
         }
+
+        public (int statusCode, string message) RequestCertificates(int sessionId, List<CertificateDocumentDTO> documents)
+        {
+            try
+            {
+                using (var con = new MySqlConnection(_config.GetConnectionString("default")))
+                {
+                    con.Open();
+
+                    // Create session folder
+                    var sessionFolder = Guid.NewGuid().ToString();
+                    var basePath = Path.Combine("assets", "files", "request-certificates-documentation", sessionFolder);
+                    var physicalPath = Path.Combine("..", "..", "..", "Frontend", "public", basePath);
+                    Directory.CreateDirectory(physicalPath);
+
+                    // Save files and prepare JSON data
+                    var documentsList = new List<object>();
+                    foreach (var doc in documents)
+                    {
+                        if (doc.File != null)
+                        {
+                            var fileName = doc.File.FileName;
+                            var filePath = Path.Combine(basePath, fileName);
+                            var fullPath = Path.Combine(physicalPath, fileName);
+
+                            using (var stream = new FileStream(fullPath, FileMode.Create))
+                            {
+                                doc.File.CopyTo(stream);
+                            }
+
+                            documentsList.Add(new
+                            {
+                                document_id = doc.DocumentId,
+                                filePath = filePath
+                            });
+                        }
+                    }
+
+                    // Convert to JSON
+                    var jsonDocs = JsonConvert.SerializeObject(documentsList);
+
+                    // Call stored procedure
+                    using (var cmd = new MySqlCommand("sp_request_certificates", con))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+
+                        // Input parameters
+                        cmd.Parameters.AddWithValue("p_session_id", sessionId);
+                        cmd.Parameters.AddWithValue("p_documentation", jsonDocs);
+
+                        // Output parameters
+                        var statusParam = new MySqlParameter("p_status_code", MySqlDbType.Int32)
+                        {
+                            Direction = ParameterDirection.Output
+                        };
+                        var messageParam = new MySqlParameter("p_message", MySqlDbType.VarChar, 255)
+                        {
+                            Direction = ParameterDirection.Output
+                        };
+
+                        cmd.Parameters.Add(statusParam);
+                        cmd.Parameters.Add(messageParam);
+
+                        cmd.ExecuteNonQuery();
+
+                        // Get results
+                        var status = (int)statusParam.Value;
+                        var message = messageParam.Value.ToString();
+
+                        return (status, message);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+                return (-1, "Error al procesar la solicitud de constancias");
+            }
+        }
     }
 }

@@ -9,6 +9,7 @@
 
     public class SessionResponse
     {
+        public int Id { get; set; } // Id de la sesión
         public string Clave { get; set; } // Clave del curso al que pertenece la sesión
         public string Periodo { get; set; } // Periodo de la sesión (Ene 2025 - Mar 2025)
         public int Participantes { get; set; } // Número de participantes en la sesión

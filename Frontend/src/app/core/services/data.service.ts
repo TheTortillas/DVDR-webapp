@@ -28,6 +28,11 @@ export class DataService {
     return this.httpClient.get(url, HttpOptions);
   }
 
+  public getCertificateDocumentTemplates(): Observable<any> {
+    const url = this.URLBase + '/api/Data/CertificateDocumentTemplates';
+    return this.httpClient.get(url, HttpOptions);
+  }
+
   uploadCourseDocumentation(formData: FormData): Observable<any> {
     const url = this.URLBase + '/api/api/Files/UploadCourseDocumentation';
     return this.httpClient.post(url, formData);

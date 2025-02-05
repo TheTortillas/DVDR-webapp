@@ -216,6 +216,44 @@ namespace DVDR_courses
             return templates;
         }
 
+        public List<DocumentTemplate> GetCertificateDocumentTemplates()
+        {
+            var templates = new List<DocumentTemplate>();
+            try
+            {
+                using (MySqlConnection con = new MySqlConnection(_config.GetConnectionString("default")))
+                {
+                    string query = @"
+                SELECT id, name, filePath, type, required
+                FROM certificate_documents_templates
+                ORDER BY id";
+
+                    MySqlCommand command = new MySqlCommand(query, con);
+                    con.Open();
+
+                    using (MySqlDataReader reader = command.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            templates.Add(new DocumentTemplate
+                            {
+                                Id = reader.GetInt32("id"),
+                                Name = reader.GetString("name"),
+                                FilePath = reader.IsDBNull(reader.GetOrdinal("filePath")) ? null : reader.GetString("filePath"),
+                                Type = reader.GetString("type"),
+                                Required = reader.GetBoolean("required")
+                            });
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+            }
+            return templates;
+        }
+
         public (int statusCode, string message) RegisterInstructorAll(InstructorRegister request)
         {
             try
@@ -707,6 +745,7 @@ namespace DVDR_courses
                                 {
                                     course.Sessions.Add(new SessionResponse
                                     {
+                                        Id = reader.GetInt32("session_id"),  // Asignamos el ID de la sesión
                                         Clave = courseKey, // Ahora se almacena correctamente
                                         Periodo = reader.GetString("periodo"),
                                         Participantes = reader.GetInt32("participantes"),
@@ -716,6 +755,7 @@ namespace DVDR_courses
                                 }
                             }
                         }
+
                     }
 
                     courses = courseMap.Values.ToList();

@@ -63,6 +63,14 @@ CREATE TABLE documents_templates (
     type ENUM('file', 'url') DEFAULT 'file' NOT NULL -- O es URL o es archivo
 );
 
+CREATE TABLE certificate_documents_templates (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(255) NOT NULL,
+    filePath VARCHAR(2083),
+    type ENUM('file', 'url') DEFAULT 'file',
+    required BOOLEAN DEFAULT true
+);
+
 CREATE TABLE document_access (
     id INT PRIMARY KEY AUTO_INCREMENT,
     document_id INT NOT NULL, -- Relación con documents_templates
@@ -743,8 +751,8 @@ BEGIN
 
     -- Obtener las sesiones de cada curso y sus renovaciones
     SELECT 
-        cs.course_id,
-        c.course_key AS clave,  -- Ahora incluimos la clave del curso
+        cs.id AS session_id,  -- Ahora devolvemos el ID de la sesión
+        c.course_key AS clave,  -- Clave del curso
         cs.period AS periodo,
         cs.number_of_participants AS participantes,
         cs.number_of_certificates AS constancias,
@@ -756,6 +764,7 @@ BEGIN
     
 END $$
 DELIMITER ;
+
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ LLENADO DE TABLAS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -792,6 +801,11 @@ INSERT INTO documents_templates (name, filePath, type) VALUES
 ('Oficio de visto bueno proporcionado por la DEV', 'https://www.ipn.mx/dev/servicios/evaluacion-rdd.html', 'url'),
 ('Formato de protesta de autoría', 'assets/templates/02 FPA20H 2024.docx', 'file'),
 ('Carta aval', 'assets/templates/05 CA-ejemplo.pdf', 'file');
+
+INSERT INTO certificate_documents_templates (name, filePath, type, required) VALUES
+('Oficio de Solicitud', NULL, 'file', true),
+('Formato de Lista de Asistencia', 'assets/certificate_documents_templates/lista-asistencia.xlsx', 'file', true),
+('Facturas / Comprobante de Pago', NULL, 'file', true);
 
 INSERT INTO document_access (document_id, modality, required) VALUES
 (3, 'non-schooled', 1),
@@ -830,9 +844,15 @@ CALL sp_insert_user('admin_tampico', 'pass_tampico', 'Eduardo', 'Rojas', 'Peña'
 -- SELECT COUNT(*) FROM courses WHERE YEAR(created_at) = 2025;
 -- CALL sp_check_username('admin', @user_exists);
 -- SELECT @user_exists;
--- SELECT * FROM courses;
--- SELECT * FROM course_sessions;
+ SELECT * FROM courses;
+ SELECT * FROM course_sessions;
 -- SELECT * FROM course_schedules WHERE session_id = 2;
+/*
+UPDATE course_sessions 
+SET status = 'pending' 
+WHERE id = 2;
+*/
+
 
  /*
 SET FOREIGN_KEY_CHECKS = 0;

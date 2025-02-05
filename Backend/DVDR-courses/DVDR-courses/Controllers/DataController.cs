@@ -42,6 +42,20 @@ namespace DVDR_courses.Controllers
                 return new JsonResult(new { error = ex.Message }) { StatusCode = 500 };
             }
         }
+
+        [HttpGet("CertificateDocumentTemplates", Name = "GetCertificateDocumentTemplates")]
+        public JsonResult GetCertificateDocumentTemplates()
+        {
+            try
+            {
+                var templates = new DBManager(_config).GetCertificateDocumentTemplates();
+                return new JsonResult(templates);
+            }
+            catch (Exception ex)
+            {
+                return new JsonResult(new { error = ex.Message }) { StatusCode = 500 };
+            }
+        }
     }
 
 }

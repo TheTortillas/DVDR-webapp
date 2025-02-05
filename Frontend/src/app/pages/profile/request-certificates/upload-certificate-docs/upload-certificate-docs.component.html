@@ -1,0 +1,102 @@
+<div class="w-full">
+  <div class="p-2 text-center">
+    <h2 mat-dialog-title class="text-2xl font-bold text-black-800 mb-2">
+      Subir documentación
+    </h2>
+    <p class="text-gray-600">
+      Curso: <span class="font-medium text-rose-700">"{{ courseTitle }}"</span>
+      <br />
+      Periodo: <span class="font-medium text-rose-700">"{{ periodo }}"</span>
+    </p>
+  </div>
+  <div class="p-8">
+    <mat-table [dataSource]="dataSource" class="mat-elevation-z8">
+      <!-- Icon Column -->
+      <ng-container matColumnDef="icon">
+        <mat-header-cell *matHeaderCellDef>Plantilla</mat-header-cell>
+        <mat-cell *matCellDef="let element">
+          <a *ngIf="element.filePath" [href]="element.filePath" download>
+            <mat-icon matTooltip="Descargar plantilla" class="hover-blue"
+              >insert_drive_file</mat-icon
+            >
+          </a>
+        </mat-cell>
+      </ng-container>
+
+      <!-- Name Column -->
+      <ng-container matColumnDef="name">
+        <mat-header-cell *matHeaderCellDef
+          >Nombre del documento</mat-header-cell
+        >
+        <mat-cell *matCellDef="let element">
+          {{ element.name }}
+          <span *ngIf="!element.required" class="text-gray-500 text-sm"
+            >&nbsp;(Opcional)</span
+          >
+        </mat-cell>
+      </ng-container>
+
+      <!-- Files Column -->
+      <ng-container matColumnDef="files">
+        <mat-header-cell *matHeaderCellDef>Archivos</mat-header-cell>
+        <mat-cell *matCellDef="let element">
+          <ng-container *ngIf="element.uploadedFile">
+            <button mat-icon-button (click)="verArchivo(element)">
+              <mat-icon
+                class="hover-blue cursor-pointer"
+                matTooltip="Ver archivo"
+                >description</mat-icon
+              >
+            </button>
+          </ng-container>
+          <ng-container *ngIf="!element.uploadedFile">
+            <input
+              type="file"
+              hidden
+              #fileInput
+              (change)="onInputChange($event, element.id)"
+              accept=".pdf"
+            />
+            <mat-icon
+              matTooltip="Subir archivo"
+              class="hover-blue cursor-pointer"
+              (click)="fileInput.click()"
+            >
+              cloud_upload
+            </mat-icon>
+          </ng-container>
+        </mat-cell>
+      </ng-container>
+
+      <!-- Actions Column -->
+      <ng-container matColumnDef="actions">
+        <mat-header-cell *matHeaderCellDef>Acciones</mat-header-cell>
+        <mat-cell *matCellDef="let element">
+          <mat-icon
+            matTooltip="Eliminar archivo"
+            [class.disabled-icon]="!element.uploadedFile"
+            [class.hover-red]="element.uploadedFile"
+            class="cursor-pointer"
+            (click)="element.uploadedFile && deleteFile(element.id)"
+          >
+            delete
+          </mat-icon>
+        </mat-cell>
+      </ng-container>
+
+      <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+      <mat-row *matRowDef="let row; columns: displayedColumns"></mat-row>
+    </mat-table>
+  </div>
+  <mat-dialog-actions align="end" class="mt-4">
+    <button
+      mat-raised-button
+      color="primary"
+      (click)="onSubmit()"
+      [disabled]="!areAllRequiredDocsUploaded()"
+    >
+      Enviar
+    </button>
+    <button mat-button mat-dialog-close>Cancelar</button>
+  </mat-dialog-actions>
+</div>

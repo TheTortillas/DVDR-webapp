@@ -14,6 +14,7 @@ interface Course {
   approvalStatus: string;
   totalDuration: number;
   expirationDate: string;
+  isRenewed: boolean;
 }
 
 @Component({
@@ -39,9 +40,19 @@ export class RequestApertureComponent implements OnInit {
     if (this.username) {
       this.courseService.getCoursesByUser(this.username).subscribe({
         next: (courses: Course[]) => {
-          this.dataSource = courses.filter(
-            (course) => course.status !== 'draft'
-          );
+          this.dataSource = courses.filter((course) => {
+            console.log('Datasource:', course);
+            // No mostrar borradores
+            if (course.status === 'draft') return false;
+
+            const isExpired = this.isCursoExpirado(course);
+
+            // Si el curso está vencido y ya fue renovado, no mostrarlo
+            if (isExpired && course.isRenewed) return false;
+
+            // En cualquier otro caso, mostrar el curso
+            return true;
+          });
         },
         error: (err) => {
           console.error('Error al obtener los cursos:', err);

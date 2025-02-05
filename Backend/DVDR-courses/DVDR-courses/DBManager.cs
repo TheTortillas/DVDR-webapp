@@ -483,17 +483,18 @@ namespace DVDR_courses
             using (var con = new MySqlConnection(_config.GetConnectionString("default")))
             {
                 var cmd = new MySqlCommand(@"
-        SELECT 
-            c.id, 
-            c.course_name AS Title, 
-            c.course_key AS Clave,
-            c.status AS Status,
-            c.approval_status AS ApprovalStatus,
-            c.total_duration AS TotalDuration,
-            c.expiration_date AS ExpirationDate
-        FROM courses c
-        INNER JOIN users u ON c.user_id = u.id
-        WHERE u.username = @username", con);
+                   SELECT 
+                        c.id, 
+                        c.course_name AS Title, 
+                        c.course_key AS Clave,
+                        c.status AS Status,
+                        c.approval_status AS ApprovalStatus,
+                        c.total_duration AS TotalDuration,
+                        c.expiration_date AS ExpirationDate,
+                        c.is_renewed AS IsRenewed
+                    FROM courses c
+                    INNER JOIN users u ON c.user_id = u.id
+                    WHERE u.username = @username", con);
 
                 cmd.Parameters.AddWithValue("@username", username);
 
@@ -511,7 +512,8 @@ namespace DVDR_courses
                         Status = reader.GetString("Status"),
                         ApprovalStatus = reader.GetString("ApprovalStatus"),
                         TotalDuration = reader.GetInt32("TotalDuration"),
-                        ExpirationDate = reader.GetDateTime("ExpirationDate")
+                        ExpirationDate = reader.GetDateTime("ExpirationDate"),
+                        IsRenewed = reader.GetBoolean("IsRenewed")
                     });
                 }
                 return courses;

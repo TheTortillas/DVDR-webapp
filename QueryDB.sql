@@ -38,6 +38,7 @@ CREATE TABLE courses (
    status ENUM('draft', 'submitted') DEFAULT 'submitted' NOT NULL,
    approval_status ENUM('pending', 'approved', 'rejected') DEFAULT 'pending' NOT NULL,
    admin_notes TEXT,
+   is_renewed TINYINT(1) NOT NULL DEFAULT 0,
    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
    
@@ -565,6 +566,13 @@ BEGIN
 
     SET v_course_id = LAST_INSERT_ID();
 
+    -- Actualizar el campo isRenewed del curso padre si es una renovación
+    IF p_parent_course_id IS NOT NULL AND p_parent_course_id <> 0 THEN
+        UPDATE courses
+        SET is_renewed = 1
+        WHERE id = p_parent_course_id;
+    END IF;
+
     -- Insertar documentación relacionada con el curso usando JSON_TABLE
     INSERT INTO course_documentation (
         course_id,
@@ -736,6 +744,7 @@ BEGIN
     -- Obtener las sesiones de cada curso y sus renovaciones
     SELECT 
         cs.course_id,
+        c.course_key AS clave,  -- Ahora incluimos la clave del curso
         cs.period AS periodo,
         cs.number_of_participants AS participantes,
         cs.number_of_certificates AS constancias,
@@ -821,9 +830,9 @@ CALL sp_insert_user('admin_tampico', 'pass_tampico', 'Eduardo', 'Rojas', 'Peña'
 -- SELECT COUNT(*) FROM courses WHERE YEAR(created_at) = 2025;
 -- CALL sp_check_username('admin', @user_exists);
 -- SELECT @user_exists;
- SELECT * FROM courses;
- SELECT * FROM course_sessions;
- SELECT * FROM course_schedules WHERE session_id = 2;
+-- SELECT * FROM courses;
+-- SELECT * FROM course_sessions;
+-- SELECT * FROM course_schedules WHERE session_id = 2;
 
  /*
 SET FOREIGN_KEY_CHECKS = 0;

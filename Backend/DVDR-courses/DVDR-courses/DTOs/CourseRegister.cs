@@ -7,6 +7,7 @@
         public string Username { get; set; }
         public string FolderName { get; set; }
         public int? ParentCourseId { get; set; } // Nuevo: ID del curso a renovar
+        public bool IsRenewed { get; set; }
     }
 
     public class CourseInfo
@@ -38,8 +39,6 @@
         public string Role { get; set; }
     }
 
-
-
     public class CourseResponse
     {
         public int CourseId { get; set; }
@@ -50,6 +49,7 @@
         public int? ParentCourseId { get; set; }
         public int RenewalCount { get; set; }
         public DateTime ExpirationDate { get; set; }
+        public bool IsRenewed { get; set; }
     }
 
     public class DocumentResponse

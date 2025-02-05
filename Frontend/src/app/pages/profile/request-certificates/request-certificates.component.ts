@@ -37,7 +37,8 @@ export class RequestCertificatesComponent implements OnInit {
                   clave: session.clave,
                   periodo: session.periodo,
                   session: session,
-                  sessionId: session.id, // Agregamos el id de la sesión
+                  sessionId: session.id, // Agregamos el id de la sesión,
+                  certificatesRequested: session.certificatesRequested,
                 });
               }
             });
@@ -51,7 +52,6 @@ export class RequestCertificatesComponent implements OnInit {
       });
     }
   }
-
   requestCertificate(item: any) {
     const dialogRef = this.dialog.open(UploadCertificateDocsComponent, {
       maxWidth: '100vh',
@@ -68,6 +68,15 @@ export class RequestCertificatesComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe((result) => {
       if (result) {
+        // Actualizar el estado local del elemento
+        const index = this.completedSessions.findIndex(
+          (session) => session.sessionId === item.sessionId
+        );
+        if (index !== -1) {
+          this.completedSessions[index].certificatesRequested = true;
+          // Forzar actualización de la tabla
+          this.completedSessions = [...this.completedSessions];
+        }
         console.log('Documentos subidos:', result);
       }
     });

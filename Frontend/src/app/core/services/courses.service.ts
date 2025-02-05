@@ -12,6 +12,7 @@ export interface Course {
   totalDuration: number;
   expirationDate: string;
   isRenewed: boolean;
+  certificatesRequested: boolean;
 }
 
 @Injectable({

@@ -29,8 +29,16 @@
               mat-button
               color="primary"
               (click)="requestCertificate(element)"
+              [disabled]="element.certificatesRequested"
+              [ngClass]="{
+                'opacity-50 cursor-not-allowed': element.certificatesRequested
+              }"
             >
-              Solicitar Constancias
+              {{
+                element.certificatesRequested
+                  ? "Constancias Solicitadas"
+                  : "Solicitar Constancias"
+              }}
             </button>
           </td>
         </ng-container>

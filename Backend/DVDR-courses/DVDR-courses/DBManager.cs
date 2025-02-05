@@ -750,7 +750,8 @@ namespace DVDR_courses
                                         Periodo = reader.GetString("periodo"),
                                         Participantes = reader.GetInt32("participantes"),
                                         Constancias = reader.GetInt32("constancias"),
-                                        Estatus = reader.GetString("estatus")
+                                        Estatus = reader.GetString("estatus"),
+                                        CertificatesRequested = reader.GetBoolean("certificates_requested") 
                                     });
                                 }
                             }

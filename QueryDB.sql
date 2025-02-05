@@ -770,12 +770,13 @@ BEGIN
 
     -- Obtener las sesiones de cada curso y sus renovaciones
     SELECT 
-        cs.id AS session_id,  -- Ahora devolvemos el ID de la sesión
-        c.course_key AS clave,  -- Clave del curso
+        cs.id AS session_id,
+        c.course_key AS clave,
         cs.period AS periodo,
         cs.number_of_participants AS participantes,
         cs.number_of_certificates AS constancias,
-        cs.status AS estatus
+        cs.status AS estatus,
+        cs.certificates_requested AS certificates_requested  -- Añadir esta línea
     FROM course_sessions cs
     JOIN courses c ON cs.course_id = c.id
     WHERE c.user_id = v_user_id
@@ -783,7 +784,6 @@ BEGIN
     
 END $$
 DELIMITER ;
-
 
 DELIMITER $$
 CREATE PROCEDURE sp_request_certificates(
@@ -916,7 +916,7 @@ CALL sp_insert_user('admin_tampico', 'pass_tampico', 'Eduardo', 'Rojas', 'Peña'
 -- SELECT @user_exists;
  SELECT * FROM courses;
  SELECT * FROM course_sessions;
-
+ SELECT * FROM session_certificates_request_documentation;
 -- SELECT * FROM course_schedules WHERE session_id = 2;
 /*
 UPDATE course_sessions 

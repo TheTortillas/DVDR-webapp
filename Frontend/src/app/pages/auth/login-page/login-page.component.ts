@@ -57,15 +57,24 @@ export class LoginPageComponent {
   }
   ngOnInit() {
     const token = this.storageService.getItem('token');
+    const role = this.storageService.getItem('role');
+
     if (token && this.storageService.isTokenValid(token)) {
-      console.log('Token válido, redirigiendo al dashboard');
-      this.router.navigate(['/profile/dashboard']);
+      console.log('Token válido, redirigiendo según rol');
+
+      if (role === 'user') {
+        this.router.navigate(['/profile/dashboard']);
+      } else if (role === 'root') {
+        this.router.navigate(['/management']);
+      } else {
+        console.warn('Rol no reconocido:', role);
+        this.storageService.clear();
+      }
     } else if (token) {
       console.log('Token inválido o caducado, limpiando datos');
       this.storageService.clear();
     }
   }
-
   // constructor(private route: Router){}
   // ngOnInit() {
   //   const token = localStorage.getItem('token');

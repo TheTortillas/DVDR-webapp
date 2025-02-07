@@ -26,10 +26,23 @@ export class NavbarComponent {
 
   isLoggedInAndProfile(): boolean {
     const token = this.storageService.getItem('token');
+    const role = this.storageService.getItem('role');
     return (
       !!token &&
       this.storageService.isTokenValid(token) &&
-      this.router.url.includes('/profile')
+      this.router.url.includes('/profile') &&
+      role === 'user'
+    );
+  }
+
+  isLoggedInAndAdmin(): boolean {
+    const token = this.storageService.getItem('token');
+    const role = this.storageService.getItem('role');
+    return (
+      !!token &&
+      this.storageService.isTokenValid(token) &&
+      this.router.url.includes('/management') &&
+      role === 'root'
     );
   }
 

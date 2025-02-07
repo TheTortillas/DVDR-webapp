@@ -18,7 +18,8 @@ CREATE TABLE users (
     first_name VARCHAR(100) NOT NULL,
     last_name VARCHAR(100) NOT NULL,
     second_last_name VARCHAR(100),
-    center_id INT NOT NULL,
+    center_id INT, 
+    role ENUM('root', 'user') NOT NULL DEFAULT 'user',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (center_id) REFERENCES centers(id)
 );
@@ -216,7 +217,8 @@ CREATE PROCEDURE sp_insert_user(
     IN p_first_name VARCHAR(100),
     IN p_last_name VARCHAR(100),
     IN p_second_last_name VARCHAR(100),
-    IN p_center VARCHAR(255)
+    IN p_center VARCHAR(255),
+    IN p_role VARCHAR(10)  -- Se espera 'root' o 'user'
 )
 BEGIN
     DECLARE hashed_password VARCHAR(255);
@@ -237,28 +239,31 @@ BEGIN
 
     START TRANSACTION;
 
-    -- Obtener el id del centro a partir del nombre
-    SELECT id INTO v_center_id 
-    FROM centers 
-    WHERE name = p_center 
-    LIMIT 1;
+    -- Si el rol es 'root', no se asigna centro (administradores no pertenecen a ningún centro)
+    IF p_role = 'root' THEN
+        SET v_center_id = NULL;
+    ELSE
+        -- Para rol 'user' se obtiene el id del centro a partir del nombre
+        SELECT id INTO v_center_id 
+        FROM centers 
+        WHERE name = p_center 
+        LIMIT 1;
 
-    -- Verificar que el centro exista
-    IF v_center_id IS NULL THEN
-        SIGNAL SQLSTATE '45000' 
-            SET MESSAGE_TEXT = 'Error: El centro especificado no existe.';
+        IF v_center_id IS NULL THEN
+            SIGNAL SQLSTATE '45000' 
+                SET MESSAGE_TEXT = 'Error: El centro especificado no existe.';
+        END IF;
     END IF;
 
     -- Hash de la contraseña
     SET hashed_password = SHA2(p_password, 256);
 
-    -- Insertar el nuevo usuario
-    INSERT INTO users (username, password, first_name, last_name, second_last_name, center_id)
-    VALUES (p_username, hashed_password, p_first_name, p_last_name, p_second_last_name, v_center_id);
+    -- Insertar el nuevo usuario con el rol especificado
+    INSERT INTO users (username, password, first_name, last_name, second_last_name, center_id, role)
+    VALUES (p_username, hashed_password, p_first_name, p_last_name, p_second_last_name, v_center_id, p_role);
 
     COMMIT;
 
-    -- Confirmación de éxito
     SELECT 1 AS status_code, 'Éxito: Usuario insertado correctamente.' AS mensaje;
 END$$
 DELIMITER ;
@@ -269,11 +274,13 @@ CREATE PROCEDURE sp_verify_user(
     IN p_username VARCHAR(50),
     IN p_password VARCHAR(255),
     OUT p_is_valid BOOLEAN,
-    OUT p_user_center VARCHAR(100)
+    OUT p_user_center VARCHAR(100),
+    OUT p_user_role VARCHAR(10)
 )
 BEGIN
     DECLARE stored_password VARCHAR(255);
     DECLARE user_center VARCHAR(100);
+    DECLARE v_role VARCHAR(10);
 
     -- Manejo de errores
     DECLARE EXIT HANDLER FOR SQLEXCEPTION
@@ -281,29 +288,33 @@ BEGIN
         ROLLBACK;
         SET p_is_valid = FALSE;
         SET p_user_center = NULL;
+        SET p_user_role = NULL;
     END;
 
     START TRANSACTION;
 
-    -- Obtener la contraseña almacenada, el nombre del centro y el identificador del centro
-    SELECT u.password, c.name
-    INTO stored_password, user_center
+    -- Se usa LEFT JOIN porque un usuario administrador puede tener center_id = NULL
+    SELECT u.password, c.name, u.role
+    INTO stored_password, user_center, v_role
     FROM users u
-    INNER JOIN centers c ON u.center_id = c.id
+    LEFT JOIN centers c ON u.center_id = c.id
     WHERE u.username = p_username
     LIMIT 1;
 
-    -- Verificar si el usuario existe y validar la contraseña
+    -- Si no se encuentra el usuario o la contraseña es nula, se considera fallo en la validación
     IF stored_password IS NULL THEN
         SET p_is_valid = FALSE;
         SET p_user_center = NULL;
+        SET p_user_role = NULL;
     ELSE
         IF SHA2(p_password, 256) = stored_password THEN
             SET p_is_valid = TRUE;
             SET p_user_center = user_center;
+            SET p_user_role = v_role;
         ELSE
             SET p_is_valid = FALSE;
             SET p_user_center = NULL;
+            SET p_user_role = NULL;
         END IF;
     END IF;
 
@@ -895,21 +906,24 @@ INSERT INTO document_access (document_id, modality, required) VALUES
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ PRUEBAS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 -- Insertar administrador para cada centro
-CALL sp_insert_user('admin_chihuahua', 'pass_chihuahua', 'Carlos', 'Hernández', 'López', 'Centro de Innovación e Integración de Tecnologías Avanzadas Chihuahua');
-CALL sp_insert_user('admin_puebla', 'pass_puebla', 'María', 'García', 'Martínez', 'Centro de Innovación e Integración de Tecnologías Avanzadas Puebla');
-CALL sp_insert_user('admin_veracruz', 'pass_veracruz', 'Sebastián', 'Morales', 'Palacios', 'Centro de Innovación e Integración de Tecnologías Avanzadas Veracruz');
-CALL sp_insert_user('admin_cajeme', 'pass_cajeme', 'Ana', 'Martínez', 'Pérez', 'Centro de Vinculación y Desarrollo Regional Unidad Cajeme');
-CALL sp_insert_user('admin_campeche', 'pass_campeche', 'Jorge', 'Díaz', 'Ramírez', 'Centro de Vinculación y Desarrollo Regional Unidad Campeche');
-CALL sp_insert_user('admin_cancun', 'pass_cancun', 'Sofía', 'Jiménez', 'Vargas', 'Centro de Vinculación y Desarrollo Regional Unidad Cancún');
-CALL sp_insert_user('admin_culiacan', 'pass_culiacan', 'Roberto', 'Torres', 'Morales', 'Centro de Vinculación y Desarrollo Regional Culiacán');
-CALL sp_insert_user('admin_durango', 'pass_durango', 'Daniela', 'Sánchez', 'Ortega', 'Centro de Vinculación y Desarrollo Regional Durango');
-CALL sp_insert_user('admin_losmochis', 'pass_losmochis', 'Ricardo', 'Pérez', 'Castillo', 'Centro de Vinculación y Desarrollo Regional Unidad Los Mochis');
-CALL sp_insert_user('admin_mazatlan', 'pass_mazatlan', 'Fernanda', 'Ruiz', 'Gómez', 'Centro de Desarrollo y Vinculación Regional Unidad Mazatlán');
-CALL sp_insert_user('admin_morelia', 'pass_morelia', 'Miguel', 'Hernández', 'Lara', 'Centro de Vinculación y Desarrollo Regional Unidad Morelia');
-CALL sp_insert_user('admin_tlaxcala', 'pass_tlaxcala', 'Valeria', 'Castillo', 'Núñez', 'Centro de Vinculación y Desarrollo Regional Unidad Tlaxcala');
-CALL sp_insert_user('admin_oaxaca', 'pass_oaxaca', 'Héctor', 'Cruz', 'Mendoza', 'Centro de Vinculación y Desarrollo Regional Unidad Oaxaca');
-CALL sp_insert_user('admin_tijuana', 'pass_tijuana', 'Gabriela', 'Flores', 'Ramos', 'Centro de Vinculación y Desarrollo Regional Unidad Tijuana');
-CALL sp_insert_user('admin_tampico', 'pass_tampico', 'Eduardo', 'Rojas', 'Peña', 'Centro de Vinculación y Desarrollo Regional Unidad Tampico');
+CALL sp_insert_user('director_chihuahua', 'pass_chihuahua', 'Carlos', 'Hernández', 'López', 'Centro de Innovación e Integración de Tecnologías Avanzadas Chihuahua', 'user');
+CALL sp_insert_user('director_puebla', 'pass_puebla', 'María', 'García', 'Martínez', 'Centro de Innovación e Integración de Tecnologías Avanzadas Puebla', 'user');
+CALL sp_insert_user('director_veracruz', 'pass_veracruz', 'Sebastián', 'Morales', 'Palacios', 'Centro de Innovación e Integración de Tecnologías Avanzadas Veracruz', 'user');
+CALL sp_insert_user('director_cajeme', 'pass_cajeme', 'Ana', 'Martínez', 'Pérez', 'Centro de Vinculación y Desarrollo Regional Unidad Cajeme', 'user');
+CALL sp_insert_user('director_campeche', 'pass_campeche', 'Jorge', 'Díaz', 'Ramírez', 'Centro de Vinculación y Desarrollo Regional Unidad Campeche', 'user');
+CALL sp_insert_user('director_cancun', 'pass_cancun', 'Sofía', 'Jiménez', 'Vargas', 'Centro de Vinculación y Desarrollo Regional Unidad Cancún', 'user');
+CALL sp_insert_user('director_culiacan', 'pass_culiacan', 'Roberto', 'Torres', 'Morales', 'Centro de Vinculación y Desarrollo Regional Culiacán', 'user');
+CALL sp_insert_user('director_durango', 'pass_durango', 'Daniela', 'Sánchez', 'Ortega', 'Centro de Vinculación y Desarrollo Regional Durango', 'user');
+CALL sp_insert_user('director_losmochis', 'pass_losmochis', 'Ricardo', 'Pérez', 'Castillo', 'Centro de Vinculación y Desarrollo Regional Unidad Los Mochis', 'user');
+CALL sp_insert_user('director_mazatlan', 'pass_mazatlan', 'Fernanda', 'Ruiz', 'Gómez', 'Centro de Desarrollo y Vinculación Regional Unidad Mazatlán', 'user');
+CALL sp_insert_user('director_morelia', 'pass_morelia', 'Miguel', 'Hernández', 'Lara', 'Centro de Vinculación y Desarrollo Regional Unidad Morelia', 'user');
+CALL sp_insert_user('director_tlaxcala', 'pass_tlaxcala', 'Valeria', 'Castillo', 'Núñez', 'Centro de Vinculación y Desarrollo Regional Unidad Tlaxcala', 'user');
+CALL sp_insert_user('director_oaxaca', 'pass_oaxaca', 'Héctor', 'Cruz', 'Mendoza', 'Centro de Vinculación y Desarrollo Regional Unidad Oaxaca', 'user');
+CALL sp_insert_user('director_tijuana', 'pass_tijuana', 'Gabriela', 'Flores', 'Ramos', 'Centro de Vinculación y Desarrollo Regional Unidad Tijuana', 'user');
+CALL sp_insert_user('director_tampico', 'pass_tampico', 'Eduardo', 'Rojas', 'Peña', 'Centro de Vinculación y Desarrollo Regional Unidad Tampico', 'user');
+
+CALL sp_insert_user('admin_general', 'pass_admin', 'Luis', 'Fernández', 'Gómez', NULL, 'root');
+
 
 -- SELECT COUNT(*) FROM courses WHERE YEAR(created_at) = 2025;
 -- CALL sp_check_username('admin', @user_exists);

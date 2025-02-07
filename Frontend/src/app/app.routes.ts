@@ -16,6 +16,7 @@ import { AuthGuard } from './core/guards/auth.guard';
 import { InstructorsCatalogComponent } from './pages/profile/instructors-catalog/instructors-catalog.component';
 import { PruebasFicherosComponent } from './pages/pruebas-ficheros/pruebas-ficheros.component';
 import { RequestCertificatesComponent } from './pages/profile/request-certificates/request-certificates.component';
+import { ManagementComponent } from './pages/management/management.component';
 export const routes: Routes = [
   {
     path: 'home',
@@ -56,6 +57,12 @@ export const routes: Routes = [
         pathMatch: 'full',
       },
     ],
+  },
+
+  {
+    path: 'management',
+    component: ManagementComponent,
+    canActivate: [AuthGuard], // Protegido para "root"
   },
 
   {

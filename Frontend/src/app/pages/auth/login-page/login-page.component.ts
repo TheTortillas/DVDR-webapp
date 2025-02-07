@@ -121,12 +121,6 @@ export class LoginPageComponent {
 
   signIn() {
     if (this.form.invalid) {
-      console.log(
-        'username:',
-        this.form.get('username')?.value,
-        'password:',
-        this.form.get('password')?.value
-      );
       Swal.fire({
         icon: 'warning',
         title: 'Campos incompletos',
@@ -138,12 +132,7 @@ export class LoginPageComponent {
     const username = this.form.get('username')?.value;
     const password = this.form.get('password')?.value;
 
-    // console.log('username:', username, 'password:', password);
-
-    const user: UserSignIn = {
-      username: username,
-      password: password,
-    };
+    const user: UserSignIn = { username, password };
 
     this.userManagementService.signIn(user).subscribe(
       (response) => {
@@ -151,7 +140,16 @@ export class LoginPageComponent {
           localStorage.setItem('token', response.token);
           localStorage.setItem('username', response.username);
           localStorage.setItem('center', response.center);
-          this.router.navigate(['/profile']);
+          localStorage.setItem('role', response.role); // Guardamos el rol
+
+          // Redirigir según el rol
+          if (response.role === 'user') {
+            this.router.navigate(['/profile']);
+          } else if (response.role === 'root') {
+            this.router.navigate(['/management']);
+          } else {
+            console.warn('Rol desconocido:', response.role);
+          }
         } else {
           Swal.fire({
             icon: 'error',
@@ -162,7 +160,6 @@ export class LoginPageComponent {
       },
       (error) => {
         console.error(error);
-
         if (error.status === 401) {
           Swal.fire({
             icon: 'warning',

@@ -40,12 +40,18 @@ export class UserManagementService {
 
   public signIn(
     userData: UserSignIn
-  ): Observable<{ token: string; username: string; center: string }> {
+  ): Observable<{
+    token: string;
+    username: string;
+    center: string;
+    role: string;
+  }> {
     const url = this.URLBase + '/api/UserManagement/SignIn';
     return this.httpClient.post<{
       token: string;
       username: string;
       center: string;
+      role: string;
     }>(url, userData, HttpOptions);
   }
 

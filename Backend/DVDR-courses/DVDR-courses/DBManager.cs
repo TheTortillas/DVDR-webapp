@@ -100,33 +100,44 @@ namespace DVDR_courses
                     MySqlCommand mySqlCommand = new MySqlCommand("sp_verify_user", con);
                     mySqlCommand.CommandType = System.Data.CommandType.StoredProcedure;
 
+                    // Parámetros de entrada
                     mySqlCommand.Parameters.Add(new MySqlParameter("p_username", p_username));
                     mySqlCommand.Parameters.Add(new MySqlParameter("p_password", p_password));
 
+                    // Parámetro de salida: validación de usuario
                     MySqlParameter isValidParam = new MySqlParameter("p_is_valid", MySqlDbType.Bit)
                     {
                         Direction = System.Data.ParameterDirection.Output
                     };
                     mySqlCommand.Parameters.Add(isValidParam);
 
+                    // Parámetro de salida: nombre del centro (puede ser NULL para root)
                     MySqlParameter userCenterParam = new MySqlParameter("p_user_center", MySqlDbType.VarChar, 100)
                     {
                         Direction = System.Data.ParameterDirection.Output
                     };
                     mySqlCommand.Parameters.Add(userCenterParam);
 
+                    // Nuevo parámetro de salida: rol del usuario
+                    MySqlParameter userRoleParam = new MySqlParameter("p_user_role", MySqlDbType.VarChar, 10)
+                    {
+                        Direction = System.Data.ParameterDirection.Output
+                    };
+                    mySqlCommand.Parameters.Add(userRoleParam);
+
                     con.Open();
                     mySqlCommand.ExecuteNonQuery();
 
                     bool isValid = Convert.ToBoolean(isValidParam.Value);
                     string userCenter = userCenterParam.Value?.ToString();
+                    string userRole = userRoleParam.Value?.ToString(); // Obtiene el rol del usuario
 
                     if (isValid)
                     {
                         var jwtService = new JwtService(_config);
                         string token = jwtService.GenerateToken(p_username);
 
-                        return new { token, username = p_username, center = userCenter };
+                        return new { token, username = p_username, center = userCenter, role = userRole };
                     }
 
                     return null;

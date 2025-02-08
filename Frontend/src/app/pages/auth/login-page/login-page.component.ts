@@ -65,7 +65,7 @@ export class LoginPageComponent {
       if (role === 'user') {
         this.router.navigate(['/profile/dashboard']);
       } else if (role === 'root') {
-        this.router.navigate(['/management']);
+        this.router.navigate(['/management/dashboard']);
       } else {
         console.warn('Rol no reconocido:', role);
         this.storageService.clear();

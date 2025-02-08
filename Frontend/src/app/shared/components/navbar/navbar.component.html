@@ -71,37 +71,18 @@
             <a>
               <button
                 mat-icon-button
-                [matMenuTriggerFor]="adminMenu"
-                aria-label="Admin menu"
+                [matMenuTriggerFor]="rootMenu"
+                aria-label="Root menu"
                 class="navbar-button"
               >
-                <mat-icon>admin_panel_settings</mat-icon>
+                <mat-icon>more_vert</mat-icon>
               </button>
-              <mat-menu #adminMenu="matMenu">
-                <button mat-menu-item routerLink="../management/users">
-                  <mat-icon>group</mat-icon>
-                  <span>Gestionar Usuarios</span>
-                </button>
-                <button mat-menu-item routerLink="../management/settings">
-                  <mat-icon>settings</mat-icon>
-                  <span>Configuración</span>
-                </button>
+              <mat-menu #rootMenu="matMenu">
                 <button mat-menu-item (click)="logout()" class="logout-button">
                   <mat-icon>exit_to_app</mat-icon>
                   <span>Cerrar sesión</span>
                 </button>
               </mat-menu>
-            </a>
-          </li>
-          <li>
-            <a>
-              <button
-                mat-icon-button
-                routerLink="../management/dashboard"
-                class="navbar-button"
-              >
-                <mat-icon>dashboard</mat-icon>
-              </button>
             </a>
           </li>
         </ul>

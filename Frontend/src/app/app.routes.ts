@@ -17,6 +17,8 @@ import { InstructorsCatalogComponent } from './pages/profile/instructors-catalog
 import { PruebasFicherosComponent } from './pages/pruebas-ficheros/pruebas-ficheros.component';
 import { RequestCertificatesComponent } from './pages/profile/request-certificates/request-certificates.component';
 import { ManagementComponent } from './pages/management/management.component';
+import { ManagementDashboardComponent } from './pages/management/dashboard/dashboard.component';
+
 export const routes: Routes = [
   {
     path: 'home',
@@ -63,6 +65,22 @@ export const routes: Routes = [
     path: 'management',
     component: ManagementComponent,
     canActivate: [AuthGuard], // Protegido para "root"
+    children: [
+      {
+        path: 'dashboard',
+        component: ManagementDashboardComponent,
+      },
+      {
+        path: '',
+        redirectTo: 'dashboard',
+        pathMatch: 'full',
+      },
+      {
+        path: '**',
+        redirectTo: 'dashboard',
+        pathMatch: 'full',
+      },
+    ],
   },
 
   {

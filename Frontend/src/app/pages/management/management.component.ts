@@ -12,7 +12,7 @@ import Swal from 'sweetalert2';
 @Component({
   selector: 'app-management',
   standalone: true,
-  imports: [MatButtonModule, MatDividerModule, MatIconModule],
+  imports: [MatButtonModule, MatDividerModule, MatIconModule, RouterOutlet],
   templateUrl: './management.component.html',
   styleUrl: './management.component.scss',
 })

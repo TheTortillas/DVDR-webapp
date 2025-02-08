@@ -650,6 +650,98 @@ namespace DVDR_courses
                 return null;
             }
         }
+
+
+        public List<CourseResponse> GetAllCourses()
+        {
+            try
+            {
+                using (var con = new MySqlConnection(_config.GetConnectionString("default")))
+                {
+                    con.Open();
+
+                    var cmd = new MySqlCommand("sp_get_all_courses", con)
+                    {
+                        CommandType = CommandType.StoredProcedure
+                    };
+
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        var courses = new List<CourseResponse>();
+
+                        while (reader.Read())
+                        {
+                            var course = new CourseResponse
+                            {
+                                CourseId = reader.GetInt32("course_id"),
+                                CourseKey = reader.GetString("course_key"),
+                                CourseInfo = new CourseInfo
+                                {
+                                    CourseName = reader.GetString("course_name"),
+                                    ServiceType = reader.GetString("service_type"),
+                                    Category = reader.GetString("category"),
+                                    Agreement = reader.IsDBNull("agreement") ? null : reader.GetString("agreement"),
+                                    TotalDuration = reader.IsDBNull("total_duration") ? (int?)null : reader.GetInt32("total_duration"),
+                                    Modality = reader.GetString("modality"),
+                                    EducationalOffer = reader.GetString("educational_offer"),
+                                    EducationalPlatform = reader.GetString("educational_platform").Split(",").ToList(),
+                                    CustomPlatform = reader.IsDBNull("other_educationals_platforms") ? null : reader.GetString("other_educationals_platforms"),
+                                    Actors = new List<Actor>()
+                                },
+                                CreatedBy = reader.GetString("created_by"),
+                                ExpirationDate = reader.GetDateTime("expiration_date"),
+                                RenewalCount = reader.GetInt32("renewal_count"),
+                                ParentCourseId = reader.IsDBNull("parent_course_id") ? (int?)null : reader.GetInt32("parent_course_id"),
+                                Documents = new List<DocumentResponse>()
+                            };
+
+                            courses.Add(course);
+                        }
+
+                        // Leer actores y roles para cada curso
+                        reader.NextResult();
+                        while (reader.Read())
+                        {
+                            var courseId = reader.GetInt32("course_id");
+                            var course = courses.FirstOrDefault(c => c.CourseId == courseId);
+                            if (course != null)
+                            {
+                                course.CourseInfo.Actors.Add(new Actor
+                                {
+                                    Id = reader.GetInt32("actor_id"),
+                                    Name = reader.GetString("actor_name"),
+                                    Role = reader.GetString("role")
+                                });
+                            }
+                        }
+
+                        // Leer documentación para cada curso
+                        reader.NextResult();
+                        while (reader.Read())
+                        {
+                            var courseId = reader.GetInt32("course_id");
+                            var course = courses.FirstOrDefault(c => c.CourseId == courseId);
+                            if (course != null)
+                            {
+                                course.Documents.Add(new DocumentResponse
+                                {
+                                    DocumentId = reader.GetInt32("document_id"),
+                                    Name = reader.GetString("document_name"),
+                                    FilePath = reader.GetString("filePath")
+                                });
+                            }
+                        }
+
+                        return courses;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+                return null;
+            }
+        }
         public (int statusCode, string message) RegisterCourseSession(CourseSessionRequest request)
         {
             try

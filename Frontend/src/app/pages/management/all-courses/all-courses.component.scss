@@ -1,0 +1,27 @@
+td, th {
+    text-align: center !important;
+    vertical-align: middle !important;
+}
+
+.mat-sort-header-container {
+    justify-content: center !important;
+}
+
+mat-icon {
+    font-size: 24px;
+    cursor: pointer;
+    transition: color 0.3s ease;
+  
+    &.hover-blue:hover {
+      color: #1976d2; // Azul de Material Design
+    }
+  
+    &.hover-red:hover {
+      color: #d32f2f; // Rojo de Material Design
+    }
+  
+    &.disabled-icon {
+      color: rgba(0, 0, 0, 0.26); // Icono desactivado
+      pointer-events: none; // Deshabilita interacción
+    }
+  }

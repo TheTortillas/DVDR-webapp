@@ -18,6 +18,7 @@ import { PruebasFicherosComponent } from './pages/pruebas-ficheros/pruebas-fiche
 import { RequestCertificatesComponent } from './pages/profile/request-certificates/request-certificates.component';
 import { ManagementComponent } from './pages/management/management.component';
 import { ManagementDashboardComponent } from './pages/management/dashboard/dashboard.component';
+import { AllCoursesComponent } from './pages/management/all-courses/all-courses.component';
 
 export const routes: Routes = [
   {
@@ -69,6 +70,10 @@ export const routes: Routes = [
       {
         path: 'dashboard',
         component: ManagementDashboardComponent,
+      },
+      {
+        path: 'all-courses', // Add this new route
+        component: AllCoursesComponent,
       },
       {
         path: '',

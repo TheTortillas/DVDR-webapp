@@ -104,6 +104,18 @@ namespace DVDR_courses.Controllers
 
             return Ok(course);
         }
+
+        [HttpGet("GetAllCourses")]
+        public IActionResult GetAllCourses()
+        {
+            var dbManager = new DBManager(_config);
+            var courses = dbManager.GetAllCourses();
+
+            if (courses == null || !courses.Any())
+                return NotFound(new { message = "No se encontraron cursos" });
+
+            return Ok(courses);
+        }
       
         [HttpPost("RegisterCourseSession", Name = "PostRegisterCourseSession")]
         public IActionResult RegisterCourseSession([FromBody] CourseSessionRequest request)

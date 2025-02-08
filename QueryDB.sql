@@ -703,6 +703,49 @@ END$$
 DELIMITER ;
 
 DELIMITER $$
+CREATE PROCEDURE sp_get_all_courses()
+BEGIN
+    -- Seleccionar datos generales de todos los cursos
+    SELECT 
+        c.id AS course_id,
+        c.course_key,
+        c.course_name,
+        c.service_type,
+        c.category,
+        c.agreement,
+        c.total_duration,
+        c.modality,
+        c.educational_offer,
+        c.educational_platform,
+        c.other_educationals_platforms,
+        c.expiration_date,
+        c.renewal_count,
+        c.parent_course_id,
+        u.username AS created_by
+    FROM courses c
+    JOIN users u ON c.user_id = u.id;
+
+    -- Seleccionar actores y roles asociados a todos los cursos
+    SELECT 
+        car.course_id,
+        a.id AS actor_id,
+        CONCAT(a.first_name, ' ', a.last_name, ' ', a.second_last_name) AS actor_name,
+        car.role
+    FROM course_actor_roles car
+    JOIN actors_general_information a ON car.actor_id = a.id;
+
+    -- Seleccionar documentación de todos los cursos
+    SELECT 
+        cd.course_id,
+        d.id AS document_id,
+        d.name AS document_name,
+        cd.filePath
+    FROM course_documentation cd
+    JOIN documents_templates d ON cd.document_id = d.id;
+END$$
+DELIMITER ;
+
+DELIMITER $$
 CREATE PROCEDURE sp_register_course_session(
     IN p_course_id INT,
     IN p_period VARCHAR(255),

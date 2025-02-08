@@ -15,6 +15,43 @@ export interface Course {
   certificatesRequested: boolean;
 }
 
+export interface CourseFullData {
+  courseId: number;
+  courseKey: string;
+  courseInfo: CourseInfo;
+  documents: Document[];
+  createdBy: string;
+  parentCourseId: number | null;
+  renewalCount: number;
+  expirationDate: string;
+  isRenewed: boolean;
+}
+
+export interface CourseInfo {
+  courseName: string;
+  serviceType: string;
+  category: string;
+  agreement: string | null;
+  totalDuration: number;
+  modality: string;
+  educationalOffer: string;
+  educationalPlatform: string[];
+  customPlatform: string | null;
+  actors: Actor[];
+}
+
+export interface Actor {
+  id: number;
+  name: string;
+  role: string;
+}
+
+export interface Document {
+  documentId: number;
+  name: string;
+  filePath: string;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -38,6 +75,11 @@ export class CoursesService {
   getCourseById(courseId: number): Observable<any> {
     const url = this.URLBase + `/api/Course/GetCourse/${courseId}`;
     return this.httpClient.get(url);
+  }
+
+  getAllCourses(): Observable<CourseFullData[]> {
+    const url = this.URLBase + '/api/Course/GetAllCourses';
+    return this.httpClient.get<CourseFullData[]>(url);
   }
 
   getUserCoursesWithSessions(username: string): Observable<any> {

@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSidenavModule } from '@angular/material/sidenav';
@@ -19,6 +19,7 @@ import { MatExpansionModule } from '@angular/material/expansion';
     MatDividerModule,
     MatToolbarModule,
     MatExpansionModule,
+    RouterLink,
   ],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss',

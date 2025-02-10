@@ -53,6 +53,24 @@ export interface Document {
   filePath: string;
 }
 
+export interface CourseSession {
+  sessionId: number;
+  period: string;
+  numberOfParticipants: number;
+  numberOfCertificates: number;
+  cost: number;
+  status: string;
+  certificatesRequested: boolean;
+  createdAt: string;
+  schedule: ScheduleEntry[];
+}
+
+export interface ScheduleEntry {
+  date: string;
+  start: string;
+  end: string;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -87,5 +105,10 @@ export class CoursesService {
     const url =
       this.URLBase + '/api/Course/UserCoursesWithSessions?username=' + username;
     return this.httpClient.get(url);
+  }
+
+  getCourseSessions(courseId: number): Observable<CourseSession[]> {
+    const url = this.URLBase + `/api/Course/GetCourseSessions/${courseId}`;
+    return this.httpClient.get<CourseSession[]>(url);
   }
 }

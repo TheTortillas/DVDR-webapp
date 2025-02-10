@@ -949,5 +949,52 @@ namespace DVDR_courses
                 return (-1, "Error al procesar la solicitud de constancias");
             }
         }
+
+        public List<CourseSessionResponse> GetCourseSessions(int courseId)
+        {
+            try
+            {
+                using (var con = new MySqlConnection(_config.GetConnectionString("default")))
+                {
+                    con.Open();
+                    var cmd = new MySqlCommand("sp_get_course_sessions", con)
+                    {
+                        CommandType = CommandType.StoredProcedure
+                    };
+                    cmd.Parameters.AddWithValue("p_course_id", courseId);
+
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        var sessions = new List<CourseSessionResponse>();
+
+                        while (reader.Read())
+                        {
+                            var session = new CourseSessionResponse
+                            {
+                                SessionId = reader.GetInt32("session_id"),
+                                Period = reader.GetString("period"),
+                                NumberOfParticipants = reader.GetInt32("number_of_participants"),
+                                NumberOfCertificates = reader.GetInt32("number_of_certificates"),
+                                Cost = reader.GetDecimal("cost"),
+                                Status = reader.GetString("status"),
+                                CertificatesRequested = reader.GetBoolean("certificates_requested"),
+                                CreatedAt = reader.GetDateTime("created_at"),
+                                Schedule = JsonConvert.DeserializeObject<List<ScheduleEntry>>(
+                                    reader.GetString("schedule")
+                                )
+                            };
+                            sessions.Add(session);
+                        }
+
+                        return sessions;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+                return null;
+            }
+        }
     }
 }

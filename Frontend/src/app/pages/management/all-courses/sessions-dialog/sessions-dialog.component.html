@@ -1,32 +1,133 @@
 <div class="p-4">
-  <h2 mat-dialog-title class="font-bold text-xl text-center">
-    Sesiones de {{ data.courseKey }}
+  <h2 mat-dialog-title class="text-2xl font-bold text-center mb-4">
+    Sesiones del curso
+    <span class="text-rose-700">{{ data.courseKey }}</span>
   </h2>
 
   <mat-dialog-content>
-    <table mat-table [dataSource]="data.sessions" class="w-full">
+    <table
+      mat-table
+      [dataSource]="data.sessions"
+      multiTemplateDataRows
+      class="w-full"
+    >
+      <!-- Expand Column -->
+      <ng-container matColumnDef="expand">
+        <th mat-header-cell *matHeaderCellDef></th>
+        <td mat-cell *matCellDef="let session">
+          <button
+            mat-icon-button
+            (click)="
+              expandedElement = expandedElement === session ? null : session
+            "
+          >
+            <mat-icon>
+              {{ expandedElement === session ? "expand_less" : "expand_more" }}
+            </mat-icon>
+          </button>
+        </td>
+      </ng-container>
+      <!-- Periodo Column -->
       <ng-container matColumnDef="period">
         <th mat-header-cell *matHeaderCellDef>Periodo</th>
         <td mat-cell *matCellDef="let session">{{ session.period }}</td>
       </ng-container>
 
+      <!-- Participants Column -->
       <ng-container matColumnDef="participants">
         <th mat-header-cell *matHeaderCellDef>Participantes</th>
-        <td mat-cell *matCellDef="let session">{{ session.participantes }}</td>
+        <td mat-cell *matCellDef="let session">
+          {{ session.numberOfParticipants }}
+        </td>
       </ng-container>
 
+      <!-- Certificates Column -->
       <ng-container matColumnDef="certificates">
-        <th mat-header-cell *matHeaderCellDef>Constancias</th>
-        <td mat-cell *matCellDef="let session">{{ session.constancias }}</td>
+        <th mat-header-cell *matHeaderCellDef>Certificados</th>
+        <td mat-cell *matCellDef="let session">
+          {{ session.numberOfCertificates }}
+        </td>
       </ng-container>
 
+      <!-- Cost Column -->
+      <ng-container matColumnDef="cost">
+        <th mat-header-cell *matHeaderCellDef>Costo</th>
+        <td mat-cell *matCellDef="let session">
+          {{ session.cost | currency : "MXN" : "symbol-narrow" : "1.2-2" }}
+        </td>
+      </ng-container>
+
+      <!-- Status Column -->
       <ng-container matColumnDef="status">
-        <th mat-header-cell *matHeaderCellDef>Estatus</th>
-        <td mat-cell *matCellDef="let session">{{ session.estatus }}</td>
+        <th mat-header-cell *matHeaderCellDef>Estado</th>
+        <td mat-cell *matCellDef="let session">{{ session.status }}</td>
+      </ng-container>
+
+      <!-- Created At Column -->
+      <ng-container matColumnDef="createdAt">
+        <th mat-header-cell *matHeaderCellDef>Fecha de creación</th>
+        <td mat-cell *matCellDef="let session">
+          {{ session.createdAt | date : "dd/MM/yyyy" }}
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="expandedDetail">
+        <td
+          mat-cell
+          *matCellDef="let session"
+          [attr.colspan]="displayedColumns.length"
+        >
+          <div
+            class="session-detail"
+            [@detailExpand]="
+              session == expandedElement ? 'expanded' : 'collapsed'
+            "
+          >
+            <div
+              class="p-4 bg-gray-50 rounded-lg"
+              *ngIf="session == expandedElement"
+            >
+              <h3 class="text-lg font-semibold mb-3">Cronograma de sesiones</h3>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div
+                  *ngFor="let date of session.schedule"
+                  class="bg-white p-3 rounded-md shadow-sm"
+                >
+                  <div class="flex items-center space-x-2">
+                    <mat-icon class="text-gray-500">event</mat-icon>
+                    <span class="font-medium">{{
+                      date.date | date : "EEEE, d MMMM yyyy" : "" : "es"
+                    }}</span>
+                  </div>
+                  <div class="ml-6 mt-2 text-gray-600">
+                    <div class="flex items-center space-x-2">
+                      <mat-icon class="text-sm">schedule</mat-icon>
+                      <span
+                        >{{ formatTime(date.start) }} -
+                        {{ formatTime(date.end) }}</span
+                      >
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </td>
       </ng-container>
 
       <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-      <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+      <tr
+        mat-row
+        *matRowDef="let row; columns: displayedColumns"
+        class="session-row"
+        [class.expanded-row]="expandedElement === row"
+        (click)="expandedElement = expandedElement === row ? null : row"
+      ></tr>
+      <tr
+        mat-row
+        *matRowDef="let row; columns: ['expandedDetail']"
+        class="detail-row"
+      ></tr>
     </table>
   </mat-dialog-content>
 

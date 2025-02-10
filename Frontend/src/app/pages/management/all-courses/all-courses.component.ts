@@ -9,6 +9,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { DocumentationDialogComponent } from './documentation-dialog/documentation-dialog.component';
 import { GeneralInfoDialogComponent } from './general-info-dialog/general-info-dialog.component';
 import { ActorsDialogComponent } from './actors-dialog/actors-dialog.component';
+import { SessionsDialogComponent } from './sessions-dialog/sessions-dialog.component';
 import {
   CoursesService,
   CourseFullData,
@@ -34,6 +35,7 @@ export class AllCoursesComponent implements OnInit {
     'datosGenerales',
     'instructores',
     'documentacion',
+    'sesiones',
   ];
   // Cambia el tipo de dataSource a MatTableDataSource
   dataSource: MatTableDataSource<CourseFullData> =
@@ -125,21 +127,28 @@ export class AllCoursesComponent implements OnInit {
   }
 
   openSessionsDialog(courseId: number) {
-    //   this.coursesService.getSessionsByCourseId(courseId).subscribe({
-    //     next: (sessions) => {
-    //       this.dialog.open(SessionsDialogComponent, {
-    //         width: '50%',
-    //         height: '70%',
-    //         data: {
-    //           courseKey: this.dataSource.data.find((c) => c.courseId === courseId)
-    //             ?.courseKey,
-    //           sessions: sessions,
-    //         },
-    //       });
-    //     },
-    //     error: (error) => {
-    //       console.error('Error al cargar sesiones:', error);
-    //     },
-    //   });
+    const course = this.dataSource.data.find(
+      (c: CourseFullData) => c.courseId === courseId
+    );
+    if (course) {
+      this.coursesService.getCourseSessions(courseId).subscribe({
+        next: (sessions) => {
+          this.dialog.open(SessionsDialogComponent, {
+            width: '80%',
+            height: '90%',
+            maxWidth: '100vw',
+            maxHeight: '100vh',
+            autoFocus: false,
+            data: {
+              courseKey: course.courseKey,
+              sessions: sessions,
+            },
+          });
+        },
+        error: (error) => {
+          console.error('Error al cargar sesiones:', error);
+        },
+      });
+    }
   }
 }

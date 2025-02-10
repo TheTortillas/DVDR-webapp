@@ -63,6 +63,20 @@
           </td>
         </ng-container>
 
+        <!-- Sesiones -->
+        <ng-container matColumnDef="sesiones">
+          <th mat-header-cell *matHeaderCellDef>Sesiones</th>
+          <td mat-cell *matCellDef="let row">
+            <button
+              mat-icon-button
+              (click)="openSessionsDialog(row.courseId)"
+              matTooltip="Ver sesiones"
+            >
+              <mat-icon class="hover-blue">event</mat-icon>
+            </button>
+          </td>
+        </ng-container>
+
         <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
         <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
       </table>

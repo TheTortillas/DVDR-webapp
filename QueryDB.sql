@@ -905,7 +905,84 @@ BEGIN
 END$$
 DELIMITER ;
 
-select * from session_certificates_request_documentation;
+DELIMITER $$
+CREATE PROCEDURE sp_get_course_sessions(
+    IN p_course_id INT
+)
+BEGIN
+    -- Obtener información de las sesiones del curso
+    SELECT 
+        cs.id AS session_id,
+        cs.period,
+        cs.number_of_participants,
+        cs.number_of_certificates,
+        cs.cost,
+        cs.status,
+        cs.certificates_requested,
+        cs.created_at,
+        JSON_ARRAYAGG(
+            JSON_OBJECT(
+                'date', DATE_FORMAT(csh.date, '%Y-%m-%d'),
+                'start_time', TIME_FORMAT(csh.start_time, '%H:%i'),
+                'end_time', TIME_FORMAT(csh.end_time, '%H:%i')
+            )
+        ) AS schedule
+    FROM course_sessions cs
+    LEFT JOIN course_schedules csh ON cs.id = csh.session_id
+    WHERE cs.course_id = p_course_id
+    GROUP BY 
+        cs.id, 
+        cs.period, 
+        cs.number_of_participants, 
+        cs.number_of_certificates,
+        cs.cost,
+        cs.status,
+        cs.certificates_requested,
+        cs.created_at
+    ORDER BY cs.created_at DESC;
+
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE PROCEDURE sp_get_course_sessions(
+    IN p_course_id INT
+)
+BEGIN
+    -- Obtener información de las sesiones del curso
+    SELECT 
+        cs.id AS session_id,
+        cs.period,
+        cs.number_of_participants,
+        cs.number_of_certificates,
+        cs.cost,
+        cs.status,
+        cs.certificates_requested,
+        cs.created_at,
+        JSON_ARRAYAGG(
+            JSON_OBJECT(
+                'date', DATE_FORMAT(csh.date, '%Y-%m-%d'),
+                'start_time', TIME_FORMAT(csh.start_time, '%H:%i'),
+                'end_time', TIME_FORMAT(csh.end_time, '%H:%i')
+            )
+        ) AS schedule
+    FROM course_sessions cs
+    LEFT JOIN course_schedules csh ON cs.id = csh.session_id
+    WHERE cs.course_id = p_course_id
+    GROUP BY 
+        cs.id, 
+        cs.period, 
+        cs.number_of_participants, 
+        cs.number_of_certificates,
+        cs.cost,
+        cs.status,
+        cs.certificates_requested,
+        cs.created_at
+    ORDER BY cs.created_at DESC;
+
+END$$
+DELIMITER ;
+
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ LLENADO DE TABLAS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 INSERT INTO academic_categories (name) VALUES
 ('Ingeniería y Ciencias Físico-Matemáticas'),

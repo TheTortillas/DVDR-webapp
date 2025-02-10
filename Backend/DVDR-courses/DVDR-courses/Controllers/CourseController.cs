@@ -167,6 +167,28 @@ namespace DVDR_courses.Controllers
                 return StatusCode(500, new { message = "Error al procesar la solicitud.", error = ex.Message });
             }
         }
+
+        [HttpGet("GetCourseSessions/{courseId}")]
+        public IActionResult GetCourseSessions(int courseId)
+        {
+            try
+            {
+                var dbManager = new DBManager(_config);
+                var sessions = dbManager.GetCourseSessions(courseId);
+
+                if (sessions == null)
+                    return StatusCode(500, new { message = "Error al obtener las sesiones del curso" });
+
+                if (!sessions.Any())
+                    return NotFound(new { message = "No se encontraron sesiones para este curso" });
+
+                return Ok(sessions);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Error interno del servidor", error = ex.Message });
+            }
+        }
     }
 }
 

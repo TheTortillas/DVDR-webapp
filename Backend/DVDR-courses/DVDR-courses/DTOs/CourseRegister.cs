@@ -50,6 +50,7 @@
         public int RenewalCount { get; set; }
         public DateTime ExpirationDate { get; set; }
         public bool IsRenewed { get; set; }
+        public DateTime CreatedAt { get; set; } // Incluir la fecha de creación
     }
 
     public class DocumentResponse

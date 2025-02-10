@@ -25,6 +25,7 @@ export interface CourseFullData {
   renewalCount: number;
   expirationDate: string;
   isRenewed: boolean;
+  createdAt: string;
 }
 
 export interface CourseInfo {

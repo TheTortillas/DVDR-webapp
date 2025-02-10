@@ -14,6 +14,7 @@ interface CourseSessionRequest {
   period: string;
   numberOfParticipants: number;
   numberOfCertificates: number;
+  cost: number;
   schedule: ScheduleEntry[];
 }
 

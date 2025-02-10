@@ -163,6 +163,7 @@ CREATE TABLE course_sessions (
     period VARCHAR(255) NOT NULL, -- Periodo en el que se impartió el curso (Ene2024-Mar2024)
     number_of_participants INT NOT NULL, -- Número de personas que tomaron el curso
     number_of_certificates INT NOT NULL, -- Constancias entregadas
+    cost DECIMAL(10,2) NOT NULL DEFAULT 0,  -- Costo unitario del curso
     status ENUM('pending', 'opened', 'completed') NOT NULL DEFAULT 'pending', -- Estatus del curso (Aperturado, Concluido, En espera)
     certificates_requested TINYINT(1) DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -721,6 +722,7 @@ BEGIN
         c.expiration_date,
         c.renewal_count,
         c.parent_course_id,
+        c.created_at, -- Incluir la fecha de creación
         u.username AS created_by
     FROM courses c
     JOIN users u ON c.user_id = u.id;
@@ -751,6 +753,7 @@ CREATE PROCEDURE sp_register_course_session(
     IN p_period VARCHAR(255),
     IN p_number_of_participants INT,
     IN p_number_of_certificates INT,
+    IN p_cost DECIMAL(10,2),    
     IN p_schedule_json JSON,
     OUT p_status_code INT,
     OUT p_message VARCHAR(255)
@@ -768,14 +771,26 @@ BEGIN
 
     START TRANSACTION;
 
-    --  Insertar sesión del curso (status = 'pending' por defecto)
-    INSERT INTO course_sessions (course_id, period, number_of_participants, number_of_certificates)
-    VALUES (p_course_id, p_period, p_number_of_participants, p_number_of_certificates);
+    -- Insertar sesión del curso (status = 'pending' por defecto)
+    INSERT INTO course_sessions (
+        course_id, 
+        period, 
+        number_of_participants, 
+        number_of_certificates,
+        cost               -- Nuevo campo
+    )
+    VALUES (
+        p_course_id, 
+        p_period, 
+        p_number_of_participants, 
+        p_number_of_certificates,
+        p_cost            -- Nuevo valor
+    );
 
     -- Obtener el ID de la sesión recién insertada
     SET v_session_id = LAST_INSERT_ID();
 
-    --  Insertar cronograma usando JSON_TABLE
+    -- Insertar cronograma usando JSON_TABLE
     INSERT INTO course_schedules (session_id, date, start_time, end_time)
     SELECT v_session_id, t.date, t.start_time, t.end_time
     FROM JSON_TABLE(
@@ -790,7 +805,7 @@ BEGIN
 
     COMMIT;
 
-    --  Confirmación de éxito
+    -- Confirmación de éxito
     SET p_status_code = 1;
     SET p_message = 'Sesión de curso y cronograma guardados exitosamente.';
 END$$

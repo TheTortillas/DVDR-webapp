@@ -184,14 +184,14 @@ export class ApertureInfoComponent {
         // Obtener los valores del formulario
         const costoUnitario = this.solicitudForm.value.costoUnitario;
         const numParticipantes = this.solicitudForm.value.numParticipantes;
-        const costoTotal = costoUnitario * numParticipantes;
         const period = this.generatePeriod();
 
         const sessionRequest = {
-          courseKey: this.clave, // 🔍 Enviamos el CourseKey
+          courseKey: this.clave,
           period,
           numberOfParticipants: numParticipantes,
           numberOfCertificates: 0,
+          cost: costoUnitario, // Agregamos el costo unitario
           schedule: this.generatedSchedule.map((entry) => ({
             date: entry.dateKey!,
             start: entry.start,

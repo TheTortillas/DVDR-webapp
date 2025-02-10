@@ -27,6 +27,7 @@
       <div class="info-group">
         <h3 class="text-lg font-semibold mb-2">Detalles Adicionales</h3>
         <p><strong>Creado por:</strong> {{ data.createdBy }}</p>
+        <p><strong>Fecha de Creación:</strong> {{ data.createdAt | date }}</p>
         <p>
           <strong>Fecha de Expiración:</strong> {{ data.expirationDate | date }}
         </p>
@@ -40,7 +41,6 @@
         </p>
         <p><strong>Número de Renovaciones:</strong> {{ data.renewalCount }}</p>
       </div>
-
       <!-- Plataformas Educativas -->
       <div class="info-group col-span-2">
         <h3 class="text-lg font-semibold mb-2">Plataformas Educativas</h3>

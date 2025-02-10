@@ -6,6 +6,7 @@
         public string Period { get; set; }
         public int NumberOfParticipants { get; set; }
         public int NumberOfCertificates { get; set; }
+        public decimal Cost { get; set; } 
         public List<ScheduleEntry> Schedule { get; set; }
     }
 
@@ -15,5 +16,4 @@
         public string Start { get; set; }
         public string End { get; set; }
     }
-
 }

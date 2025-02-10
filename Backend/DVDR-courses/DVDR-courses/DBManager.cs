@@ -692,6 +692,7 @@ namespace DVDR_courses
                                 ExpirationDate = reader.GetDateTime("expiration_date"),
                                 RenewalCount = reader.GetInt32("renewal_count"),
                                 ParentCourseId = reader.IsDBNull("parent_course_id") ? (int?)null : reader.GetInt32("parent_course_id"),
+                                CreatedAt = reader.GetDateTime("created_at"), // Leer la fecha de creación
                                 Documents = new List<DocumentResponse>()
                             };
 
@@ -770,12 +771,13 @@ namespace DVDR_courses
                         })
                     );
 
-                    // 🔥 Llamada al procedimiento almacenado sin `status`
-                    var cmd = new MySqlCommand("CALL sp_register_course_session(@course_id, @period, @num_participants, @num_certificates, @schedule_json, @status_code, @message)", con);
+                    // 🔥 Llamada al procedimiento almacenado actualizado con el costo
+                    var cmd = new MySqlCommand("CALL sp_register_course_session(@course_id, @period, @num_participants, @num_certificates, @cost, @schedule_json, @status_code, @message)", con);
                     cmd.Parameters.AddWithValue("@course_id", courseId);
                     cmd.Parameters.AddWithValue("@period", request.Period);
                     cmd.Parameters.AddWithValue("@num_participants", request.NumberOfParticipants);
                     cmd.Parameters.AddWithValue("@num_certificates", request.NumberOfCertificates);
+                    cmd.Parameters.AddWithValue("@cost", request.Cost); // Nuevo parámetro para el costo
                     cmd.Parameters.AddWithValue("@schedule_json", scheduleJson);
 
                     var statusCodeParam = new MySqlParameter("@status_code", MySqlDbType.Int32) { Direction = ParameterDirection.Output };

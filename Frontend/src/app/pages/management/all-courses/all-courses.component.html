@@ -66,6 +66,14 @@
         <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
         <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
       </table>
+
+      <!-- Agrega el paginador debajo de la tabla -->
+      <mat-paginator
+        [pageSizeOptions]="[5, 10, 15, 20]"
+        showFirstLastButtons
+        aria-label="Paginador de cursos"
+      >
+      </mat-paginator>
     </div>
   </div>
 </main>

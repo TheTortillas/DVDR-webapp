@@ -1,0 +1,36 @@
+<div class="p-4">
+  <h2 mat-dialog-title class="font-bold text-xl text-center">
+    Sesiones de {{ data.courseKey }}
+  </h2>
+
+  <mat-dialog-content>
+    <table mat-table [dataSource]="data.sessions" class="w-full">
+      <ng-container matColumnDef="period">
+        <th mat-header-cell *matHeaderCellDef>Periodo</th>
+        <td mat-cell *matCellDef="let session">{{ session.period }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="participants">
+        <th mat-header-cell *matHeaderCellDef>Participantes</th>
+        <td mat-cell *matCellDef="let session">{{ session.participantes }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="certificates">
+        <th mat-header-cell *matHeaderCellDef>Constancias</th>
+        <td mat-cell *matCellDef="let session">{{ session.constancias }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="status">
+        <th mat-header-cell *matHeaderCellDef>Estatus</th>
+        <td mat-cell *matCellDef="let session">{{ session.estatus }}</td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+    </table>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button mat-dialog-close>Cerrar</button>
+  </mat-dialog-actions>
+</div>

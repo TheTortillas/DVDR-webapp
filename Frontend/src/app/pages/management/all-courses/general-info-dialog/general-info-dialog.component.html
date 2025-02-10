@@ -1,0 +1,68 @@
+<div class="w-full">
+  <div class="text-center">
+    <h2 mat-dialog-title class="text-2xl font-bold text-black-800">
+      <span class="font-bold">Información General del Curso</span><br />
+      <span class="font-medium text-rose-700">{{ data.courseKey }}</span>
+    </h2>
+  </div>
+
+  <mat-dialog-content class="mt-4">
+    <div class="grid grid-cols-2 gap-4">
+      <!-- Información del Curso -->
+      <div class="info-group">
+        <h3 class="text-lg font-semibold mb-2">Datos del Curso</h3>
+        <p><strong>Nombre:</strong> {{ data.courseInfo.courseName }}</p>
+        <p>
+          <strong>Tipo de Servicio:</strong> {{ data.courseInfo.serviceType }}
+        </p>
+        <p><strong>Categoría:</strong> {{ data.courseInfo.category }}</p>
+        <p>
+          <strong>Duración Total:</strong>
+          {{ data.courseInfo.totalDuration }} horas
+        </p>
+        <p><strong>Modalidad:</strong> {{ data.courseInfo.modality }}</p>
+      </div>
+
+      <!-- Información Adicional -->
+      <div class="info-group">
+        <h3 class="text-lg font-semibold mb-2">Detalles Adicionales</h3>
+        <p><strong>Creado por:</strong> {{ data.createdBy }}</p>
+        <p>
+          <strong>Fecha de Expiración:</strong> {{ data.expirationDate | date }}
+        </p>
+        <p>
+          <strong>Oferta Educativa:</strong>
+          {{ data.courseInfo.educationalOffer }}
+        </p>
+        <p>
+          <strong>Convenio:</strong>
+          {{ data.courseInfo.agreement || "No especificado" }}
+        </p>
+        <p><strong>Número de Renovaciones:</strong> {{ data.renewalCount }}</p>
+      </div>
+
+      <!-- Plataformas Educativas -->
+      <div class="info-group col-span-2">
+        <h3 class="text-lg font-semibold mb-2">Plataformas Educativas</h3>
+        <div class="flex flex-wrap gap-2">
+          <span
+            *ngFor="let platform of data.courseInfo.educationalPlatform"
+            class="bg-blue-100 text-blue-800 px-2 py-1 rounded"
+          >
+            {{ platform }}
+          </span>
+          <span
+            *ngIf="data.courseInfo.customPlatform"
+            class="bg-green-100 text-green-800 px-2 py-1 rounded"
+          >
+            {{ data.courseInfo.customPlatform }}
+          </span>
+        </div>
+      </div>
+    </div>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button color="primary" mat-dialog-close>Cerrar</button>
+  </mat-dialog-actions>
+</div>

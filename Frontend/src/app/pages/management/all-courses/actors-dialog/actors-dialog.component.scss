@@ -1,0 +1,33 @@
+table {
+  width: 100%;
+}
+
+th.mat-header-cell,
+td.mat-cell {
+  padding: 8px;
+}
+
+td, th {
+  text-align: center !important;
+  vertical-align: middle !important;
+}
+
+.mat-sort-header-container {
+  justify-content: center !important;
+}
+
+.role-badge {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.875rem;
+
+  &.instructor {
+    background-color: #e3f2fd;
+    color: #1976d2;
+  }
+
+  &.coordinator {
+    background-color: #f3e5f5;
+    color: #9c27b0;
+  }
+}

@@ -5,11 +5,7 @@
         <h1 class="heading">Todos los cursos</h1>
       </div>
 
-      <table
-        mat-table
-        [dataSource]="dataSource"
-        class="mat-elevation-z8 w-full mt-4"
-      >
+      <table mat-table [dataSource]="dataSource" class="w-full mt-4">
         <!-- Nombre del curso -->
         <ng-container matColumnDef="nombreCurso">
           <th mat-header-cell *matHeaderCellDef>Nombre del curso</th>

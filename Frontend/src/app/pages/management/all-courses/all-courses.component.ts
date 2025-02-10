@@ -134,7 +134,7 @@ export class AllCoursesComponent implements OnInit {
       this.coursesService.getCourseSessions(courseId).subscribe({
         next: (sessions) => {
           this.dialog.open(SessionsDialogComponent, {
-            width: '80%',
+            width: '70%',
             height: '90%',
             maxWidth: '100vw',
             maxHeight: '100vh',

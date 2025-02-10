@@ -1,4 +1,4 @@
-<div class="w-full">
+<div class="dialog-container p-4 flex flex-col h-full">
   <div class="text-center">
     <h2 mat-dialog-title class="text-2xl font-bold text-black-800">
       <span class="font-bold">Documentación</span><br />
@@ -27,7 +27,11 @@
       <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
     </table>
   </mat-dialog-content>
-  <mat-dialog-actions align="end">
-    <button mat-button color="primary" mat-dialog-close>Cerrar</button>
-  </mat-dialog-actions>
+  <div class="mb-2">
+    <mat-dialog-actions class="mt-4 pb-2 w-full flex justify-end">
+      <button mat-flat-button color="primary" mat-dialog-close class="w-full">
+        Cerrar
+      </button>
+    </mat-dialog-actions>
+  </div>
 </div>

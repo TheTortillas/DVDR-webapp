@@ -58,7 +58,7 @@ registerLocaleData(localeEs);
   styleUrl: './sessions-dialog.component.scss',
 })
 export class SessionsDialogComponent {
-  displayedColumns: string[] = [
+  displayedColumns = [
     'period',
     'participants',
     'certificates',
@@ -66,6 +66,8 @@ export class SessionsDialogComponent {
     'status',
     'createdAt',
   ];
+  displayedColumnsWithExpand = [...this.displayedColumns, 'expand'];
+
   formatTime(time: string): string {
     const [hours, minutes] = time.split(':');
     const date = new Date();

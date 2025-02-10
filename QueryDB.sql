@@ -962,8 +962,8 @@ BEGIN
         JSON_ARRAYAGG(
             JSON_OBJECT(
                 'date', DATE_FORMAT(csh.date, '%Y-%m-%d'),
-                'start_time', TIME_FORMAT(csh.start_time, '%H:%i'),
-                'end_time', TIME_FORMAT(csh.end_time, '%H:%i')
+                'start', TIME_FORMAT(csh.start_time, '%H:%i'),
+                'end', TIME_FORMAT(csh.end_time, '%H:%i')
             )
         ) AS schedule
     FROM course_sessions cs
@@ -982,7 +982,6 @@ BEGIN
 
 END$$
 DELIMITER ;
-
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ LLENADO DE TABLAS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 INSERT INTO academic_categories (name) VALUES
 ('Ingeniería y Ciencias Físico-Matemáticas'),
@@ -1059,6 +1058,7 @@ CALL sp_insert_user('director_tampico', 'pass_tampico', 'Eduardo', 'Rojas', 'Pe�
 
 CALL sp_insert_user('admin_general', 'pass_admin', 'Luis', 'Fernández', 'Gómez', NULL, 'root');
 
+CALL sp_get_course_sessions(1);
 
 -- SELECT COUNT(*) FROM courses WHERE YEAR(created_at) = 2025;
 -- CALL sp_check_username('admin', @user_exists);
@@ -1066,6 +1066,7 @@ CALL sp_insert_user('admin_general', 'pass_admin', 'Luis', 'Fernández', 'Gómez
  SELECT * FROM courses;
  SELECT * FROM course_sessions;
  SELECT * FROM session_certificates_request_documentation;
+ SELECT * FROM course_schedules;
 -- SELECT * FROM course_schedules WHERE session_id = 2;
 /*
 UPDATE course_sessions 

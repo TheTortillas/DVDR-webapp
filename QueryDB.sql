@@ -1324,8 +1324,8 @@ ORDER BY u.username, c.created_at;
 
 /*
 UPDATE courses
-SET approval_status = 'approved'
-WHERE id = 1;
+SET approval_status = 'pending'
+WHERE id = 3;
 
 UPDATE courses
 SET status = 'submitted'

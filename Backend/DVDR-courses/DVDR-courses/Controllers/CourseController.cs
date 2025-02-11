@@ -189,6 +189,25 @@ namespace DVDR_courses.Controllers
                 return StatusCode(500, new { message = "Error interno del servidor", error = ex.Message });
             }
         }
+
+        [HttpPatch("ApproveOrRejectCourse")]
+        public IActionResult ApproveOrRejectCourse([FromBody] ApproveRejectDTO request)
+        {
+            if (request == null || request.CourseId <= 0 || string.IsNullOrEmpty(request.ApprovalStatus))
+                return BadRequest(new { message = "Datos inválidos en la solicitud." });
+
+            var dbManager = new DBManager(_config);
+            var (statusCode, message) = dbManager.UpdateCourseApprovalStatus(
+                request.CourseId,
+                request.ApprovalStatus,
+                request.AdminNotes
+            );
+
+            if (statusCode == 1)
+                return Ok(new { message });
+            else
+                return StatusCode(500, new { message });
+        }
     }
 }
 

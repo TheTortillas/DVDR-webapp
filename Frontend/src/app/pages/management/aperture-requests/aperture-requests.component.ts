@@ -55,11 +55,12 @@ export class ApertureRequestsComponent implements OnInit {
   loadPendingCourses() {
     this.coursesService.getAllCourses().subscribe({
       next: (response) => {
-        // Filtrar los cursos con status submitted y approvalStatus pending
+        // Filtra cursos con status 'submitted' y que no tengan 'approved' ni 'rejected'
         const filteredCourses = response.filter(
           (course) =>
             course.status === 'submitted' &&
-            course.approvalStatus !== 'approved'
+            course.approvalStatus !== 'approved' &&
+            course.approvalStatus !== 'rejected'
         );
 
         this.dataSource = new MatTableDataSource<CourseFullData>(
@@ -157,12 +158,19 @@ export class ApertureRequestsComponent implements OnInit {
       cancelButtonText: 'Cancelar',
     }).then((result) => {
       if (result.isConfirmed) {
-        // Aquí iría la lógica para aprobar el curso en el backend
-        Swal.fire(
-          '¡Aprobado!',
-          'Curso aprobado y listo para solicitar aperturas',
-          'success'
-        );
+        this.coursesService
+          .approveOrRejectCourse(courseId, 'approved')
+          .subscribe({
+            next: (response) => {
+              Swal.fire(
+                '¡Aprobado!',
+                'Curso aprobado y listo para solicitar aperturas',
+                'success'
+              );
+              this.loadPendingCourses();
+            },
+            error: (error) => console.error(error),
+          });
         this.loadPendingCourses(); // Recargar la lista
       }
     });
@@ -188,14 +196,20 @@ export class ApertureRequestsComponent implements OnInit {
         console.log('Mensaje de rechazo:', rejectionMessage);
         console.log('ID del curso rechazado:', courseId);
 
-        // Aquí iría la lógica para rechazar el curso en el backend
-        // Podrías enviar el rejectionMessage junto con el courseId
+        this.coursesService
+          .approveOrRejectCourse(courseId, 'rejected', rejectionMessage)
+          .subscribe({
+            next: (response) => {
+              Swal.fire(
+                'Rechazado',
+                'El curso ha sido rechazado y se ha enviado la retroalimentación',
+                'info'
+              );
+              this.loadPendingCourses();
+            },
+            error: (error) => console.error(error),
+          });
 
-        Swal.fire(
-          'Rechazado',
-          'El curso ha sido rechazado y se ha enviado la retroalimentación',
-          'info'
-        );
         this.loadPendingCourses();
       }
     });

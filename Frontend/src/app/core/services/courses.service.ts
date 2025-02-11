@@ -113,4 +113,18 @@ export class CoursesService {
     const url = this.URLBase + `/api/Course/GetCourseSessions/${courseId}`;
     return this.httpClient.get<CourseSession[]>(url);
   }
+
+  approveOrRejectCourse(
+    courseId: number,
+    approvalStatus: 'approved' | 'rejected',
+    adminNotes?: string
+  ): Observable<any> {
+    const url = this.URLBase + '/api/Course/ApproveOrRejectCourse';
+    const body = {
+      courseId,
+      approvalStatus,
+      adminNotes,
+    };
+    return this.httpClient.patch(url, body);
+  }
 }

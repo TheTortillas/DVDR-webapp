@@ -998,5 +998,39 @@ namespace DVDR_courses
                 return null;
             }
         }
+
+        public (int statusCode, string message) UpdateCourseApprovalStatus(int courseId, string approvalStatus, string? adminNotes = null)
+        {
+            try
+            {
+                using (var con = new MySqlConnection(_config.GetConnectionString("default")))
+                {
+                    con.Open();
+                    var sql = @"
+                UPDATE courses
+                SET approval_status = @approvalStatus,
+                    admin_notes = @adminNotes
+                WHERE id = @courseId;";
+
+                    using (var cmd = new MySqlCommand(sql, con))
+                    {
+                        cmd.Parameters.AddWithValue("@approvalStatus", approvalStatus);
+                        cmd.Parameters.AddWithValue("@adminNotes", adminNotes ?? (object)DBNull.Value);
+                        cmd.Parameters.AddWithValue("@courseId", courseId);
+
+                        var rowsAffected = cmd.ExecuteNonQuery();
+                        if (rowsAffected > 0)
+                            return (1, $"Curso {approvalStatus} exitosamente.");
+                        else
+                            return (0, "No se encontró el curso para actualizar.");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error en UpdateCourseApprovalStatus: {ex.Message}");
+                return (0, "Error al actualizar el estado de aprobación.");
+            }
+        }
     }
 }

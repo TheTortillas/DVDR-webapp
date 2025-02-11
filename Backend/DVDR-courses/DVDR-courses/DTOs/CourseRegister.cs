@@ -51,6 +51,8 @@
         public DateTime ExpirationDate { get; set; }
         public bool IsRenewed { get; set; }
         public DateTime CreatedAt { get; set; } // Incluir la fecha de creación
+        public string Status { get; set; } // Incluir el status
+        public string ApprovalStatus { get; set; } // Incluir el approval_status
     }
 
     public class DocumentResponse

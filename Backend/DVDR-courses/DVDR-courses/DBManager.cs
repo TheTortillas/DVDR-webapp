@@ -693,6 +693,8 @@ namespace DVDR_courses
                                 RenewalCount = reader.GetInt32("renewal_count"),
                                 ParentCourseId = reader.IsDBNull("parent_course_id") ? (int?)null : reader.GetInt32("parent_course_id"),
                                 CreatedAt = reader.GetDateTime("created_at"), // Leer la fecha de creación
+                                Status = reader.GetString("status"), // Leer el status
+                                ApprovalStatus = reader.GetString("approval_status"), // Leer el approval_status
                                 Documents = new List<DocumentResponse>()
                             };
 
@@ -856,7 +858,7 @@ namespace DVDR_courses
                                         Participantes = reader.GetInt32("participantes"),
                                         Constancias = reader.GetInt32("constancias"),
                                         Estatus = reader.GetString("estatus"),
-                                        CertificatesRequested = reader.GetBoolean("certificates_requested") 
+                                        CertificatesRequested = reader.GetBoolean("certificates_requested")
                                     });
                                 }
                             }

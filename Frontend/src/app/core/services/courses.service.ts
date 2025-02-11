@@ -26,6 +26,8 @@ export interface CourseFullData {
   expirationDate: string;
   isRenewed: boolean;
   createdAt: string;
+  status: string;
+  approvalStatus: string;
 }
 
 export interface CourseInfo {

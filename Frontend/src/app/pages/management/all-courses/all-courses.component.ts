@@ -58,13 +58,20 @@ export class AllCoursesComponent implements OnInit {
   loadAllCourses() {
     this.coursesService.getAllCourses().subscribe({
       next: (response) => {
-        // Cargar dataSource con MatTableDataSource
-        this.dataSource = new MatTableDataSource<CourseFullData>(response);
+        // Filtrar los cursos según status y approvalStatus
+        const filteredCourses = response.filter(
+          (course) =>
+            course.status === 'submitted' &&
+            course.approvalStatus === 'approved'
+        );
+
+        // Cargar dataSource con los cursos filtrados
+        this.dataSource = new MatTableDataSource<CourseFullData>(
+          filteredCourses
+        );
         // Asignar paginador
         this.dataSource.paginator = this.paginator;
-        // Asignar tamaño de página
-        // this.paginator.pageSize = this.pageSize;
-        console.log('Cursos cargados:', response);
+        console.log('Cursos filtrados cargados:', filteredCourses);
       },
       error: (error) => {
         console.error('Error al cargar los cursos:', error);

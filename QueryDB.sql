@@ -723,6 +723,8 @@ BEGIN
         c.renewal_count,
         c.parent_course_id,
         c.created_at, -- Incluir la fecha de creación
+        c.status, -- Incluir el status
+        c.approval_status, -- Incluir el approval_status
         u.username AS created_by
     FROM courses c
     JOIN users u ON c.user_id = u.id;
@@ -947,7 +949,7 @@ DELIMITER ;
 DELIMITER $$
 CREATE PROCEDURE sp_get_course_sessions(
     IN p_course_id INT
-)
+)  
 BEGIN
     -- Obtener información de las sesiones del curso
     SELECT 

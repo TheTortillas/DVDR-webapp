@@ -1,0 +1,20 @@
+.mat-mdc-badge .mdc-badge {
+    min-width: 22px;
+    height: 22px;
+    padding: 0 6px;
+    font-size: 12px;
+    line-height: 22px;
+  }
+
+
+  .mat-badge-content {
+    width: auto;
+    display: grid;
+    min-width: 32px;
+    min-height: 28px;
+    text-align: center;
+    align-items: center;
+    padding: 5px 3px;
+    top: -20px;
+    right: -22px;
+}

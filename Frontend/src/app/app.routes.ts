@@ -19,6 +19,7 @@ import { RequestCertificatesComponent } from './pages/profile/request-certificat
 import { ManagementComponent } from './pages/management/management.component';
 import { ManagementDashboardComponent } from './pages/management/dashboard/dashboard.component';
 import { AllCoursesComponent } from './pages/management/all-courses/all-courses.component';
+import { ApertureRequestsComponent } from './pages/management/aperture-requests/aperture-requests.component';
 
 export const routes: Routes = [
   {
@@ -74,6 +75,10 @@ export const routes: Routes = [
       {
         path: 'all-courses', // Add this new route
         component: AllCoursesComponent,
+      },
+      {
+        path: 'aperture-requests',
+        component: ApertureRequestsComponent,
       },
       {
         path: '',

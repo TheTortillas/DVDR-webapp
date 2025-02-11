@@ -14,9 +14,10 @@ import {
   CoursesService,
   CourseFullData,
 } from '../../../core/services/courses.service';
+import Swal from 'sweetalert2';
 
 @Component({
-  selector: 'app-all-courses',
+  selector: 'app-aperture-requests',
   standalone: true,
   imports: [
     CommonModule,
@@ -25,25 +26,21 @@ import {
     MatTooltipModule,
     MatPaginatorModule,
   ],
-  templateUrl: './all-courses.component.html',
-  styleUrl: './all-courses.component.scss',
+  templateUrl: './aperture-requests.component.html',
+  styleUrl: './aperture-requests.component.scss',
 })
-export class AllCoursesComponent implements OnInit {
+export class ApertureRequestsComponent implements OnInit {
   displayedColumns: string[] = [
     'nombreCurso',
     'claveCurso',
     'datosGenerales',
     'instructores',
     'documentacion',
-    'sesiones',
+    'acciones',
   ];
-  // Cambia el tipo de dataSource a MatTableDataSource
+
   dataSource: MatTableDataSource<CourseFullData> =
     new MatTableDataSource<CourseFullData>([]);
-
-  // Variable para asignar el tamaño de página
-  pageSize = 2;
-
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
   constructor(
@@ -52,26 +49,23 @@ export class AllCoursesComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    this.loadAllCourses();
+    this.loadPendingCourses();
   }
 
-  loadAllCourses() {
+  loadPendingCourses() {
     this.coursesService.getAllCourses().subscribe({
       next: (response) => {
-        // Filtrar los cursos según status y approvalStatus
+        // Filtrar los cursos con status submitted y approvalStatus pending
         const filteredCourses = response.filter(
           (course) =>
             course.status === 'submitted' &&
-            course.approvalStatus === 'approved'
+            course.approvalStatus !== 'approved'
         );
 
-        // Cargar dataSource con los cursos filtrados
         this.dataSource = new MatTableDataSource<CourseFullData>(
           filteredCourses
         );
-        // Asignar paginador
         this.dataSource.paginator = this.paginator;
-        console.log('Cursos filtrados cargados:', filteredCourses);
       },
       error: (error) => {
         console.error('Error al cargar los cursos:', error);
@@ -79,10 +73,9 @@ export class AllCoursesComponent implements OnInit {
     });
   }
 
+  // Mantener los métodos de diálogo existentes
   openGeneralDataDialog(courseId: number) {
-    const course = this.dataSource.data.find(
-      (c: CourseFullData) => c.courseId === courseId
-    );
+    const course = this.dataSource.data.find((c) => c.courseId === courseId);
     if (course) {
       this.dialog.open(GeneralInfoDialogComponent, {
         width: '50%',
@@ -96,9 +89,7 @@ export class AllCoursesComponent implements OnInit {
   }
 
   openInstructorsDialog(courseId: number) {
-    const course = this.dataSource.data.find(
-      (c: CourseFullData) => c.courseId === courseId
-    );
+    const course = this.dataSource.data.find((c) => c.courseId === courseId);
     if (course) {
       this.dialog.open(ActorsDialogComponent, {
         width: '40%',
@@ -115,9 +106,7 @@ export class AllCoursesComponent implements OnInit {
   }
 
   openDocumentationDialog(courseId: number) {
-    const course = this.dataSource.data.find(
-      (c: CourseFullData) => c.courseId === courseId
-    );
+    const course = this.dataSource.data.find((c) => c.courseId === courseId);
     if (course) {
       this.dialog.open(DocumentationDialogComponent, {
         width: '40%',
@@ -134,9 +123,7 @@ export class AllCoursesComponent implements OnInit {
   }
 
   openSessionsDialog(courseId: number) {
-    const course = this.dataSource.data.find(
-      (c: CourseFullData) => c.courseId === courseId
-    );
+    const course = this.dataSource.data.find((c) => c.courseId === courseId);
     if (course) {
       this.coursesService.getCourseSessions(courseId).subscribe({
         next: (sessions) => {
@@ -157,5 +144,60 @@ export class AllCoursesComponent implements OnInit {
         },
       });
     }
+  }
+
+  // Nuevos métodos para aprobar y rechazar cursos
+  approveCourse(courseId: number) {
+    Swal.fire({
+      title: '¿Estás seguro?',
+      text: '¿Deseas aprobar este curso?',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Sí, aprobar',
+      cancelButtonText: 'Cancelar',
+    }).then((result) => {
+      if (result.isConfirmed) {
+        // Aquí iría la lógica para aprobar el curso en el backend
+        Swal.fire(
+          '¡Aprobado!',
+          'Curso aprobado y listo para solicitar aperturas',
+          'success'
+        );
+        this.loadPendingCourses(); // Recargar la lista
+      }
+    });
+  }
+
+  rejectCourse(courseId: number) {
+    Swal.fire({
+      title: 'Rechazar curso',
+      text: 'Por favor, ingresa las notas para la corrección del curso:',
+      input: 'textarea',
+      showCancelButton: true,
+      confirmButtonText: 'Rechazar',
+      cancelButtonText: 'Cancelar',
+      inputValidator: (value) => {
+        if (!value) {
+          return 'Debes escribir un mensaje de retroalimentación';
+        }
+        return null;
+      },
+    }).then((result) => {
+      if (result.isConfirmed && result.value) {
+        const rejectionMessage: string = result.value;
+        console.log('Mensaje de rechazo:', rejectionMessage);
+        console.log('ID del curso rechazado:', courseId);
+
+        // Aquí iría la lógica para rechazar el curso en el backend
+        // Podrías enviar el rejectionMessage junto con el courseId
+
+        Swal.fire(
+          'Rechazado',
+          'El curso ha sido rechazado y se ha enviado la retroalimentación',
+          'info'
+        );
+        this.loadPendingCourses();
+      }
+    });
   }
 }

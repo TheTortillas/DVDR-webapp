@@ -6,10 +6,10 @@ import { MatTableDataSource } from '@angular/material/table';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialog } from '@angular/material/dialog';
-import { DocumentationDialogComponent } from './documentation-dialog/documentation-dialog.component';
-import { GeneralInfoDialogComponent } from './general-info-dialog/general-info-dialog.component';
-import { ActorsDialogComponent } from './actors-dialog/actors-dialog.component';
-import { SessionsDialogComponent } from './sessions-dialog/sessions-dialog.component';
+import { DocumentationDialogComponent } from '../../../shared/components/course-data-dialogs/documentation-dialog/documentation-dialog.component';
+import { GeneralInfoDialogComponent } from '../../../shared/components/course-data-dialogs/general-info-dialog/general-info-dialog.component';
+import { ActorsDialogComponent } from '../../../shared/components/course-data-dialogs/actors-dialog/actors-dialog.component';
+import { SessionsDialogComponent } from '../../../shared/components/course-data-dialogs/sessions-dialog/sessions-dialog.component';
 import {
   CoursesService,
   CourseFullData,

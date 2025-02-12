@@ -834,7 +834,9 @@ BEGIN
         c.course_name AS title,
         c.course_key AS clave,
         c.renewal_count,
-        c.expiration_date
+        c.expiration_date,
+        c.status AS course_status,  -- Añadir esta línea
+        c.approval_status AS approval_status  -- Añadir esta línea
     FROM courses c
     WHERE c.user_id = v_user_id
     ORDER BY c.course_name, c.renewal_count;
@@ -847,7 +849,7 @@ BEGIN
         cs.number_of_participants AS participantes,
         cs.number_of_certificates AS constancias,
         cs.status AS estatus,
-        cs.certificates_requested AS certificates_requested  -- Añadir esta línea
+        cs.certificates_requested AS certificates_requested
     FROM course_sessions cs
     JOIN courses c ON cs.course_id = c.id
     WHERE c.user_id = v_user_id

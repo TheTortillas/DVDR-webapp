@@ -8,14 +8,24 @@
       <mat-accordion>
         <ng-container *ngFor="let course of courses">
           <mat-expansion-panel
+            [disabled]="course.approvalStatus === 'rejected'"
             (opened)="panelOpenState.set(true)"
             (closed)="panelOpenState.set(false)"
           >
             <mat-expansion-panel-header>
-              <mat-panel-title>{{ course.title }}</mat-panel-title>
-              <!-- <mat-panel-description>
-                Currently I am {{ panelOpenState() ? "open" : "closed" }}
-              </mat-panel-description> -->
+              <mat-panel-title class="flex items-center justify-between w-full">
+                <span>{{ course.title }}</span>
+                <button
+                  *ngIf="course.approvalStatus === 'rejected'"
+                  mat-icon-button
+                  color="warn"
+                  class="warning-button"
+                  matTooltip="Atender correcciones"
+                  (click)="$event.stopPropagation()"
+                >
+                  <mat-icon>warning</mat-icon>
+                </button>
+              </mat-panel-title>
             </mat-expansion-panel-header>
             <table mat-table [dataSource]="course.dataSource">
               <ng-container matColumnDef="no">

@@ -73,6 +73,25 @@ export interface ScheduleEntry {
   end: string;
 }
 
+// Interface para los cursos con sus sesiones
+export interface CourseWithSessionsResponse {
+  title: string; // Nombre del curso
+  courseKeys: string[]; // Claves de los cursos (incluyendo renovaciones)
+  sessions: SessionResponse[]; // Lista de sesiones del curso y sus renovaciones
+  courseStatus: string; // Estatus del curso
+  approvalStatus: string; // Estatus de aprobación del curso
+}
+
+export interface SessionResponse {
+  id: number; // Id de la sesión
+  clave: string; // Clave del curso al que pertenece la sesión
+  periodo: string; // Periodo de la sesión (Ene 2025 - Mar 2025)
+  participantes: number; // Número de participantes en la sesión
+  constancias: number; // Número de constancias entregadas
+  estatus: string; // Estatus de la sesión (waiting, opened, concluded)
+  certificatesRequested: boolean; // Estatus de la solicitud de certificados (waiting, opened, concluded)
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -103,10 +122,12 @@ export class CoursesService {
     return this.httpClient.get<CourseFullData[]>(url);
   }
 
-  getUserCoursesWithSessions(username: string): Observable<any> {
+  getUserCoursesWithSessions(
+    username: string
+  ): Observable<CourseWithSessionsResponse[]> {
     const url =
       this.URLBase + '/api/Course/UserCoursesWithSessions?username=' + username;
-    return this.httpClient.get(url);
+    return this.httpClient.get<CourseWithSessionsResponse[]>(url);
   }
 
   getCourseSessions(courseId: number): Observable<CourseSession[]> {

@@ -831,7 +831,9 @@ namespace DVDR_courses
                             {
                                 Title = title,
                                 CourseKeys = new List<string> { reader.GetString("clave") },
-                                Sessions = new List<SessionResponse>()
+                                Sessions = new List<SessionResponse>(),
+                                CourseStatus = reader.GetString("course_status"), // Asignar el estatus del curso
+                                ApprovalStatus = reader.GetString("approval_status") // Asignar el estatus de aprobación
                             };
                         }
                         else
@@ -863,7 +865,6 @@ namespace DVDR_courses
                                 }
                             }
                         }
-
                     }
 
                     courses = courseMap.Values.ToList();

@@ -75,6 +75,7 @@ export interface ScheduleEntry {
 
 // Interface para los cursos con sus sesiones
 export interface CourseWithSessionsResponse {
+  id: number; // Id del curso
   title: string; // Nombre del curso
   courseKeys: string[]; // Claves de los cursos (incluyendo renovaciones)
   sessions: SessionResponse[]; // Lista de sesiones del curso y sus renovaciones

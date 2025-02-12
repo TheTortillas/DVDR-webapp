@@ -610,6 +610,9 @@ namespace DVDR_courses
                                 ExpirationDate = reader.GetDateTime("expiration_date"),
                                 RenewalCount = reader.GetInt32("renewal_count"),
                                 ParentCourseId = reader.IsDBNull("parent_course_id") ? (int?)null : reader.GetInt32("parent_course_id"),
+                                Status = reader.GetString("status"),
+                                ApprovalStatus = reader.GetString("approval_status"),
+                                AdminNotes = reader.IsDBNull("admin_notes") ? null : reader.GetString("admin_notes"),
                                 Documents = new List<DocumentResponse>() // Se llenará en la siguiente lectura
                             };
                         }
@@ -829,6 +832,7 @@ namespace DVDR_courses
                         {
                             courseMap[title] = new CourseWithSessionsResponse
                             {
+                                Id = reader.GetInt32("course_id"),
                                 Title = title,
                                 CourseKeys = new List<string> { reader.GetString("clave") },
                                 Sessions = new List<SessionResponse>(),

@@ -6,6 +6,7 @@ import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { CoursesService } from '../../../core/services/courses.service';
 import { MatIconModule } from '@angular/material/icon';
+import { Router } from '@angular/router';
 
 interface Session {
   clave: string;
@@ -16,6 +17,7 @@ interface Session {
 }
 
 interface Course {
+  id: number;
   title: string;
   dataSource: Session[];
   approvalStatus: string;
@@ -47,7 +49,7 @@ export class MyCoursesComponent implements OnInit {
   ];
   courses: Course[] = [];
 
-  constructor(private coursesService: CoursesService) {}
+  constructor(private coursesService: CoursesService, private router: Router) {}
 
   ngOnInit() {
     this.loadCourses();
@@ -59,6 +61,7 @@ export class MyCoursesComponent implements OnInit {
         next: (response) => {
           if (Array.isArray(response)) {
             this.courses = response.map((course: any) => ({
+              id: course.id,
               title: course.title,
               dataSource: course.sessions.map((session: any) => ({
                 clave: session.clave,
@@ -81,5 +84,15 @@ export class MyCoursesComponent implements OnInit {
         },
       });
     }
+  }
+
+  onAttendCorrections(courseId: number, event: Event) {
+    event.stopPropagation(); // Prevenir que el panel se expanda
+    this.router.navigate(['/profile/course-register'], {
+      queryParams: {
+        courseId: courseId,
+        corrections: true,
+      },
+    });
   }
 }

@@ -21,7 +21,7 @@
                   color="warn"
                   class="warning-button"
                   matTooltip="Atender correcciones"
-                  (click)="$event.stopPropagation()"
+                  (click)="onAttendCorrections(course.id, $event)"
                 >
                   <mat-icon>warning</mat-icon>
                 </button>

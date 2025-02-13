@@ -44,8 +44,7 @@ namespace DVDR_courses.Controllers
 
             return Ok(result);
         }
-
-        [HttpPost("RefreshToken", Name = "PostRefreshToken")]
+  [HttpPost("RefreshToken", Name = "PostRefreshToken")]
         public IActionResult RefreshToken()
         {
             var authHeader = Request.Headers["Authorization"].ToString();
@@ -56,32 +55,13 @@ namespace DVDR_courses.Controllers
 
             var token = authHeader.Substring("Bearer ".Length).Trim();
 
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.UTF8.GetBytes(_config["JWTSettings:securityKey"]);
-
             try
             {
-                tokenHandler.ValidateToken(token, new TokenValidationParameters
-                {
-                    ValidateIssuer = true,
-                    ValidateAudience = true,
-                    ValidateIssuerSigningKey = true,
-                    ValidIssuer = _config["JWTSettings:validIssuer"],
-                    ValidAudience = _config["JWTSettings:validAudience"],
-                    IssuerSigningKey = new SymmetricSecurityKey(key),
-                    ClockSkew = TimeSpan.Zero // Evita márgenes de tiempo
-                }, out SecurityToken validatedToken);
-
-                var jwtToken = (JwtSecurityToken)validatedToken;
-                var username = jwtToken.Subject;
-
-                // Genera un nuevo token
                 var jwtService = new JwtService(_config);
-                var newToken = jwtService.GenerateToken(username);
-
+                var newToken = jwtService.RefreshToken(token);
                 return Ok(new { token = newToken });
             }
-            catch (Exception ex)
+            catch (SecurityTokenException ex)
             {
                 Console.WriteLine($"Error al validar el token: {ex.Message}");
                 return Unauthorized(new { message = "Token inválido o expirado." });

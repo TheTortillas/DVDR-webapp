@@ -1,10 +1,11 @@
 import { Component, OnInit } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { MatTableModule } from '@angular/material/table';
-import { CoursesService } from '../../../core/services/courses.service';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { ApertureStateService } from '../../../core/services/aperture-state.service';
+import { StorageService } from '../../../core/services/storage.service';
+import { CoursesService } from '../../../core/services/courses.service';
 
 interface Course {
   id: number;
@@ -27,30 +28,42 @@ interface Course {
 export class RequestApertureComponent implements OnInit {
   displayedColumns: string[] = ['no', 'title', 'clave', 'accion'];
   dataSource: Course[] = [];
-  username: string | null = localStorage.getItem('username');
+  username: string | null = null;
 
   constructor(
     private courseService: CoursesService,
     private router: Router,
     private route: ActivatedRoute,
-    private apertureState: ApertureStateService
+    private apertureState: ApertureStateService,
+    private storageService: StorageService
   ) {}
 
   ngOnInit() {
+    const token = this.storageService.getItem('token');
+
+    if (token) {
+      const claims = this.storageService.getTokenClaims(token);
+      if (claims) {
+        this.username = claims.username;
+        this.loadCourses();
+      } else {
+        console.error('No se pudieron obtener los claims del token');
+        this.router.navigate(['/auth/login']);
+      }
+    } else {
+      console.error('No hay token disponible');
+      this.router.navigate(['/auth/login']);
+    }
+  }
+
+  loadCourses() {
     if (this.username) {
       this.courseService.getCoursesByUser(this.username).subscribe({
         next: (courses: Course[]) => {
           this.dataSource = courses.filter((course) => {
-            console.log('Datasource:', course);
-            // No mostrar borradores
             if (course.status === 'draft') return false;
-
             const isExpired = this.isCursoExpirado(course);
-
-            // Si el curso está vencido y ya fue renovado, no mostrarlo
             if (isExpired && course.isRenewed) return false;
-
-            // En cualquier otro caso, mostrar el curso
             return true;
           });
         },

@@ -34,11 +34,25 @@ export class StorageService {
     }
   }
 
+  getTokenClaims(token: string) {
+    try {
+      const decoded: any = jwtDecode(token);
+      return {
+        username: decoded.username,
+        center: decoded.center,
+        role: decoded.role,
+      };
+    } catch (error) {
+      console.error('Token inválido:', error);
+      return null;
+    }
+  }
+
   isTokenValid(token: string): boolean {
     try {
-      const decodedToken: any = jwtDecode(token);
-      const currentTime = Math.floor(Date.now() / 1000); // Tiempo actual en segundos
-      return decodedToken.exp > currentTime;
+      const decoded: any = jwtDecode(token);
+      const currentTime = Math.floor(Date.now() / 1000);
+      return decoded.exp > currentTime;
     } catch (error) {
       console.error('Error al decodificar el token:', error);
       return false;

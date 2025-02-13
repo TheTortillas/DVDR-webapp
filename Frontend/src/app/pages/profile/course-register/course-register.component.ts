@@ -24,7 +24,7 @@ import {
 import { FilesService } from '../../../core/services/files.service';
 import { CoursesService } from '../../../core/services/courses.service';
 import Swal from 'sweetalert2';
-import { ApertureStateService } from '../../../core/services/aperture-state.service';
+import { StorageService } from '../../../core/services/storage.service';
 
 // Custom validator function
 function actorsValidator() {
@@ -67,6 +67,8 @@ export class CourseRegisterComponent implements OnInit {
   @ViewChild(UploadDocumentationComponent)
   private uploadDocChild!: UploadDocumentationComponent;
 
+  username: string | null = null;
+
   isRenewal: boolean = false;
   parentCourseId: number | null = null;
 
@@ -76,7 +78,7 @@ export class CourseRegisterComponent implements OnInit {
     private route: ActivatedRoute,
     private filesService: FilesService,
     private coursesService: CoursesService,
-    private apertureState: ApertureStateService
+    private storageService: StorageService
   ) {}
 
   firstFormGroup = this._formBuilder.group({
@@ -302,20 +304,34 @@ export class CourseRegisterComponent implements OnInit {
     }
 
     const formData = new FormData();
+    const token = this.storageService.getItem('token');
 
-    // Obtener el username del localStorage
-    const username = localStorage.getItem('username');
-    if (!username) {
+    if (!token) {
       Swal.fire({
         icon: 'error',
         title: 'Error',
-        text: 'No se encontró el nombre de usuario. Por favor, inicie sesión nuevamente.',
+        text: 'No se pudo obtener la información del usuario. Por favor, inicie sesión nuevamente.',
+      }).then(() => {
+        this.router.navigate(['/auth/login']);
       });
       return;
     }
-    // Generar carpeta aleatoria (aunque el backend ya la maneja, no afecta)
+
+    const claims = this.storageService.getTokenClaims(token);
+    if (!claims) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'No se pudo obtener la información del usuario. Por favor, inicie sesión nuevamente.',
+      }).then(() => {
+        this.router.navigate(['/auth/login']);
+      });
+      return;
+    }
+
     const folderName = Math.random().toString(36).substring(2, 15);
-    formData.append('Username', username);
+    // Usar el username de los claims
+    formData.append('Username', claims.username);
     formData.append('FolderName', folderName); // Opcional
 
     // Agregar información general del curso

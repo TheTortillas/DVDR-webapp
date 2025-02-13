@@ -5,6 +5,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { CoursesService } from '../../../core/services/courses.service';
+import { StorageService } from '../../../core/services/storage.service';
 import { MatIconModule } from '@angular/material/icon';
 import { Router } from '@angular/router';
 
@@ -39,7 +40,7 @@ interface Course {
 })
 export class MyCoursesComponent implements OnInit {
   readonly panelOpenState = signal(false);
-  username: string | null = localStorage.getItem('username');
+  username: string | null = null;
   displayedColumns: string[] = [
     'clave',
     'periodo',
@@ -49,10 +50,31 @@ export class MyCoursesComponent implements OnInit {
   ];
   courses: Course[] = [];
 
-  constructor(private coursesService: CoursesService, private router: Router) {}
+  constructor(
+    private coursesService: CoursesService,
+    private router: Router,
+    private storageService: StorageService
+  ) {}
 
   ngOnInit() {
-    this.loadCourses();
+    const token = this.storageService.getItem('token');
+
+    if (token) {
+      const claims = this.storageService.getTokenClaims(token);
+      if (claims) {
+        this.username = claims.username;
+        this.loadCourses();
+      } else {
+        console.error('No se pudieron obtener los claims del token');
+        this.router.navigate(['/auth/login']);
+      }
+    } else {
+      console.error('No hay token disponible');
+      this.router.navigate(['/auth/login']);
+    }
+    {
+      this.loadCourses();
+    }
   }
 
   loadCourses() {

@@ -18,6 +18,7 @@ import { AcademicBackgroundComponent } from './academic-background/academic-back
 import { WorkExperienceComponent } from './work-experience/work-experience.component';
 import { InstructorRegisterService } from '../../../core/services/instructor-register.service';
 import Swal from 'sweetalert2';
+import { StorageService } from '../../../core/services/storage.service';
 
 @Component({
   selector: 'app-instructor-register',
@@ -46,7 +47,10 @@ import Swal from 'sweetalert2';
 export class InstructorRegisterComponent {
   private _formBuilder = inject(FormBuilder);
 
-  constructor(private instructorRegisterService: InstructorRegisterService) {}
+  constructor(
+    private instructorRegisterService: InstructorRegisterService,
+    private storageService: StorageService
+  ) {}
 
   @ViewChild(GeneralInformationInstructorComponent)
   generalInfoCmp!: GeneralInformationInstructorComponent;
@@ -123,6 +127,26 @@ export class InstructorRegisterComponent {
       return;
     }
 
+    const token = this.storageService.getItem('token');
+    if (!token) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'No se encontró información de sesión.',
+      });
+      return;
+    }
+
+    const claims = this.storageService.getTokenClaims(token);
+    if (!claims) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'No se pudo obtener la información del usuario.',
+      });
+      return;
+    }
+
     const formData = new FormData();
 
     // Generar carpeta aleatoria
@@ -132,8 +156,9 @@ export class InstructorRegisterComponent {
     // Agregar información general
     const generalInfo = {
       ...this.firstFormGroup.value,
-      center: localStorage.getItem('center') || '',
+      center: claims.center, // Use center from claims instead of localStorage
     };
+
     formData.append('GeneralInfo.FirstName', generalInfo.firstName || '');
     formData.append('GeneralInfo.LastName', generalInfo.lastName || '');
     formData.append(

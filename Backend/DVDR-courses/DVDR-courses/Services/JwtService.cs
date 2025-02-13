@@ -58,5 +58,43 @@ namespace DVDR_courses.Services
             var token = tokenHandler.CreateToken(tokenDescriptor);
             return tokenHandler.WriteToken(tokenHandler.CreateToken(tokenDescriptor));
         }
+
+        public string RefreshToken(string token)
+        {
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var key = Encoding.UTF8.GetBytes(_config["JWTSettings:securityKey"]);
+
+            try
+            {
+                tokenHandler.ValidateToken(token, new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateIssuerSigningKey = true,
+                    ValidIssuer = _config["JWTSettings:validIssuer"],
+                    ValidAudience = _config["JWTSettings:validAudience"],
+                    IssuerSigningKey = new SymmetricSecurityKey(key),
+                    ClockSkew = TimeSpan.Zero // Evita márgenes de tiempo
+                }, out SecurityToken validatedToken);
+
+                var jwtToken = (JwtSecurityToken)validatedToken;
+                var username = jwtToken.Claims.First(x => x.Type == "username").Value;
+                var role = jwtToken.Claims.First(x => x.Type == "role").Value;
+                var center = jwtToken.Claims.First(x => x.Type == "center").Value;
+
+                var user = new User
+                {
+                    username = username,
+                    role = role,
+                    center = center
+                };
+
+                return CreateToken(user);
+            }
+            catch
+            {
+                throw new SecurityTokenException("Token inválido o expirado.");
+            }
+        }
     }
 }

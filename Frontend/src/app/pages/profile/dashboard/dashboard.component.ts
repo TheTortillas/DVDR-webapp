@@ -2,7 +2,8 @@ import { Component } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatIconModule } from '@angular/material/icon';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
+import { StorageService } from '../../../core/services/storage.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -15,9 +16,23 @@ export class DashboardComponent {
   username: string | null = '';
   center: string | null = '';
 
+  constructor(private storageService: StorageService, private router: Router) {}
+
   ngOnInit() {
-    // Obtener los datos del localStorage al cargar el componente
-    this.username = localStorage.getItem('username');
-    this.center = localStorage.getItem('center');
+    const token = this.storageService.getItem('token');
+
+    if (token) {
+      const claims = this.storageService.getTokenClaims(token);
+      if (claims) {
+        this.username = claims.username;
+        this.center = claims.center;
+      } else {
+        console.error('No se pudieron obtener los claims del token');
+        this.router.navigate(['/auth/login']);
+      }
+    } else {
+      console.error('No hay token disponible');
+      this.router.navigate(['/auth/login']);
+    }
   }
 }

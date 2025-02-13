@@ -26,6 +26,9 @@ export class ProfileComponent implements OnDestroy {
 
   private hasShownWarning = false; // Bandera para controlar la alerta
 
+  private username: string | null = null;
+  private center: string | null = null;
+
   constructor(
     private router: Router,
     private storageService: StorageService,
@@ -34,12 +37,21 @@ export class ProfileComponent implements OnDestroy {
   ) {}
 
   ngOnInit() {
-    const username = localStorage.getItem('username');
-    const center = localStorage.getItem('center');
-    // console.log('Usuario:', username, 'Centro:', center);
-    if (!username || !center) {
-      // Opcional: Manejo si no se encuentran datos
-      console.log('Datos no encontrados en localStorage.');
+    const token = this.storageService.getItem('token');
+
+    if (token) {
+      const claims = this.storageService.getTokenClaims(token);
+      if (claims) {
+        this.username = claims.username;
+        this.center = claims.center;
+        console.log('Usuario:', this.username, 'Centro:', this.center);
+      } else {
+        console.error('No se pudieron obtener los claims del token');
+        this.router.navigate(['/auth/login']);
+      }
+    } else {
+      console.error('No hay token disponible');
+      this.router.navigate(['/auth/login']);
     }
 
     this.startTokenValidation();

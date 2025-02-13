@@ -11,6 +11,7 @@ import { MatExpansionModule } from '@angular/material/expansion';
 import { CourseFullData } from '../../../core/services/courses.service';
 import { MatBadgeModule } from '@angular/material/badge';
 import { RouterLink } from '@angular/router';
+import { StorageService } from '../../../core/services/storage.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -33,10 +34,26 @@ export class ManagementDashboardComponent implements OnInit {
   username: string | null = '';
   pendingCoursesCount = 0;
 
-  constructor(private router: Router, private coursesService: CoursesService) {}
+  constructor(
+    private router: Router,
+    private coursesService: CoursesService,
+    private storageService: StorageService
+  ) {}
 
   ngOnInit(): void {
-    this.username = localStorage.getItem('username');
+    const token = this.storageService.getItem('token');
+
+    if (token) {
+      const claims = this.storageService.getTokenClaims(token);
+      if (claims) {
+        this.username = claims.username;
+      }
+    } else {
+      // Manejar el caso cuando no hay token
+      console.error('No hay token disponible');
+      this.router.navigate(['/auth/login']);
+    }
+
     this.loadPendingCoursesCount();
   }
 

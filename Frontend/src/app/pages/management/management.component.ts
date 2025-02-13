@@ -22,6 +22,8 @@ export class ManagementComponent implements OnDestroy {
   private readonly warningTimeInSeconds = 300; // 5 minutos de advertencia
   private hasShownWarning = false;
 
+  username: string | null = null;
+
   constructor(
     private router: Router,
     private storageService: StorageService,
@@ -30,10 +32,14 @@ export class ManagementComponent implements OnDestroy {
   ) {}
 
   ngOnInit() {
-    const username = localStorage.getItem('username');
+    const token = this.storageService.getItem('token');
 
-    if (!username) {
-      console.log('Datos no encontrados en localStorage.');
+    if (token) {
+      const claims = this.storageService.getTokenClaims(token);
+      if (claims) {
+        this.username = claims.username;
+        console.log('Username from claims:', this.username);
+      }
     }
 
     this.startTokenValidation();

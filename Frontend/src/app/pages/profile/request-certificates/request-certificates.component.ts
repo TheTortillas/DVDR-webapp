@@ -5,6 +5,8 @@ import { MatButtonModule } from '@angular/material/button';
 import { CoursesService } from '../../../core/services/courses.service';
 import { MatDialog } from '@angular/material/dialog';
 import { UploadCertificateDocsComponent } from './upload-certificate-docs/upload-certificate-docs.component';
+import { Router } from '@angular/router';
+import { StorageService } from '../../../core/services/storage.service';
 
 @Component({
   selector: 'app-request-certificates',
@@ -14,17 +16,37 @@ import { UploadCertificateDocsComponent } from './upload-certificate-docs/upload
   styleUrls: ['./request-certificates.component.scss'],
 })
 export class RequestCertificatesComponent implements OnInit {
-  username: string | null = localStorage.getItem('username');
+  username: string | null = null;
   // Cada elemento representa una sesión completada con información del curso
   completedSessions: any[] = [];
   displayedColumns: string[] = ['title', 'clave', 'periodo', 'action'];
 
   constructor(
     private coursesService: CoursesService,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private storageService: StorageService,
+    private router: Router
   ) {}
 
   ngOnInit() {
+    const token = this.storageService.getItem('token');
+
+    if (token) {
+      const claims = this.storageService.getTokenClaims(token);
+      if (claims) {
+        this.username = claims.username;
+        this.loadCompletedSessions();
+      } else {
+        console.error('No se pudieron obtener los claims del token');
+        this.router.navigate(['/auth/login']);
+      }
+    } else {
+      console.error('No hay token disponible');
+      this.router.navigate(['/auth/login']);
+    }
+  }
+
+  loadCompletedSessions() {
     if (this.username) {
       this.coursesService.getUserCoursesWithSessions(this.username).subscribe({
         next: (response: any) => {
@@ -37,14 +59,13 @@ export class RequestCertificatesComponent implements OnInit {
                   clave: session.clave,
                   periodo: session.periodo,
                   session: session,
-                  sessionId: session.id, // Agregamos el id de la sesión,
+                  sessionId: session.id,
                   certificatesRequested: session.certificatesRequested,
                 });
               }
             });
           });
           this.completedSessions = sessions;
-          console.log('Sesiones completadas:', this.completedSessions); // Para debug
         },
         error: (err) => {
           console.error('Error al obtener cursos:', err);
@@ -52,6 +73,7 @@ export class RequestCertificatesComponent implements OnInit {
       });
     }
   }
+
   requestCertificate(item: any) {
     const dialogRef = this.dialog.open(UploadCertificateDocsComponent, {
       maxWidth: '100vh',

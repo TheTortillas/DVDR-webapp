@@ -1,8 +1,7 @@
-// src/app/core/services/aperture-state.service.ts
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 
-interface CourseInfo {
+interface ApertureInfo {
   id: number;
   title: string;
   clave: string;
@@ -14,24 +13,24 @@ interface CourseInfo {
   providedIn: 'root',
 })
 export class ApertureStateService {
-  private selectedCourse: CourseInfo | null = null;
+  private selectedAperture: ApertureInfo | null = null;
 
   constructor(private router: Router) {}
 
-  setCourseInfo(course: CourseInfo) {
-    this.selectedCourse = course;
+  setApertureInfo(Aperture: ApertureInfo) {
+    this.selectedAperture = Aperture;
   }
 
-  getCourseInfo(): CourseInfo | null {
-    return this.selectedCourse;
+  getApertureInfo(): ApertureInfo | null {
+    return this.selectedAperture;
   }
 
-  clearCourseInfo() {
-    this.selectedCourse = null;
+  clearApertureInfo() {
+    this.selectedAperture = null;
   }
 
   validateAccess(): boolean {
-    if (!this.selectedCourse) {
+    if (!this.selectedAperture) {
       this.router.navigate(['/profile/request-aperture']);
       return false;
     }

@@ -24,6 +24,7 @@ import {
 import { FilesService } from '../../../core/services/files.service';
 import { CoursesService } from '../../../core/services/courses.service';
 import Swal from 'sweetalert2';
+import { ApertureStateService } from '../../../core/services/aperture-state.service';
 
 // Custom validator function
 function actorsValidator() {
@@ -74,7 +75,8 @@ export class CourseRegisterComponent implements OnInit {
     private router: Router,
     private route: ActivatedRoute,
     private filesService: FilesService,
-    private coursesService: CoursesService
+    private coursesService: CoursesService,
+    private apertureState: ApertureStateService
   ) {}
 
   firstFormGroup = this._formBuilder.group({

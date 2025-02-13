@@ -62,7 +62,7 @@ export class RequestApertureComponent implements OnInit {
   }
 
   solicitarApertura(course: Course) {
-    this.apertureState.setCourseInfo({
+    this.apertureState.setApertureInfo({
       id: course.id,
       title: course.title,
       clave: course.clave,

@@ -87,7 +87,7 @@ export class ApertureInfoComponent {
       return;
     }
 
-    const courseInfo = this.apertureState.getCourseInfo();
+    const courseInfo = this.apertureState.getApertureInfo();
     if (courseInfo) {
       this.title = courseInfo.title;
       this.clave = courseInfo.clave;
@@ -97,7 +97,7 @@ export class ApertureInfoComponent {
 
   ngOnDestroy() {
     // Limpiar el estado al salir del componente
-    this.apertureState.clearCourseInfo();
+    this.apertureState.clearApertureInfo();
   }
 
   openDialog(

@@ -9,6 +9,7 @@
         public string last_name { get; set; } = String.Empty;
         public string second_last_name { get; set; } = String.Empty;
         public string center { get; set; } = String.Empty;
+        public string role { get; set; } = String.Empty;
         public DateTime created_at { get; set; } = DateTime.Now;
     }
 }

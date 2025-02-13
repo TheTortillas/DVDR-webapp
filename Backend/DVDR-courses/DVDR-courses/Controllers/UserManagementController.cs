@@ -1,4 +1,4 @@
-﻿using DVDR_courses.DTOs;
+﻿using DVDR_courses.DTOs.Auth;
 using DVDR_courses.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -35,7 +35,7 @@ namespace DVDR_courses.Controllers
         //}
 
         [HttpPost("SignIn", Name = "PostSignIn")]
-        public IActionResult SignIn([FromBody] UserSignIn usr)
+        public IActionResult SignIn([FromBody] LoginRequest usr)
         {
             var result = new DBManager(_config).sign_in(usr.username, usr.password);
 

@@ -1,4 +1,5 @@
 ﻿using DVDR_courses.DTOs;
+using DVDR_courses.DTOs.Auth;
 using DVDR_courses.Services;
 using MySql.Data.MySqlClient;
 using Newtonsoft.Json;
@@ -135,9 +136,15 @@ namespace DVDR_courses
                     if (isValid)
                     {
                         var jwtService = new JwtService(_config);
-                        string token = jwtService.GenerateToken(p_username);
+                        var user = new User
+                        {
+                            username = p_username,
+                            role = userRole,
+                            center = userCenter
+                        };
+                        string token = jwtService.CreateToken(user);
 
-                        return new { token, username = p_username, center = userCenter, role = userRole };
+                        return new AuthResponse { Token = token };
                     }
 
                     return null;
@@ -149,7 +156,6 @@ namespace DVDR_courses
                 return null;
             }
         }
-
 
         public List<string> get_academic_categories()
         {

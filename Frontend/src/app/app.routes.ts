@@ -20,6 +20,7 @@ import { ManagementComponent } from './pages/management/management.component';
 import { ManagementDashboardComponent } from './pages/management/dashboard/dashboard.component';
 import { AllCoursesComponent } from './pages/management/all-courses/all-courses.component';
 import { ApertureRequestsComponent } from './pages/management/aperture-requests/aperture-requests.component';
+import { CertificateRequestsComponent } from './pages/management/certificate-requests/certificate-requests.component';
 
 export const routes: Routes = [
   {
@@ -79,6 +80,10 @@ export const routes: Routes = [
       {
         path: 'aperture-requests',
         component: ApertureRequestsComponent,
+      },
+      {
+        path: 'certificate-requests',
+        component: CertificateRequestsComponent,
       },
       {
         path: '',

@@ -10,7 +10,7 @@
     </div>
   </div>
 
-  <mat-accordion multi>
+  <mat-accordion>
     <!-- Gestión de Usuarios -->
     <mat-expansion-panel>
       <mat-expansion-panel-header>
@@ -70,7 +70,7 @@
         <span>Gestión de Cursos</span>
       </mat-expansion-panel-header>
       <div class="flex flex-wrap -m-4">
-        <div class="xl:w-1/2 md:w-1/2 p-4">
+        <div class="xl:w-1/3 md:w-1/2 p-4">
           <div class="card bg-gray-100 p-6 rounded-lg">
             <h3
               class="tracking-widest text-blue-900 text-xs font-medium title-font"
@@ -96,7 +96,7 @@
             </a>
           </div>
         </div>
-        <div class="xl:w-1/2 md:w-1/2 p-4">
+        <div class="xl:w-1/3 md:w-1/2 p-4">
           <div class="card bg-gray-100 p-6 rounded-lg">
             <h3
               class="tracking-widest text-blue-900 text-xs font-medium title-font"
@@ -114,6 +114,27 @@
             >
               Ver cursos
               <mat-icon style="margin-left: 8px">visibility</mat-icon>
+            </a>
+          </div>
+        </div>
+        <div class="xl:w-1/3 md:w-1/2 p-4">
+          <div class="card bg-gray-100 p-6 rounded-lg">
+            <h3
+              class="tracking-widest text-blue-900 text-xs font-medium title-font"
+            >
+              Solicitudes de Constancias
+            </h3>
+            <p class="leading-relaxed text-base">
+              Gestiona las solicitudes de constancias de cursos.
+            </p>
+            <a
+              mat-flat-button
+              extended
+              routerLink="../certificate-requests"
+              class="w-full"
+            >
+              Ir a gestión
+              <mat-icon style="margin-left: 8px">arrow_right_alt</mat-icon>
             </a>
           </div>
         </div>

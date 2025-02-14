@@ -1063,7 +1063,7 @@ CALL sp_insert_user('director_oaxaca', 'pass_oaxaca', 'Héctor', 'Cruz', 'Mendoz
 CALL sp_insert_user('director_tijuana', 'pass_tijuana', 'Gabriela', 'Flores', 'Ramos', 'Centro de Vinculación y Desarrollo Regional Unidad Tijuana', 'user');
 CALL sp_insert_user('director_tampico', 'pass_tampico', 'Eduardo', 'Rojas', 'Peña', 'Centro de Vinculación y Desarrollo Regional Unidad Tampico', 'user');
 
-CALL sp_insert_user('admin_general', 'pass_admin', 'Luis', 'Fernández', 'Gómez', NULL, 'root');
+CALL sp_insert_user('admin', 'pass_admin', 'Luis', 'Fernández', 'Gómez', NULL, 'root');
 
 CALL sp_get_course_sessions(1);
 

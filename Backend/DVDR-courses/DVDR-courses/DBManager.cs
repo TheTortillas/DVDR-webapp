@@ -844,6 +844,7 @@ namespace DVDR_courses
                                 Sessions = new List<SessionResponse>(),
                                 CourseStatus = reader.GetString("course_status"), // Asignar el estatus del curso
                                 ApprovalStatus = reader.GetString("approval_status") // Asignar el estatus de aprobación
+
                             };
                         }
                         else
@@ -870,7 +871,8 @@ namespace DVDR_courses
                                         Participantes = reader.GetInt32("participantes"),
                                         Constancias = reader.GetInt32("constancias"),
                                         Estatus = reader.GetString("estatus"),
-                                        CertificatesRequested = reader.GetBoolean("certificates_requested")
+                                        CertificatesRequested = reader.GetBoolean("certificates_requested"),
+                                        CertificatesDelivered = reader.GetBoolean("certificates_delivered")
                                     });
                                 }
                             }
@@ -1174,6 +1176,51 @@ namespace DVDR_courses
             {
                 Console.WriteLine($"Error: {ex.Message}");
                 return null;
+            }
+        }
+
+        public object GetCertificateOfficialLetter(int sessionId)
+        {
+            try
+            {
+                using (var con = new MySqlConnection(_config.GetConnectionString("default")))
+                {
+                    string query = @"
+                SELECT 
+                    id,
+                    session_id,
+                    filePath,
+                    uploaded_at
+                FROM session_certificate_official_letter 
+                WHERE session_id = @sessionId
+                LIMIT 1";
+
+                    using (var cmd = new MySqlCommand(query, con))
+                    {
+                        cmd.Parameters.AddWithValue("@sessionId", sessionId);
+                        con.Open();
+
+                        using (var reader = cmd.ExecuteReader())
+                        {
+                            if (reader.Read())
+                            {
+                                return new
+                                {
+                                    Id = reader.GetInt32("id"),
+                                    SessionId = reader.GetInt32("session_id"),
+                                    FilePath = reader.GetString("filePath"),
+                                    UploadedAt = reader.GetDateTime("uploaded_at")
+                                };
+                            }
+                        }
+                    }
+                }
+                return null;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+                throw;
             }
         }
     }

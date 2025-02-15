@@ -25,9 +25,21 @@
         <ng-container matColumnDef="action">
           <th mat-header-cell *matHeaderCellDef>Acción</th>
           <td mat-cell *matCellDef="let element">
+            <!-- Mostrar icono para ver constancia si ya está entregada -->
+            <button
+              mat-icon-button
+              *ngIf="element.certificatesDelivered"
+              (click)="viewCertificateLetter(element.sessionId)"
+              matTooltip="Ver oficio de constancias"
+            >
+              <mat-icon>description</mat-icon>
+            </button>
+
+            <!-- Mostrar botón de solicitud si no está entregada -->
             <button
               mat-button
               color="primary"
+              *ngIf="!element.certificatesDelivered"
               (click)="requestCertificate(element)"
               [disabled]="element.certificatesRequested"
               [ngClass]="{

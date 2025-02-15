@@ -6,3 +6,19 @@ td, th {
 .mat-sort-header-container {
     justify-content: center !important;
 }
+
+mat-icon {
+    font-size: 24px;
+    cursor: pointer;
+    transition: color 0.3s ease;
+  }
+  
+  button[mat-icon-button] {
+    transition: all 0.3s ease;
+    
+    &:hover {
+      mat-icon {
+        color: #1976d2; // Color primario de Material
+      }
+    }
+  }

@@ -164,7 +164,7 @@ CREATE TABLE course_sessions (
     number_of_participants INT NOT NULL, -- Número de personas que tomaron el curso
     number_of_certificates INT NOT NULL, -- Constancias entregadas
     cost DECIMAL(10,2) NOT NULL DEFAULT 0,  -- Costo unitario del curso
-    status ENUM('pending', 'opened', 'completed') NOT NULL DEFAULT 'pending', -- Estatus del curso (Aperturado, Concluido, En espera)
+    status ENUM('pending', 'opened', 'completed') NOT NULL DEFAULT 'opened', -- Estatus del curso (Aperturado, Concluido, En espera)
     certificates_requested TINYINT(1) DEFAULT 0,
     certificates_delivered TINYINT(1) DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -862,7 +862,8 @@ BEGIN
         cs.number_of_participants AS participantes,
         cs.number_of_certificates AS constancias,
         cs.status AS estatus,
-        cs.certificates_requested AS certificates_requested
+        cs.certificates_requested AS certificates_requested,
+        cs.certificates_delivered AS certificates_delivered
     FROM course_sessions cs
     JOIN courses c ON cs.course_id = c.id
     WHERE c.user_id = v_user_id
@@ -1074,6 +1075,45 @@ BEGIN
 END$$
 DELIMITER ;
 
+DELIMITER $$
+CREATE PROCEDURE sp_update_course_sessions_status()
+BEGIN
+    -- Actualizar el estado de las sesiones basado en la última fecha programada
+    UPDATE course_sessions cs
+    INNER JOIN (
+        -- Subconsulta para obtener la última fecha de cada sesión
+        SELECT 
+            session_id,
+            MAX(date) as last_session_date
+        FROM course_schedules
+        GROUP BY session_id
+    ) last_dates ON cs.id = last_dates.session_id
+    SET 
+        cs.status = 'completed'
+    WHERE 
+        -- Solo actualizar si:
+        -- 1. La última fecha es anterior a hoy
+        last_dates.last_session_date < CURDATE()
+        -- 2. El estado actual es 'opened'
+        AND cs.status = 'opened';
+        
+    -- Opcional: Retornar el número de sesiones actualizadas
+    SELECT 
+        CONCAT(ROW_COUNT(), ' sesiones han sido actualizadas a completed') as result;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE EVENT event_update_course_sessions_status
+ON SCHEDULE EVERY 1 DAY
+STARTS CURRENT_TIMESTAMP
+DO
+BEGIN
+    CALL sp_update_course_sessions_status();
+END$$
+DELIMITER ;
+
+SET GLOBAL event_scheduler = ON;
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ LLENADO DE TABLAS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 INSERT INTO academic_categories (name) VALUES
 ('Ingeniería y Ciencias Físico-Matemáticas'),
@@ -1422,7 +1462,7 @@ UPDATE courses
 SET status = 'submitted'
 WHERE id = 3;
 */
-
+truncate table session_certificate_official_letter;
 UPDATE course_sessions SET certificates_delivered = 0 WHERE id = 1;
 
 /*

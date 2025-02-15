@@ -91,6 +91,7 @@ export interface SessionResponse {
   constancias: number; // Número de constancias entregadas
   estatus: string; // Estatus de la sesión (waiting, opened, concluded)
   certificatesRequested: boolean; // Estatus de la solicitud de certificados (waiting, opened, concluded)
+  certificatesDelivered: boolean; // Estatus de la entrega de certificados (waiting, opened, concluded)
 }
 
 export interface DocumentResponse {
@@ -118,6 +119,13 @@ export interface UploadCertificateOfficialLetter {
   sessionId: number;
   certificatesCount: number;
   file: File;
+}
+
+export interface CertificateOfficialLetterResponse {
+  id: number;
+  sessionId: number;
+  filePath: string;
+  uploadedAt: string;
 }
 
 @Injectable({
@@ -189,5 +197,13 @@ export class CoursesService {
   ): Observable<UploadCertificateOfficialLetter> {
     const url = this.URLBase + '/api/Course/UploadCertificateOfficialLetter';
     return this.httpClient.post<UploadCertificateOfficialLetter>(url, formData);
+  }
+
+  getCertificateOfficialLetter(
+    sessionId: number
+  ): Observable<CertificateOfficialLetterResponse> {
+    const url =
+      this.URLBase + `/api/Course/GetCertificateOfficialLetter/${sessionId}`;
+    return this.httpClient.get<CertificateOfficialLetterResponse>(url);
   }
 }

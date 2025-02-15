@@ -7,11 +7,12 @@ import { MatDialog } from '@angular/material/dialog';
 import { UploadCertificateDocsComponent } from './upload-certificate-docs/upload-certificate-docs.component';
 import { Router } from '@angular/router';
 import { StorageService } from '../../../core/services/storage.service';
+import { MatIcon } from '@angular/material/icon';
 
 @Component({
   selector: 'app-request-certificates',
   standalone: true,
-  imports: [CommonModule, MatTableModule, MatButtonModule],
+  imports: [CommonModule, MatTableModule, MatButtonModule, MatIcon],
   templateUrl: './request-certificates.component.html',
   styleUrls: ['./request-certificates.component.scss'],
 })
@@ -61,6 +62,7 @@ export class RequestCertificatesComponent implements OnInit {
                   session: session,
                   sessionId: session.id,
                   certificatesRequested: session.certificatesRequested,
+                  certificatesDelivered: session.certificatesDelivered,
                 });
               }
             });
@@ -101,6 +103,21 @@ export class RequestCertificatesComponent implements OnInit {
         }
         console.log('Documentos subidos:', result);
       }
+    });
+  }
+
+  viewCertificateLetter(sessionId: number) {
+    this.coursesService.getCertificateOfficialLetter(sessionId).subscribe({
+      next: (response) => {
+        // Asumiendo que filePath es una URL al documento
+        if (response.filePath) {
+          window.open(response.filePath, '_blank');
+        }
+      },
+      error: (error) => {
+        console.error('Error al obtener el oficio de constancias:', error);
+        // Aquí podrías mostrar un mensaje de error al usuario
+      },
     });
   }
 }

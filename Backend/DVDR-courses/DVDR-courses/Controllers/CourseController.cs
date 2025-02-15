@@ -238,7 +238,24 @@ namespace DVDR_courses.Controllers
 
             return StatusCode(result.statusCode, new { message = result.message });
         }
+        [HttpGet("GetCertificateOfficialLetter/{sessionId}")]
+        public IActionResult GetCertificateOfficialLetter(int sessionId)
+        {
+            try
+            {
+                var dbManager = new DBManager(_config);
+                var officialLetter = dbManager.GetCertificateOfficialLetter(sessionId);
 
+                if (officialLetter == null)
+                    return NotFound(new { message = "No se encontró el oficio de constancias para esta sesión" });
+
+                return Ok(officialLetter);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Error al obtener el oficio de constancias", error = ex.Message });
+            }
+        }
     }
 }
 

@@ -19,5 +19,6 @@
         public int Constancias { get; set; } // Número de constancias entregadas
         public string Estatus { get; set; } // Estatus de la sesión (waiting, opened, concluded)
         public bool CertificatesRequested { get; set; } // Estatus de la solicitud de certificados (waiting, opened, concluded)
+        public bool CertificatesDelivered { get; set; } // Estatus de la entrega de certificados (waiting, opened, concluded)
     }
 }

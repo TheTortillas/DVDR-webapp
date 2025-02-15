@@ -963,6 +963,71 @@ namespace DVDR_courses
             }
         }
 
+        public (int statusCode, string message) UploadCertificateOfficialLetter(UploadCertificateOfficialLetterDTO request)
+        {
+            try
+            {
+                using (var con = new MySqlConnection(_config.GetConnectionString("default")))
+                {
+                    con.Open();
+
+                    // Crear carpeta para la sesión si no existe
+                    var sessionFolder = Guid.NewGuid().ToString();
+                    var basePath = Path.Combine("assets", "files", "certificate-official-letters", sessionFolder);
+                    var physicalPath = Path.Combine("..", "..", "..", "Frontend", "public", basePath);
+                    Directory.CreateDirectory(physicalPath);
+
+                    // Guardar archivo en el sistema
+                    //var fileName = $"Oficio_Sesion_{request.SessionId}{Path.GetExtension(request.File.FileName)}";
+                    var fileName = request.File.FileName;
+                    var filePath = Path.Combine(basePath, fileName);
+                    var fullPath = Path.Combine(physicalPath, fileName);
+
+                    using (var stream = new FileStream(fullPath, FileMode.Create))
+                    {
+                        request.File.CopyTo(stream);
+                    }
+
+                    // Llamar al procedimiento almacenado para guardar en la base de datos y actualizar number_of_certificates
+                    using (var cmd = new MySqlCommand("sp_upload_certificate_official_letter", con))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+
+                        // Parámetros de entrada
+                        cmd.Parameters.AddWithValue("p_session_id", request.SessionId);
+                        cmd.Parameters.AddWithValue("p_file_path", filePath);
+                        cmd.Parameters.AddWithValue("p_number_of_certificates", request.NumberOfCertificates);
+
+                        // Parámetros de salida
+                        var statusParam = new MySqlParameter("p_status_code", MySqlDbType.Int32)
+                        {
+                            Direction = ParameterDirection.Output
+                        };
+                        var messageParam = new MySqlParameter("p_message", MySqlDbType.VarChar, 255)
+                        {
+                            Direction = ParameterDirection.Output
+                        };
+
+                        cmd.Parameters.Add(statusParam);
+                        cmd.Parameters.Add(messageParam);
+
+                        cmd.ExecuteNonQuery();
+
+                        // Obtener resultados
+                        var status = (int)statusParam.Value;
+                        var message = messageParam.Value.ToString();
+
+                        return (status, message);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+                return (-1, "Error al subir el oficio de constancias y actualizar las constancias entregadas");
+            }
+        }
+
         public List<CourseSessionResponse> GetCourseSessions(int courseId)
         {
             try
@@ -1041,6 +1106,74 @@ namespace DVDR_courses
             {
                 Console.WriteLine($"Error en UpdateCourseApprovalStatus: {ex.Message}");
                 return (0, "Error al actualizar el estado de aprobación.");
+            }
+        }
+
+        public List<SessionResponseRC> GetRequestedCertificatesSessions()
+        {
+            try
+            {
+                using (var con = new MySqlConnection(_config.GetConnectionString("default")))
+                {
+                    con.Open();
+
+                    var cmd = new MySqlCommand("sp_get_certificates_requested_sessions", con)
+                    {
+                        CommandType = CommandType.StoredProcedure
+                    };
+
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        var sessions = new List<SessionResponseRC>();
+
+                        // Leer las sesiones que solicitaron constancias
+                        while (reader.Read())
+                        {
+                            var session = new SessionResponseRC
+                            {
+                                SessionId = reader.GetInt32("session_id"),
+                                CourseId = reader.GetInt32("course_id"),
+                                CourseName = reader.GetString("course_name"),
+                                CourseKey = reader.GetString("course_key"),
+                                Period = reader.GetString("period"),
+                                NumberOfParticipants = reader.GetInt32("number_of_participants"),
+                                NumberOfCertificates = reader.GetInt32("number_of_certificates"),
+                                Cost = reader.GetDecimal("cost"),
+                                Status = reader.GetString("status"),
+                                CertificatesRequested = reader.GetBoolean("certificates_requested"),
+                                CertificatesDelivered = reader.GetBoolean("certificates_delivered"),
+                                CreatedAt = reader.GetDateTime("created_at"),
+                                Documents = new List<DocumentResponse>()
+                            };
+
+                            sessions.Add(session);
+                        }
+
+                        // Pasar al siguiente conjunto de resultados (documentos de cada sesión)
+                        reader.NextResult();
+                        while (reader.Read())
+                        {
+                            int sessionId = reader.GetInt32("session_id");
+                            var session = sessions.FirstOrDefault(s => s.SessionId == sessionId);
+                            if (session != null)
+                            {
+                                session.Documents.Add(new DocumentResponse
+                                {
+                                    DocumentId = reader.GetInt32("document_id"),
+                                    Name = reader.GetString("document_name"),
+                                    FilePath = reader.GetString("filePath")
+                                });
+                            }
+                        }
+
+                        return sessions;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+                return null;
             }
         }
     }

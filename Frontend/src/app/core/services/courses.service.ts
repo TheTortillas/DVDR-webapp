@@ -93,6 +93,33 @@ export interface SessionResponse {
   certificatesRequested: boolean; // Estatus de la solicitud de certificados (waiting, opened, concluded)
 }
 
+export interface DocumentResponse {
+  documentId: number;
+  name: string;
+  filePath: string;
+}
+
+export interface SessionCertificateRequestResponse {
+  sessionId: number;
+  courseId: number;
+  courseName: string;
+  courseKey: string;
+  period: string;
+  numberOfParticipants: number;
+  numberOfCertificates: number;
+  cost: number;
+  status: string;
+  certificatesRequested: boolean;
+  createdAt: Date;
+  documents: DocumentResponse[];
+}
+
+export interface UploadCertificateOfficialLetter {
+  sessionId: number;
+  certificatesCount: number;
+  file: File;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -148,5 +175,19 @@ export class CoursesService {
       adminNotes,
     };
     return this.httpClient.patch(url, body);
+  }
+
+  GetRequestedCertificatesSessions(): Observable<
+    SessionCertificateRequestResponse[]
+  > {
+    const url = this.URLBase + '/api/Course/GetRequestedCertificatesSessions';
+    return this.httpClient.get<SessionCertificateRequestResponse[]>(url);
+  }
+
+  UploadCertificateOfficialLetter(
+    formData: FormData
+  ): Observable<UploadCertificateOfficialLetter> {
+    const url = this.URLBase + '/api/Course/UploadCertificateOfficialLetter';
+    return this.httpClient.post<UploadCertificateOfficialLetter>(url, formData);
   }
 }

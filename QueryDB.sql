@@ -166,6 +166,7 @@ CREATE TABLE course_sessions (
     cost DECIMAL(10,2) NOT NULL DEFAULT 0,  -- Costo unitario del curso
     status ENUM('pending', 'opened', 'completed') NOT NULL DEFAULT 'pending', -- Estatus del curso (Aperturado, Concluido, En espera)
     certificates_requested TINYINT(1) DEFAULT 0,
+    certificates_delivered TINYINT(1) DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
     FOREIGN KEY (course_id) REFERENCES courses(id) 
@@ -207,6 +208,15 @@ CREATE TABLE course_schedules (
 CREATE TABLE academic_categories (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(255) UNIQUE NOT NULL
+);
+
+CREATE TABLE session_certificate_official_letter (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    session_id INT NOT NULL,  -- Relación con la sesión del curso
+    filePath VARCHAR(255) NOT NULL,  -- Ruta al archivo del oficio de envío
+    uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,  -- Fecha de carga del oficio
+
+    FOREIGN KEY (session_id) REFERENCES course_sessions(id) ON DELETE CASCADE
 );
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ PROCEDMIENTOS ALMACENADOS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -989,6 +999,81 @@ BEGIN
 
 END$$
 DELIMITER ;
+
+DELIMITER $$  
+CREATE PROCEDURE sp_get_certificates_requested_sessions()  
+BEGIN  
+    -- Seleccionar las sesiones que solicitaron constancias y no han sido entregadas  
+    SELECT   
+        cs.id AS session_id,  
+        cs.course_id,  
+        c.course_key,  -- Agregamos la clave del curso  
+        c.course_name,  
+        cs.period,  
+        cs.number_of_participants,  
+        cs.number_of_certificates,  
+        cs.cost,  
+        cs.status,  
+        cs.certificates_requested,  
+        cs.certificates_delivered,
+        cs.created_at  
+    FROM course_sessions cs  
+    JOIN courses c ON cs.course_id = c.id  
+    WHERE cs.certificates_requested = 1  
+      AND cs.certificates_delivered = 0;  
+
+    -- Obtener la documentación asociada a cada solicitud de constancias  
+    SELECT   
+        scrd.session_id,  
+        d.id AS document_id,  
+        d.name AS document_name,  
+        scrd.filePath  
+    FROM session_certificates_request_documentation scrd  
+    JOIN certificate_documents_templates d ON scrd.document_id = d.id  
+    JOIN course_sessions cs ON scrd.session_id = cs.id  
+    WHERE cs.certificates_requested = 1  
+      AND cs.certificates_delivered = 0;  
+END$$  
+DELIMITER ;  
+ 
+
+DELIMITER $$
+CREATE PROCEDURE sp_upload_certificate_official_letter(
+    IN p_session_id INT,
+    IN p_file_path VARCHAR(255),
+    IN p_number_of_certificates INT,
+    OUT p_status_code INT,
+    OUT p_message VARCHAR(255)
+)
+BEGIN
+    DECLARE sessionExists INT;
+
+    -- Verificar si la sesión existe
+    SELECT COUNT(*) INTO sessionExists 
+    FROM course_sessions 
+    WHERE id = p_session_id;
+
+    IF sessionExists = 0 THEN
+        SET p_status_code = 404;
+        SET p_message = 'La sesión no existe';
+    ELSE
+        -- Insertar el oficio en la base de datos
+        INSERT INTO session_certificate_official_letter (session_id, filePath)
+        VALUES (p_session_id, p_file_path);
+
+        -- Actualizar el número de constancias entregadas y marcar como entregadas
+        UPDATE course_sessions
+        SET 
+            number_of_certificates = p_number_of_certificates,
+            certificates_delivered = 1
+        WHERE id = p_session_id;
+
+        SET p_status_code = 200;
+        SET p_message = 'Oficio subido y constancias marcadas como entregadas';
+    END IF;
+END$$
+DELIMITER ;
+
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ LLENADO DE TABLAS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 INSERT INTO academic_categories (name) VALUES
 ('Ingeniería y Ciencias Físico-Matemáticas'),
@@ -1074,6 +1159,7 @@ CALL sp_get_course_sessions(1);
  SELECT * FROM course_sessions;
  SELECT * FROM session_certificates_request_documentation;
  SELECT * FROM course_schedules;
+ 
 -- SELECT * FROM course_schedules WHERE session_id = 2;
 /*
 UPDATE course_sessions 
@@ -1336,6 +1422,8 @@ UPDATE courses
 SET status = 'submitted'
 WHERE id = 3;
 */
+
+UPDATE course_sessions SET certificates_delivered = 0 WHERE id = 1;
 
 /*
 UPDATE courses 

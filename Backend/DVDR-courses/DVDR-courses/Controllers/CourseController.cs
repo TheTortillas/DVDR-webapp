@@ -208,6 +208,37 @@ namespace DVDR_courses.Controllers
             else
                 return StatusCode(500, new { message });
         }
+
+        [HttpGet("GetRequestedCertificatesSessions")]
+        public IActionResult GetRequestedCertificatesSessions()
+        {
+            var dbManager = new DBManager(_config);
+            var sessions = dbManager.GetRequestedCertificatesSessions();
+
+            if (sessions == null)
+                return StatusCode(500, new { message = "Error al obtener las sesiones con constancias solicitadas" });
+
+            return Ok(sessions);
+        }
+
+        [HttpPost("UploadCertificateOfficialLetter")]
+        public IActionResult UploadCertificateOfficialLetter([FromForm] UploadCertificateOfficialLetterDTO request)
+        {
+            var dbManager = new DBManager(_config);
+            if (request.File == null || request.File.Length == 0)
+                return BadRequest(new { message = "El archivo es obligatorio" });
+
+            if (request.NumberOfCertificates < 0)
+                return BadRequest(new { message = "El número de constancias debe ser mayor o igual a 0" });
+
+            var result = dbManager.UploadCertificateOfficialLetter(request);
+
+            if (result.statusCode == 200)
+                return Ok(new { message = result.message });
+
+            return StatusCode(result.statusCode, new { message = result.message });
+        }
+
     }
 }
 

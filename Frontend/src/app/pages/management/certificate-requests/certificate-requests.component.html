@@ -1,1 +1,74 @@
-<p>certificate-requests works!</p>
+<main class="flex justify-center py-10">
+  <div class="sm:w-5/6">
+    <div class="bg-white border border-gray-400 rounded-lg p-8 shadow">
+      <div class="space-x-40 text-center">
+        <h1 class="heading">Solicitudes de Constancias</h1>
+      </div>
+
+      <table mat-table [dataSource]="dataSource" class="w-full mt-4">
+        <!-- Nombre del curso -->
+        <ng-container matColumnDef="nombreCurso">
+          <th mat-header-cell *matHeaderCellDef>Nombre del curso</th>
+          <td mat-cell *matCellDef="let row">{{ row.courseName }}</td>
+        </ng-container>
+
+        <!-- Clave del curso -->
+        <ng-container matColumnDef="claveCurso">
+          <th mat-header-cell *matHeaderCellDef>Clave</th>
+          <td mat-cell *matCellDef="let row">{{ row.courseKey }}</td>
+        </ng-container>
+
+        <!-- Periodo -->
+        <ng-container matColumnDef="periodo">
+          <th mat-header-cell *matHeaderCellDef>Periodo</th>
+          <td mat-cell *matCellDef="let row">{{ row.period }}</td>
+        </ng-container>
+
+        <!-- Documentación -->
+        <ng-container matColumnDef="documentacion">
+          <th mat-header-cell *matHeaderCellDef>Documentación</th>
+          <td mat-cell *matCellDef="let row">
+            <button
+              mat-icon-button
+              (click)="openDocumentationDialog(row.sessionId)"
+              matTooltip="Ver documentación"
+            >
+              <mat-icon class="hover-blue">description</mat-icon>
+            </button>
+          </td>
+        </ng-container>
+
+        <!-- Acciones -->
+        <ng-container matColumnDef="acciones">
+          <th mat-header-cell *matHeaderCellDef>Acciones</th>
+          <td mat-cell *matCellDef="let row">
+            <button
+              mat-icon-button
+              (click)="approveCertificate(row.sessionId)"
+              matTooltip="Enviar certificado"
+            >
+              <mat-icon class="hover-green">check_circle</mat-icon>
+            </button>
+            <!-- <button
+              mat-icon-button
+              (click)="rejectCertificate(row.sessionId)"
+              matTooltip="Rechazar constancia"
+            >
+              <mat-icon class="hover-red">cancel</mat-icon>
+            </button> -->
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+      </table>
+
+      <mat-paginator
+        [pageSizeOptions]="[5, 10, 15, 20]"
+        showFirstLastButtons
+        aria-label="Paginador de solicitudes de constancias"
+      >
+      </mat-paginator>
+    </div>
+  </div>
+</main>

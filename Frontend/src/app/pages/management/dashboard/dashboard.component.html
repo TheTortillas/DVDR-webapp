@@ -132,6 +132,11 @@
               extended
               routerLink="../certificate-requests"
               class="w-full"
+              [matBadge]="pendingCertificatesCount"
+              [matBadgeHidden]="pendingCertificatesCount === 0"
+              matBadgeColor="accent"
+              [style.--mdc-badge-size]="'22px'"
+              style="--mat-badge-font-size: 12px"
             >
               Ir a gestión
               <mat-icon style="margin-left: 8px">arrow_right_alt</mat-icon>

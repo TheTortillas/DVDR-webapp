@@ -33,6 +33,7 @@ import { StorageService } from '../../../core/services/storage.service';
 export class ManagementDashboardComponent implements OnInit {
   username: string | null = '';
   pendingCoursesCount = 0;
+  pendingCertificatesCount = 0;
 
   constructor(
     private router: Router,
@@ -55,6 +56,7 @@ export class ManagementDashboardComponent implements OnInit {
     }
 
     this.loadPendingCoursesCount();
+    this.loadPendingCertificatesCount();
   }
 
   loadPendingCoursesCount(): void {
@@ -70,6 +72,17 @@ export class ManagementDashboardComponent implements OnInit {
       },
       error: (err) => {
         console.error('Error al obtener cursos:', err);
+      },
+    });
+  }
+
+  loadPendingCertificatesCount(): void {
+    this.coursesService.GetRequestedCertificatesSessions().subscribe({
+      next: (sessions) => {
+        this.pendingCertificatesCount = sessions.length;
+      },
+      error: (err) => {
+        console.error('Error al obtener solicitudes de constancias:', err);
       },
     });
   }

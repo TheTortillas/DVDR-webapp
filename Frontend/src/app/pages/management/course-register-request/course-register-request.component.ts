@@ -17,7 +17,7 @@ import {
 import Swal from 'sweetalert2';
 
 @Component({
-  selector: 'app-aperture-requests',
+  selector: 'app-course-register-request',
   standalone: true,
   imports: [
     CommonModule,
@@ -26,10 +26,10 @@ import Swal from 'sweetalert2';
     MatTooltipModule,
     MatPaginatorModule,
   ],
-  templateUrl: './aperture-requests.component.html',
-  styleUrl: './aperture-requests.component.scss',
+  templateUrl: './course-register-request.component.html',
+  styleUrl: './course-register-request.component.scss',
 })
-export class ApertureRequestsComponent implements OnInit {
+export class CourseRegisterRequestComponent implements OnInit {
   displayedColumns: string[] = [
     'nombreCurso',
     'claveCurso',

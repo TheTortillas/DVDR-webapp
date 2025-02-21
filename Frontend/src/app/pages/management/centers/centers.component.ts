@@ -11,6 +11,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { DataService, Center } from '../../../core/services/data.service';
+import { AddCenterDialogComponent } from './add-center-dialog/add-center-dialog.component';
 
 @Component({
   selector: 'app-centers',
@@ -88,5 +89,21 @@ export class CentersComponent implements OnInit {
       name: this.nameFilter,
     });
     this.dataSource.filter = filterValue;
+  }
+
+  openAddDialog(): void {
+    const dialogRef = this.dialog.open(AddCenterDialogComponent, {
+      width: '40%',
+      height: '50%',
+      maxWidth: '100vw',
+      maxHeight: '100vh',
+      autoFocus: false,
+    });
+
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result) {
+        this.loadCenters();
+      }
+    });
   }
 }

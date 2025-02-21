@@ -65,8 +65,7 @@ export class ManagementDashboardComponent implements OnInit {
         // Filtrar los cursos que tienen status = 'submitted' y approvalStatus != 'approved'
         const filteredCourses = courses.filter(
           (course) =>
-            course.status === 'submitted' &&
-            course.approvalStatus !== 'approved'
+            course.status === 'submitted' && course.approvalStatus === 'pending'
         );
         this.pendingCoursesCount = filteredCourses.length;
       },

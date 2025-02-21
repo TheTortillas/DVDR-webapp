@@ -21,6 +21,7 @@ import { ManagementDashboardComponent } from './pages/management/dashboard/dashb
 import { AllCoursesComponent } from './pages/management/all-courses/all-courses.component';
 import { ApertureRequestsComponent } from './pages/management/aperture-requests/aperture-requests.component';
 import { CertificateRequestsComponent } from './pages/management/certificate-requests/certificate-requests.component';
+import { CentersComponent } from './pages/management/centers/centers.component';
 
 export const routes: Routes = [
   {
@@ -84,6 +85,10 @@ export const routes: Routes = [
       {
         path: 'certificate-requests',
         component: CertificateRequestsComponent,
+      },
+      {
+        path: 'centers',
+        component: CentersComponent,
       },
       {
         path: '',

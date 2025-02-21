@@ -73,7 +73,7 @@ export class InstructorRegisterComponent {
     city: ['', Validators.required],
     state: ['', Validators.required],
     email: ['', [Validators.required, Validators.email]],
-    phone: ['', Validators.required],
+    phone: [''],
     mobile: ['', Validators.required],
     expertiseAreas: ['', Validators.required],
     center: [''],
@@ -172,7 +172,10 @@ export class InstructorRegisterComponent {
     formData.append('GeneralInfo.City', generalInfo.city || '');
     formData.append('GeneralInfo.State', generalInfo.state || '');
     formData.append('GeneralInfo.Email', generalInfo.email || '');
-    formData.append('GeneralInfo.Phone', generalInfo.phone || '');
+    // Solo agregar el teléfono si tiene un valor
+    if (generalInfo.phone) {
+      formData.append('GeneralInfo.Phone', generalInfo.phone);
+    }
     formData.append('GeneralInfo.Mobile', generalInfo.mobile || '');
     formData.append(
       'GeneralInfo.ExpertiseAreas',

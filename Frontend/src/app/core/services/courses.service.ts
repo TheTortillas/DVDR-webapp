@@ -28,6 +28,7 @@ export interface CourseFullData {
   createdAt: string;
   status: string;
   approvalStatus: string;
+  center: string;
 }
 
 export interface CourseInfo {

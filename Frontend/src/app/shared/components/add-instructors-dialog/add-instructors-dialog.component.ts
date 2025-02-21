@@ -2,6 +2,7 @@ import {
   ChangeDetectorRef,
   Component,
   OnInit,
+  ViewChild,
   ViewEncapsulation,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -17,6 +18,7 @@ import { SelectionModel } from '@angular/cdk/collections';
 import { DataService } from '../../../core/services/data.service';
 import { MatIcon } from '@angular/material/icon';
 import { MatDivider } from '@angular/material/divider';
+import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 
 interface Instructor {
   id: number;
@@ -41,12 +43,15 @@ interface Instructor {
     MatCheckboxModule,
     MatIcon,
     MatDivider,
+    MatPaginatorModule,
   ],
   templateUrl: './add-instructors-dialog.component.html',
   styleUrl: './add-instructors-dialog.component.scss',
   encapsulation: ViewEncapsulation.None,
 })
 export class AddInstructorsDialogComponent implements OnInit {
+  @ViewChild(MatPaginator) paginator!: MatPaginator;
+
   displayedColumns: string[] = ['select', 'nombre', 'areasExpertise', 'centro'];
   dataSource!: MatTableDataSource<Instructor>;
   selection = new SelectionModel<Instructor>(true, []);
@@ -84,6 +89,7 @@ export class AddInstructorsDialogComponent implements OnInit {
     this.dataService.getInstructors().subscribe((instructors: Instructor[]) => {
       this.instructores = instructors;
       this.dataSource = new MatTableDataSource(this.instructores);
+      this.dataSource.paginator = this.paginator;
     });
   }
 
@@ -119,6 +125,11 @@ export class AddInstructorsDialogComponent implements OnInit {
     }
 
     this.dataSource.data = filteredData;
+
+    // Reiniciar el paginador a la primera página cuando se aplica un filtro
+    if (this.dataSource.paginator) {
+      this.dataSource.paginator.firstPage();
+    }
   }
 
   isAllSelected() {

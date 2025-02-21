@@ -6,6 +6,11 @@ import { MatTableDataSource } from '@angular/material/table';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialog } from '@angular/material/dialog';
+import { FormsModule } from '@angular/forms';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
+
 import { DocumentationDialogComponent } from '../../../shared/components/course-data-dialogs/documentation-dialog/documentation-dialog.component';
 import { GeneralInfoDialogComponent } from '../../../shared/components/course-data-dialogs/general-info-dialog/general-info-dialog.component';
 import { ActorsDialogComponent } from '../../../shared/components/course-data-dialogs/actors-dialog/actors-dialog.component';
@@ -14,6 +19,7 @@ import {
   CoursesService,
   CourseFullData,
 } from '../../../core/services/courses.service';
+import { DataService } from '../../../core/services/data.service';
 
 @Component({
   selector: 'app-all-courses',
@@ -24,6 +30,10 @@ import {
     MatIconModule,
     MatTooltipModule,
     MatPaginatorModule,
+    FormsModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSelectModule,
   ],
   templateUrl: './all-courses.component.html',
   styleUrl: './all-courses.component.scss',
@@ -37,6 +47,14 @@ export class AllCoursesComponent implements OnInit {
     'documentacion',
     'sesiones',
   ];
+
+  // Variables para los filtros
+  searchText: string = '';
+  selectedCategories: string[] = [];
+  categories: string[] = [];
+  selectedCenter: string = '';
+  centers: string[] = [];
+
   // Cambia el tipo de dataSource a MatTableDataSource
   dataSource: MatTableDataSource<CourseFullData> =
     new MatTableDataSource<CourseFullData>([]);
@@ -48,11 +66,14 @@ export class AllCoursesComponent implements OnInit {
 
   constructor(
     private coursesService: CoursesService,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private dataService: DataService
   ) {}
 
   ngOnInit() {
     this.loadAllCourses();
+    this.loadCategories();
+    this.loadCenters();
   }
 
   loadAllCourses() {
@@ -77,6 +98,82 @@ export class AllCoursesComponent implements OnInit {
         console.error('Error al cargar los cursos:', error);
       },
     });
+  }
+
+  loadCategories() {
+    this.dataService.getCategoriasAcademicas().subscribe({
+      next: (categories) => {
+        this.categories = categories;
+      },
+      error: (error) => {
+        console.error('Error al cargar categorías:', error);
+      },
+    });
+  }
+
+  loadCenters() {
+    this.dataService.getCentersList().subscribe({
+      next: (centers) => {
+        this.centers = [...new Set(centers.map((center) => center.name))];
+      },
+      error: (error) => {
+        console.error('Error al cargar centros:', error);
+      },
+    });
+  }
+
+  applyFilters() {
+    this.dataSource.filterPredicate = (
+      data: CourseFullData,
+      filter: string
+    ) => {
+      const searchStr = JSON.parse(filter);
+
+      // Filtro por nombre
+      const matchesName =
+        !searchStr.name ||
+        data.courseInfo.courseName
+          .toLowerCase()
+          .includes(searchStr.name.toLowerCase());
+
+      // Filtro por categorías
+      const matchesCategory =
+        searchStr.categories.length === 0 ||
+        searchStr.categories.includes(data.courseInfo.category);
+
+      // Filtro por centro
+      const matchesCenter =
+        !searchStr.center ||
+        data.center.toLowerCase() === searchStr.center.toLowerCase();
+
+      return matchesName && matchesCategory && matchesCenter;
+    };
+
+    const filterValue = JSON.stringify({
+      name: this.searchText,
+      categories: this.selectedCategories,
+      center: this.selectedCenter,
+    });
+
+    this.dataSource.filter = filterValue;
+
+    if (this.dataSource.paginator) {
+      this.dataSource.paginator.firstPage();
+    }
+  }
+
+  // Métodos para los filtros
+  applySearchFilter(event: Event) {
+    this.searchText = (event.target as HTMLInputElement).value;
+    this.applyFilters();
+  }
+
+  applyCategoryFilter() {
+    this.applyFilters();
+  }
+
+  applyCenterFilter() {
+    this.applyFilters();
   }
 
   openGeneralDataDialog(courseId: number) {

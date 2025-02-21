@@ -704,6 +704,7 @@ namespace DVDR_courses
                                 CreatedAt = reader.GetDateTime("created_at"), // Leer la fecha de creación
                                 Status = reader.GetString("status"), // Leer el status
                                 ApprovalStatus = reader.GetString("approval_status"), // Leer el approval_status
+                                Center = reader.GetString("center_name"),
                                 Documents = new List<DocumentResponse>()
                             };
 
@@ -1222,6 +1223,81 @@ namespace DVDR_courses
                 Console.WriteLine($"Error: {ex.Message}");
                 throw;
             }
+        }
+
+        public (int statusCode, string message) AddCenter(CenterDTO dto)
+        {
+            try
+            {
+                using (var con = new MySqlConnection(_config.GetConnectionString("default")))
+                {
+                    con.Open();
+                    var cmd = new MySqlCommand("sp_add_center", con)
+                    {
+                        CommandType = CommandType.StoredProcedure
+                    };
+
+                    cmd.Parameters.AddWithValue("p_name", dto.Name);
+                    cmd.Parameters.AddWithValue("p_type", dto.Type);
+                    cmd.Parameters.AddWithValue("p_identifier", dto.Identifier);
+
+                    var statusCodeParam = new MySqlParameter("p_status_code", MySqlDbType.Int32)
+                    {
+                        Direction = ParameterDirection.Output
+                    };
+                    var messageParam = new MySqlParameter("p_message", MySqlDbType.VarChar, 255)
+                    {
+                        Direction = ParameterDirection.Output
+                    };
+
+                    cmd.Parameters.Add(statusCodeParam);
+                    cmd.Parameters.Add(messageParam);
+
+                    cmd.ExecuteNonQuery();
+
+                    return (Convert.ToInt32(statusCodeParam.Value), messageParam.Value.ToString());
+                }
+            }
+            catch (Exception ex)
+            {
+                // Manejo de la excepción
+                return (-1, "Error interno del servidor");
+            }
+        }
+
+        public List<CenterDTO> GetAllCenters()
+        {
+            var centers = new List<CenterDTO>();
+            try
+            {
+                using (var con = new MySqlConnection(_config.GetConnectionString("default")))
+                {
+                    con.Open();
+                    using (var cmd = new MySqlCommand("sp_get_all_centers", con))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+                        using (var reader = cmd.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                centers.Add(new CenterDTO
+                                {
+                                    Id = reader.GetInt32("id"),
+                                    Name = reader.GetString("name"),
+                                    Type = reader.GetString("type"),
+                                    Identifier = reader.GetInt32("identifier")
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                // Manejo de la excepción
+                Console.WriteLine($"Error: {ex.Message}");
+            }
+            return centers;
         }
     }
 }

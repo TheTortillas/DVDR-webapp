@@ -64,7 +64,7 @@
   </div>
 
   <!-- Tabla -->
-  <table mat-table [dataSource]="dataSource" class="mat-elevation-z8 w-full">
+  <table mat-table [dataSource]="dataSource" class="w-full">
     <!-- Checkbox Column -->
     <ng-container matColumnDef="select">
       <th mat-header-cell *matHeaderCellDef>
@@ -108,6 +108,12 @@
     <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
     <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
   </table>
+  <mat-paginator
+    [pageSizeOptions]="[5, 10]"
+    showFirstLastButtons
+    aria-label="Seleccionar página de instructores"
+  >
+  </mat-paginator>
 </mat-dialog-content>
 
 <mat-dialog-actions align="end">

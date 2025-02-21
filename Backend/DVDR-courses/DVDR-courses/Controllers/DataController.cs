@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using DVDR_courses.DTOs;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using static Org.BouncyCastle.Math.EC.ECCurve;
@@ -17,7 +18,7 @@ namespace DVDR_courses.Controllers
             _config = conf;
         }
 
-        
+
         [HttpGet("AcademicCategories", Name = "GetCategories")]
         public JsonResult GetCategories()
         {
@@ -56,6 +57,20 @@ namespace DVDR_courses.Controllers
                 return new JsonResult(new { error = ex.Message }) { StatusCode = 500 };
             }
         }
-    }
 
+        [HttpPost("AddCenter", Name = "PostAddCenter")]
+        public IActionResult AddCenter([FromBody] CenterDTO newCenter)
+        {
+            var db = new DBManager(_config);
+            var (statusCode, message) = db.AddCenter(newCenter);
+            return new JsonResult(new { statusCode, message });
+        }
+
+        [HttpGet("AllCenters", Name = "GetAllCenters")]
+        public JsonResult GetAllCenters()
+        {
+            var centers = new DBManager(_config).GetAllCenters();
+            return new JsonResult(centers);
+        }
+    }
 }

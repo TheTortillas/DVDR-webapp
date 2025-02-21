@@ -20,7 +20,7 @@
         public string City { get; set; }
         public string State { get; set; }
         public string Email { get; set; }
-        public string Phone { get; set; }
+        public string Phone { get; set; } = String.Empty;
         public string Mobile { get; set; }
         public List<string> ExpertiseAreas { get; set; }
         public string Center { get; set; }

@@ -103,7 +103,7 @@ CREATE TABLE actors_general_information (
     municipality VARCHAR(255) NOT NULL,
     state VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL,
-    landline_phone VARCHAR(15) NOT NULL,
+    landline_phone VARCHAR(15),
     mobile_phone VARCHAR(15) NOT NULL,
     knowledge_area VARCHAR(255) NOT NULL,
 	center_type ENUM('CITTA', 'CVDR', 'UA') NOT NULL, -- Incluye el tipo de centro
@@ -738,10 +738,12 @@ BEGIN
         c.created_at, -- Incluir la fecha de creación
         c.status, -- Incluir el status
         c.approval_status, -- Incluir el approval_status
-        u.username AS created_by
+        u.username AS created_by,
+		ctr.name AS center_name  -- nombre del centro
     FROM courses c
-    JOIN users u ON c.user_id = u.id;
-
+    JOIN users u ON c.user_id = u.id
+	LEFT JOIN centers ctr ON u.center_id = ctr.id;
+    
     -- Seleccionar actores y roles asociados a todos los cursos
     SELECT 
         car.course_id,
@@ -926,45 +928,6 @@ DELIMITER ;
 DELIMITER $$
 CREATE PROCEDURE sp_get_course_sessions(
     IN p_course_id INT
-)
-BEGIN
-    -- Obtener información de las sesiones del curso
-    SELECT 
-        cs.id AS session_id,
-        cs.period,
-        cs.number_of_participants,
-        cs.number_of_certificates,
-        cs.cost,
-        cs.status,
-        cs.certificates_requested,
-        cs.created_at,
-        JSON_ARRAYAGG(
-            JSON_OBJECT(
-                'date', DATE_FORMAT(csh.date, '%Y-%m-%d'),
-                'start_time', TIME_FORMAT(csh.start_time, '%H:%i'),
-                'end_time', TIME_FORMAT(csh.end_time, '%H:%i')
-            )
-        ) AS schedule
-    FROM course_sessions cs
-    LEFT JOIN course_schedules csh ON cs.id = csh.session_id
-    WHERE cs.course_id = p_course_id
-    GROUP BY 
-        cs.id, 
-        cs.period, 
-        cs.number_of_participants, 
-        cs.number_of_certificates,
-        cs.cost,
-        cs.status,
-        cs.certificates_requested,
-        cs.created_at
-    ORDER BY cs.created_at DESC;
-
-END$$
-DELIMITER ;
-
-DELIMITER $$
-CREATE PROCEDURE sp_get_course_sessions(
-    IN p_course_id INT
 )  
 BEGIN
     -- Obtener información de las sesiones del curso
@@ -1091,29 +1054,94 @@ BEGIN
     SET 
         cs.status = 'completed'
     WHERE 
-        -- Solo actualizar si:
-        -- 1. La última fecha es anterior a hoy
-        last_dates.last_session_date < CURDATE()
-        -- 2. El estado actual es 'opened'
-        AND cs.status = 'opened';
-        
+        -- Asegurar que la condición usa una clave primaria (cs.id)
+        cs.id IS NOT NULL
+        AND last_dates.last_session_date < CURDATE()
+        AND cs.status = 'opened'
+		AND cs.id IS NOT NULL;
     -- Opcional: Retornar el número de sesiones actualizadas
-    SELECT 
-        CONCAT(ROW_COUNT(), ' sesiones han sido actualizadas a completed') as result;
+    SELECT CONCAT(ROW_COUNT(), ' sesiones han sido actualizadas a completed') as result;
 END$$
 DELIMITER ;
 
 DELIMITER $$
 CREATE EVENT event_update_course_sessions_status
 ON SCHEDULE EVERY 1 DAY
-STARTS CURRENT_TIMESTAMP
+STARTS TIMESTAMP(CURRENT_DATE, '14:15:00')  
 DO
 BEGIN
+    SET SQL_SAFE_UPDATES = 0;
     CALL sp_update_course_sessions_status();
+    SET SQL_SAFE_UPDATES = 1;
 END$$
 DELIMITER ;
 
 SET GLOBAL event_scheduler = ON;
+
+DELIMITER $$
+CREATE PROCEDURE sp_add_center(
+    IN p_name VARCHAR(255),
+    IN p_type ENUM('CITTA', 'CVDR', 'UA'),
+    IN p_identifier INT,
+    OUT p_status_code INT,
+    OUT p_message VARCHAR(255)
+)
+BEGIN
+    DECLARE existing_center_type INT;
+    DECLARE existing_center_name INT;
+
+    -- Manejo de errores
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION 
+    BEGIN
+        ROLLBACK;
+        SET p_status_code = -1;
+        SET p_message = 'Error: No se pudo registrar el centro.';
+    END;
+
+    START TRANSACTION;
+
+    -- Verificar si ya existe un centro con el mismo tipo e identificador
+    SELECT COUNT(*) INTO existing_center_type
+    FROM centers 
+    WHERE type = p_type AND identifier = p_identifier;
+
+    -- Verificar si ya existe un centro con el mismo nombre
+    SELECT COUNT(*) INTO existing_center_name
+    FROM centers 
+    WHERE name = p_name;
+
+    -- Validaciones
+    IF existing_center_type > 0 THEN
+        SET p_status_code = -2;
+        SET p_message = 'Error: Ya existe un centro con ese tipo e identificador.';
+    ELSEIF existing_center_name > 0 THEN
+        SET p_status_code = -3;
+        SET p_message = 'Error: Ya existe un centro con ese nombre.';
+    ELSE
+        -- Insertar el nuevo centro
+        INSERT INTO centers (name, type, identifier)
+        VALUES (p_name, p_type, p_identifier);
+
+        SET p_status_code = 1;
+        SET p_message = 'Centro registrado exitosamente.';
+    END IF;
+
+    COMMIT;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE PROCEDURE sp_get_all_centers()
+BEGIN
+    SELECT 
+        id,
+        name,
+        type,
+        identifier
+    FROM centers;
+END$$
+DELIMITER ;
+
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ LLENADO DE TABLAS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 INSERT INTO academic_categories (name) VALUES
 ('Ingeniería y Ciencias Físico-Matemáticas'),
@@ -1190,15 +1218,13 @@ CALL sp_insert_user('director_tampico', 'pass_tampico', 'Eduardo', 'Rojas', 'Pe�
 
 CALL sp_insert_user('admin', 'pass_admin', 'Luis', 'Fernández', 'Gómez', NULL, 'root');
 
-CALL sp_get_course_sessions(1);
-
 -- SELECT COUNT(*) FROM courses WHERE YEAR(created_at) = 2025;
 -- CALL sp_check_username('admin', @user_exists);
 -- SELECT @user_exists;
- SELECT * FROM courses;
- SELECT * FROM course_sessions;
- SELECT * FROM session_certificates_request_documentation;
- SELECT * FROM course_schedules;
+ -- SELECT * FROM centers;
+ -- SELECT * FROM course_sessions;
+ -- SELECT * FROM session_certificates_request_documentation;
+ -- SELECT * FROM course_schedules;
  
 -- SELECT * FROM course_schedules WHERE session_id = 2;
 /*
@@ -1206,7 +1232,7 @@ UPDATE course_sessions
 SET status = 'pending' 
 WHERE id = 2;
 */
-
+select * from course_documentation;
 
  /*
 SET FOREIGN_KEY_CHECKS = 0;
@@ -1234,7 +1260,6 @@ INNER JOIN
 ON 
     u.center_id = c.id;
 */
--- DROP DATABASE dvdr_cursos;
 /*
 SELECT dt.id AS document_id, dt.name AS document_name, dt.filePath, dt.type, da.modality
 FROM documents_templates dt
@@ -1462,12 +1487,16 @@ UPDATE courses
 SET status = 'submitted'
 WHERE id = 3;
 */
-truncate table session_certificate_official_letter;
-UPDATE course_sessions SET certificates_delivered = 0 WHERE id = 1;
+-- truncate table session_certificate_official_letter;
+-- UPDATE course_sessions SET certificates_delivered = 0 WHERE id = 1;
 
 /*
 UPDATE courses 
 SET expiration_date = '2020-01-29' 
 WHERE id = 3;*/
 
+-- update course_sessions set status = 'opened' where id = 4;
+
 -- '2027-02-04'
+
+-- DROP DATABASE dvdr_cursos;

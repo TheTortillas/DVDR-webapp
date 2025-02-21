@@ -10,6 +10,13 @@ const HttpOptions = {
   }),
 };
 
+export interface Center {
+  id: number;
+  name: string;
+  type: string;
+  identifier: number;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -57,4 +64,14 @@ export class DataService {
     const url = this.URLBase + '/api/Course/RequestCertificates';
     return this.httpClient.post(url, formData);
   }
+
+  public addCenter = (center: Center): Observable<any> => {
+    const url = this.URLBase + '/api/Data/AddCenter';
+    return this.httpClient.post(url, center, HttpOptions);
+  };
+
+  public getCentersList = (): Observable<Center[]> => {
+    const url = this.URLBase + '/api/Data/AllCenters';
+    return this.httpClient.get<Center[]>(url, HttpOptions);
+  };
 }

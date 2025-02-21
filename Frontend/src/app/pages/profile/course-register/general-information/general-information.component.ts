@@ -16,6 +16,9 @@ import {
   FormGroupDirective,
   FormControl,
   Validators,
+  ValidatorFn,
+  ValidationErrors,
+  AbstractControl,
 } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
@@ -72,7 +75,19 @@ export class MyErrorStateMatcher implements ErrorStateMatcher {
 interface Persona {
   id?: number;
   nombre: string;
-  rol: string;
+  rol: string[];
+}
+
+function requireActorRoles(): ValidatorFn {
+  return (control: AbstractControl): ValidationErrors | null => {
+    const actors = control.value as Persona[];
+    if (!actors) return null;
+
+    const hasActorWithoutRoles = actors.some(
+      (actor) => !actor.rol || actor.rol.length === 0
+    );
+    return hasActorWithoutRoles ? { requireActorRoles: true } : null;
+  };
 }
 
 @Component({
@@ -114,6 +129,8 @@ export class GeneralInformationComponent implements OnInit {
     });
 
     this.formGroup.get('educational_platform')?.setValue([]);
+
+    this.formGroup.get('actors')?.addValidators(requireActorRoles());
   }
 
   //-------------------------------------- TIPO SERVICIO ---------------------------------------
@@ -194,6 +211,7 @@ export class GeneralInformationComponent implements OnInit {
     'Zoom',
     'Moodle',
     'Blackboard',
+    'Ninguna',
   ];
   platformSelections: string[] = [];
   otroPlatformSelected = false;
@@ -233,14 +251,11 @@ export class GeneralInformationComponent implements OnInit {
         const newInstructors = result.map((instructor: any) => ({
           id: instructor.id,
           nombre: instructor.nombre,
-          rol: 'Instructor',
+          rol: [], // Inicializa con un array
         }));
 
-        // Agrega los nuevos instructores seleccionados
         this.seleccionados = [...this.seleccionados, ...newInstructors];
         this.dataSource.data = this.seleccionados;
-
-        // Actualiza el formulario
         this.formGroup.get('actors')?.setValue(this.seleccionados);
         this.formGroup.get('actors')?.markAsTouched();
       }
@@ -248,10 +263,10 @@ export class GeneralInformationComponent implements OnInit {
   }
 
   selectedPersona: string = '';
-  seleccionados: { nombre: string; rol: string }[] = [];
+  seleccionados: { nombre: string; rol: string[] }[] = [];
 
   // Initialize the dataSource with an empty array or your existing data
-  dataSource = new MatTableDataSource<{ nombre: string; rol: string }>(
+  dataSource = new MatTableDataSource<{ nombre: string; rol: string[] }>(
     this.seleccionados
   );
 
@@ -264,7 +279,7 @@ export class GeneralInformationComponent implements OnInit {
       if (!personaExistente) {
         const nuevaPersona: Persona = {
           nombre: this.selectedPersona,
-          rol: 'Autor',
+          rol: ['Autor'],
         };
         this.seleccionados.push(nuevaPersona);
         this.dataSource.data = this.seleccionados;
@@ -284,8 +299,8 @@ export class GeneralInformationComponent implements OnInit {
   }
 
   // Método para actualizar el rol de una persona
-  updatePersonaRol(persona: Persona, nuevoRol: string) {
-    persona.rol = nuevoRol;
+  updatePersonaRol(persona: Persona, nuevosRoles: string[]) {
+    persona.rol = nuevosRoles;
     this.formGroup.get('actors')?.setValue(this.seleccionados);
   }
 }

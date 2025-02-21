@@ -1,0 +1,72 @@
+<main class="flex justify-center py-10">
+  <div class="sm:w-5/6">
+    <div class="bg-white border border-gray-400 rounded-lg p-8 shadow">
+      <div class="space-x-40 text-center">
+        <h1 class="text-2xl font-bold">Gestión de Centros</h1>
+      </div>
+      <button mat-raised-button color="primary">
+        <mat-icon>add</mat-icon>
+        Añadir Centro
+      </button>
+
+      <div class="flex gap-4 mb-6">
+        <mat-form-field class="w-full">
+          <mat-label>Buscar por nombre</mat-label>
+          <input
+            matInput
+            (keyup)="applyFilter($event)"
+            placeholder="Ingresa una palabra para buscar"
+            #input
+          />
+        </mat-form-field>
+
+        <mat-form-field class="w-48">
+          <mat-label>Filtrar por tipo</mat-label>
+          <mat-select
+            [(ngModel)]="selectedType"
+            (selectionChange)="filterByType()"
+          >
+            <mat-option value="">Todos</mat-option>
+            <mat-option *ngFor="let type of centerTypes" [value]="type">
+              {{ type }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+
+      <div class="mat-elevation-z8">
+        <table mat-table [dataSource]="dataSource" matSort>
+          <ng-container matColumnDef="id">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>ID</th>
+            <td mat-cell *matCellDef="let row">{{ row.id }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="name">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Nombre</th>
+            <td mat-cell *matCellDef="let row">{{ row.name }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="type">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Tipo</th>
+            <td mat-cell *matCellDef="let row">{{ row.type }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="identifier">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>
+              Identificador
+            </th>
+            <td mat-cell *matCellDef="let row">{{ row.identifier }}</td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+        </table>
+
+        <mat-paginator
+          [pageSizeOptions]="[5, 10, 25, 100]"
+          aria-label="Seleccionar página"
+        ></mat-paginator>
+      </div>
+    </div>
+  </div>
+</main>

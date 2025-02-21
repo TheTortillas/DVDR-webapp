@@ -285,10 +285,10 @@
               <label
                 for="municipio-domicilio"
                 class="flex mb-2 text-xl font-medium text-gray-900"
-                >Teléfono particular</label
+                >Teléfono fijo</label
               >
               <mat-form-field appearance="fill" class="w-full">
-                <mat-label>Ingrese su télefono particular</mat-label>
+                <mat-label>Ingrese su télefono fijo</mat-label>
                 <span matTextPrefix>+52 &nbsp;</span>
                 <input
                   type="tel"
@@ -298,14 +298,14 @@
                   formControlName="phone"
                 />
                 <mat-icon matSuffix>local_phone</mat-icon>
-                <mat-error
+                <!-- <mat-error
                   *ngIf="
                     formGroup.get('phone')?.hasError('required') &&
                     formGroup.get('phone')?.touched
                   "
                 >
                   Teléfono particular es <strong>requerido</strong>
-                </mat-error>
+                </mat-error> -->
               </mat-form-field>
             </div>
             <div class="state-container px-2 w-full md:w-1/2">

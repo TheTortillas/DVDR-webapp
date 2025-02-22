@@ -19,6 +19,7 @@ import { DataService } from '../../../core/services/data.service';
 import { MatIcon } from '@angular/material/icon';
 import { MatDivider } from '@angular/material/divider';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
+import { StorageService } from '../../../core/services/storage.service';
 
 interface Instructor {
   id: number;
@@ -71,23 +72,36 @@ export class AddInstructorsDialogComponent implements OnInit {
   constructor(
     private dialogRef: MatDialogRef<AddInstructorsDialogComponent>,
     private dataService: DataService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private storageService: StorageService
   ) {}
 
   ngOnInit() {
+    // Carga de centros
+    // this.dataService.getCenters().subscribe((res: string[]) => {
+    //   this.centers = res;
+    // });
+
+    const token = this.storageService.getItem('token');
+    let userCenter = '';
+    if (token) {
+      const claims = this.storageService.getTokenClaims(token);
+      if (claims && claims.center) {
+        userCenter = claims.center;
+      }
+    }
+
     // Carga de áreas
     this.dataService.getExpertiseAreas().subscribe((areas: string[]) => {
       this.areasExpertise = areas;
     });
 
-    // Carga de centros
-    this.dataService.getCenters().subscribe((res: string[]) => {
-      this.centers = res;
-    });
-
-    // Carga de instructores
+    // Carga de instructores, filtrando por el centro del token
     this.dataService.getInstructors().subscribe((instructors: Instructor[]) => {
-      this.instructores = instructors;
+      // Filtra a instructores del mismo centro
+      this.instructores = instructors.filter(
+        (inst) => inst.centro === userCenter
+      );
       this.dataSource = new MatTableDataSource(this.instructores);
       this.dataSource.paginator = this.paginator;
     });
@@ -110,19 +124,19 @@ export class AddInstructorsDialogComponent implements OnInit {
       );
     }
 
-    // Filtrar por centro
-    if (this.selectedCenter.trim()) {
-      filteredData = filteredData.filter(
-        (inst) => inst.centro === this.selectedCenter
-      );
-    }
+    // // Filtrar por centro
+    // if (this.selectedCenter.trim()) {
+    //   filteredData = filteredData.filter(
+    //     (inst) => inst.centro === this.selectedCenter
+    //   );
+    // }
 
-    // Filtrar por centros múltiples
-    if (this.selectedCenters.length > 0) {
-      filteredData = filteredData.filter((inst) =>
-        this.selectedCenters.includes(inst.centro)
-      );
-    }
+    // // Filtrar por centros múltiples
+    // if (this.selectedCenters.length > 0) {
+    //   filteredData = filteredData.filter((inst) =>
+    //     this.selectedCenters.includes(inst.centro)
+    //   );
+    // }
 
     this.dataSource.data = filteredData;
 

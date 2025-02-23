@@ -1142,6 +1142,39 @@ BEGIN
 END$$
 DELIMITER ;
 
+DELIMITER $$
+CREATE PROCEDURE sp_update_user_password(
+    IN p_username VARCHAR(50),
+    IN p_new_password VARCHAR(255),
+    OUT p_status_code INT,
+    OUT p_message VARCHAR(255)
+)
+BEGIN
+    DECLARE user_count INT;
+
+    -- Verificar si el usuario existe
+    SELECT COUNT(*) INTO user_count
+    FROM users
+    WHERE username = p_username;
+
+    IF user_count = 0 THEN
+        SET p_status_code = -1;
+        SET p_message = 'Error: El usuario no existe.';
+    ELSE
+        -- Hashear la nueva contraseña usando SHA256
+        SET @hashed_password = SHA2(p_new_password, 256);
+
+        -- Actualizar la contraseña con el hash
+        UPDATE users
+        SET password = @hashed_password
+        WHERE username = p_username;
+
+        SET p_status_code = 1;
+        SET p_message = 'La contraseña se actualizó correctamente.';
+    END IF;
+END$$
+DELIMITER ;
+
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ LLENADO DE TABLAS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 INSERT INTO academic_categories (name) VALUES
 ('Ingeniería y Ciencias Físico-Matemáticas'),
@@ -1497,6 +1530,8 @@ WHERE id = 3;*/
 
 -- update course_sessions set status = 'opened' where id = 4;
 
--- '2027-02-04'
+CALL sp_update_user_password('admin', 'nueva_contraseña', @p_status_code, @p_message);
+
+SELECT @p_status_code, @p_message; 
 
 -- DROP DATABASE dvdr_cursos;

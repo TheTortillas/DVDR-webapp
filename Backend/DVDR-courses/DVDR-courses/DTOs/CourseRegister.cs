@@ -42,13 +42,13 @@
     public class CourseResponse
     {
         public int CourseId { get; set; }
-        public string CourseKey { get; set; }
+        public string? CourseKey { get; set; }
         public CourseInfo CourseInfo { get; set; }
         public List<DocumentResponse> Documents { get; set; }
         public string CreatedBy { get; set; } // Usuario que creó el curso
         public int? ParentCourseId { get; set; }
         public int RenewalCount { get; set; }
-        public DateTime ExpirationDate { get; set; }
+        public DateTime? ExpirationDate { get; set; }
         public bool IsRenewed { get; set; }
         public DateTime CreatedAt { get; set; } // Incluir la fecha de creación
         public string Status { get; set; } // Incluir el status

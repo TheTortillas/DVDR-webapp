@@ -5,7 +5,7 @@
         public int SessionId { get; set; }
         public int CourseId { get; set; }
         public string CourseName { get; set; }
-        public string CourseKey { get; set; }
+        public string? CourseKey { get; set; }
         public string Period { get; set; }
         public int NumberOfParticipants { get; set; }
         public int NumberOfCertificates { get; set; }

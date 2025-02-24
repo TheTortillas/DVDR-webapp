@@ -44,7 +44,7 @@ CREATE TABLE courses (
    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
    
    -- CAMPOS para manejar vigencia y renovaciones
-   expiration_date DATE NOT NULL,         -- Fecha de vencimiento
+   expiration_date DATE,         -- Fecha de vencimiento
    renewal_count INT DEFAULT 0,           -- Cuántas veces ha sido renovado (si es el original = 0)
    parent_course_id INT NULL,             -- FK al curso original (o al padre de la última renovación) NULL si es el original
 
@@ -1067,7 +1067,7 @@ DELIMITER ;
 DELIMITER $$
 CREATE EVENT event_update_course_sessions_status
 ON SCHEDULE EVERY 1 DAY
-STARTS TIMESTAMP(CURRENT_DATE, '14:15:00')  
+STARTS TIMESTAMP(CURRENT_DATE, '19:42:00')  
 DO
 BEGIN
     SET SQL_SAFE_UPDATES = 0;
@@ -1075,6 +1075,7 @@ BEGIN
     SET SQL_SAFE_UPDATES = 1;
 END$$
 DELIMITER ;
+-- DROP EVENT IF EXISTS event_update_course_sessions_status;
 
 SET GLOBAL event_scheduler = ON;
 
@@ -1528,10 +1529,14 @@ UPDATE courses
 SET expiration_date = '2020-01-29' 
 WHERE id = 3;*/
 
+/*
+UPDATE course_schedules 
+SET date = '2025-01-29' 
+WHERE id = 15;*/
 -- update course_sessions set status = 'opened' where id = 4;
-
-CALL sp_update_user_password('admin', 'nueva_contraseña', @p_status_code, @p_message);
-
+call sp_get_all_courses();
+CALL sp_update_user_password('admin', 'pass_admin', @p_status_code, @p_message);
 SELECT @p_status_code, @p_message; 
+SELECT * FROM course_sessions;
 
 -- DROP DATABASE dvdr_cursos;

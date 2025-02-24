@@ -423,52 +423,52 @@ namespace DVDR_courses
                         int renewalCount = 0;
                         int? parentCourseId = request.ParentCourseId;
 
-                        string courseKey;
-                        if (parentCourseId == null)
-                        {
-                            // **CASO: NUEVO CURSO**
-                            var maxCourseNumberCmd = new MySqlCommand(@"
-                                SELECT MAX(CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(course_key, '/', -2), '_', 1) AS UNSIGNED))
-                                FROM courses
-                                WHERE YEAR(created_at) = @currentYear", con);
+                        //string courseKey;
+                        //if (parentCourseId == null)
+                        //{
+                        //    // **CASO: NUEVO CURSO**
+                        //    var maxCourseNumberCmd = new MySqlCommand(@"
+                        //        SELECT MAX(CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(course_key, '/', -2), '_', 1) AS UNSIGNED))
+                        //        FROM courses
+                        //        WHERE YEAR(created_at) = @currentYear", con);
 
-                            maxCourseNumberCmd.Parameters.AddWithValue("@currentYear", currentDate.Year);
+                        //    maxCourseNumberCmd.Parameters.AddWithValue("@currentYear", currentDate.Year);
 
-                            var maxCourseNumber = maxCourseNumberCmd.ExecuteScalar();
-                            int nextCourseNumber = (maxCourseNumber == DBNull.Value) ? 1 : Convert.ToInt32(maxCourseNumber) + 1;
+                        //    var maxCourseNumber = maxCourseNumberCmd.ExecuteScalar();
+                        //    int nextCourseNumber = (maxCourseNumber == DBNull.Value) ? 1 : Convert.ToInt32(maxCourseNumber) + 1;
 
-                            var courseCount = nextCourseNumber.ToString("D3");  // Convertir a formato 3 dígitos
+                        //    var courseCount = nextCourseNumber.ToString("D3");  // Convertir a formato 3 dígitos
 
 
-                            // Generar course_key normal
-                            var vigencia = $"{currentDate.Year}-{currentDate.Year + 2}";
-                            courseKey = $"DVDR/{centerType}/{centerIdentifier}/{courseCount}/{vigencia}";
-                        }
-                        else
-                        {
-                            // **CASO: RENOVACIÓN**
-                            var getParentCourseCmd = new MySqlCommand("SELECT course_key, renewal_count FROM courses WHERE id = @parentCourseId", con);
-                            getParentCourseCmd.Parameters.AddWithValue("@parentCourseId", parentCourseId);
-                            using (var parentReader = getParentCourseCmd.ExecuteReader())
-                            {
-                                if (!parentReader.Read())
-                                {
-                                    return (-3, "Curso a renovar no encontrado.");
-                                }
+                        //    // Generar course_key normal
+                        //    var vigencia = $"{currentDate.Year}-{currentDate.Year + 2}";
+                        //    courseKey = $"DVDR/{centerType}/{centerIdentifier}/{courseCount}/{vigencia}";
+                        //}
+                        //else
+                        //{
+                        //    // **CASO: RENOVACIÓN**
+                        //    var getParentCourseCmd = new MySqlCommand("SELECT course_key, renewal_count FROM courses WHERE id = @parentCourseId", con);
+                        //    getParentCourseCmd.Parameters.AddWithValue("@parentCourseId", parentCourseId);
+                        //    using (var parentReader = getParentCourseCmd.ExecuteReader())
+                        //    {
+                        //        if (!parentReader.Read())
+                        //        {
+                        //            return (-3, "Curso a renovar no encontrado.");
+                        //        }
 
-                                var parentCourseKey = parentReader.GetString("course_key");
-                                renewalCount = parentReader.GetInt32("renewal_count") + 1;
-                            }
+                        //        var parentCourseKey = parentReader.GetString("course_key");
+                        //        renewalCount = parentReader.GetInt32("renewal_count") + 1;
+                        //    }
 
-                            // Obtener el nuevo número de curso en el año
-                            var countCoursesCmd = new MySqlCommand("SELECT COUNT(*) FROM courses WHERE YEAR(created_at) = @currentYear", con);
-                            countCoursesCmd.Parameters.AddWithValue("@currentYear", currentDate.Year);
-                            var courseCount = (Convert.ToInt32(countCoursesCmd.ExecuteScalar()) + 1).ToString("D3");
+                        //    // Obtener el nuevo número de curso en el año
+                        //    var countCoursesCmd = new MySqlCommand("SELECT COUNT(*) FROM courses WHERE YEAR(created_at) = @currentYear", con);
+                        //    countCoursesCmd.Parameters.AddWithValue("@currentYear", currentDate.Year);
+                        //    var courseCount = (Convert.ToInt32(countCoursesCmd.ExecuteScalar()) + 1).ToString("D3");
 
-                            // Generar nueva course_key
-                            var vigencia = $"{currentDate.Year}-{currentDate.Year + 2}";
-                            courseKey = $"DVDR/{centerType}/{centerIdentifier}/{courseCount}_{renewalCount}/{vigencia}";
-                        }
+                        //    // Generar nueva course_key
+                        //    var vigencia = $"{currentDate.Year}-{currentDate.Year + 2}";
+                        //    courseKey = $"DVDR/{centerType}/{centerIdentifier}/{courseCount}_{renewalCount}/{vigencia}";
+                        //}
 
                         // Llamar al procedimiento almacenado
                         var cmd = new MySqlCommand("sp_register_course", con)
@@ -486,9 +486,9 @@ namespace DVDR_courses
                         cmd.Parameters.AddWithValue("p_educational_offer", courseInfo.EducationalOffer);
                         cmd.Parameters.AddWithValue("p_educational_platform", string.Join(",", courseInfo.EducationalPlatform ?? new List<string>()));
                         cmd.Parameters.AddWithValue("p_other_educationals_platforms", string.IsNullOrEmpty(courseInfo.CustomPlatform) ? DBNull.Value : courseInfo.CustomPlatform);
-                        cmd.Parameters.AddWithValue("p_course_key", courseKey);
+                        cmd.Parameters.AddWithValue("p_course_key", DBNull.Value);
                         cmd.Parameters.AddWithValue("p_username", username);
-                        cmd.Parameters.AddWithValue("p_expiration_date", expirationDate);
+                        cmd.Parameters.AddWithValue("p_expiration_date", DBNull.Value);
                         cmd.Parameters.AddWithValue("p_renewal_count", renewalCount);
                         cmd.Parameters.AddWithValue("p_parent_course_id", parentCourseId ?? (object)DBNull.Value);
 
@@ -563,11 +563,11 @@ namespace DVDR_courses
                     {
                         Id = reader.GetInt32("id"),
                         Title = reader.GetString("Title"),
-                        Clave = reader.GetString("Clave"),
+                        Clave = reader.IsDBNull("Clave") ? null : reader.GetString("Clave"),
                         Status = reader.GetString("Status"),
                         ApprovalStatus = reader.GetString("ApprovalStatus"),
                         TotalDuration = reader.GetInt32("TotalDuration"),
-                        ExpirationDate = reader.GetDateTime("ExpirationDate"),
+                        ExpirationDate = reader.IsDBNull("ExpirationDate") ? (DateTime?)null : reader.GetDateTime("ExpirationDate"),
                         IsRenewed = reader.GetBoolean("IsRenewed")
                     });
                 }
@@ -598,7 +598,7 @@ namespace DVDR_courses
                             course = new CourseResponse
                             {
                                 CourseId = reader.GetInt32("course_id"),
-                                CourseKey = reader.GetString("course_key"),
+                                CourseKey = reader.IsDBNull("course_key") ? null : reader.GetString("course_key"),
                                 CourseInfo = new CourseInfo
                                 {
                                     CourseName = reader.GetString("course_name"),
@@ -613,7 +613,7 @@ namespace DVDR_courses
                                     Actors = new List<Actor>() // Se llenará en la siguiente lectura
                                 },
                                 CreatedBy = reader.GetString("created_by"),
-                                ExpirationDate = reader.GetDateTime("expiration_date"),
+                                ExpirationDate = reader.IsDBNull("expiration_date") ? (DateTime?)null : reader.GetDateTime("expiration_date"),
                                 RenewalCount = reader.GetInt32("renewal_count"),
                                 ParentCourseId = reader.IsDBNull("parent_course_id") ? (int?)null : reader.GetInt32("parent_course_id"),
                                 Status = reader.GetString("status"),
@@ -683,7 +683,7 @@ namespace DVDR_courses
                             var course = new CourseResponse
                             {
                                 CourseId = reader.GetInt32("course_id"),
-                                CourseKey = reader.GetString("course_key"),
+                                CourseKey = reader.IsDBNull("course_key") ? null : reader.GetString("course_key"),
                                 CourseInfo = new CourseInfo
                                 {
                                     CourseName = reader.GetString("course_name"),
@@ -698,7 +698,7 @@ namespace DVDR_courses
                                     Actors = new List<Actor>()
                                 },
                                 CreatedBy = reader.GetString("created_by"),
-                                ExpirationDate = reader.GetDateTime("expiration_date"),
+                                ExpirationDate = reader.IsDBNull("expiration_date") ? (DateTime?)null : reader.GetDateTime("expiration_date"),
                                 RenewalCount = reader.GetInt32("renewal_count"),
                                 ParentCourseId = reader.IsDBNull("parent_course_id") ? (int?)null : reader.GetInt32("parent_course_id"),
                                 CreatedAt = reader.GetDateTime("created_at"), // Leer la fecha de creación
@@ -835,39 +835,52 @@ namespace DVDR_courses
                     {
                         string title = reader.GetString("title");
 
+                        // Validamos si course_key es NULL
+                        string? courseKey = reader.IsDBNull(reader.GetOrdinal("clave"))
+                            ? null
+                            : reader.GetString("clave");
+
                         if (!courseMap.ContainsKey(title))
                         {
                             courseMap[title] = new CourseWithSessionsResponse
                             {
                                 Id = reader.GetInt32("course_id"),
                                 Title = title,
-                                CourseKeys = new List<string> { reader.GetString("clave") },
+                                CourseKeys = new List<string>(), // Lista de claves de cursos
                                 Sessions = new List<SessionResponse>(),
-                                CourseStatus = reader.GetString("course_status"), // Asignar el estatus del curso
-                                ApprovalStatus = reader.GetString("approval_status") // Asignar el estatus de aprobación
-
+                                CourseStatus = reader.GetString("course_status"),
+                                ApprovalStatus = reader.GetString("approval_status")
                             };
                         }
-                        else
+
+                        // Agregar la clave solo si existe (si el curso ya fue aprobado)
+                        if (!string.IsNullOrEmpty(courseKey))
                         {
-                            courseMap[title].CourseKeys.Add(reader.GetString("clave"));
+                            courseMap[title].CourseKeys.Add(courseKey);
                         }
                     }
 
-                    // Leer las sesiones
+                    // Leer las sesiones SOLO si el curso tiene clave
                     if (reader.NextResult())
                     {
                         while (reader.Read())
                         {
-                            string courseKey = reader.GetString("clave"); // Ahora usamos la clave correcta
+                            // Validamos si course_key es NULL
+                            string? courseKey = reader.IsDBNull(reader.GetOrdinal("clave"))
+                                ? null
+                                : reader.GetString("clave");
+
+                            // Si la clave es NULL, este curso NO puede tener sesiones
+                            if (string.IsNullOrEmpty(courseKey)) continue;
+
                             foreach (var course in courseMap.Values)
                             {
                                 if (course.CourseKeys.Contains(courseKey))
                                 {
                                     course.Sessions.Add(new SessionResponse
                                     {
-                                        Id = reader.GetInt32("session_id"),  // Asignamos el ID de la sesión
-                                        Clave = courseKey, // Ahora se almacena correctamente
+                                        Id = reader.GetInt32("session_id"),
+                                        Clave = courseKey,
                                         Periodo = reader.GetString("periodo"),
                                         Participantes = reader.GetInt32("participantes"),
                                         Constancias = reader.GetInt32("constancias"),
@@ -886,6 +899,7 @@ namespace DVDR_courses
 
             return courses;
         }
+
 
         public (int statusCode, string message) RequestCertificates(int sessionId, List<CertificateDocumentDTO> documents)
         {
@@ -1085,23 +1099,122 @@ namespace DVDR_courses
                 using (var con = new MySqlConnection(_config.GetConnectionString("default")))
                 {
                     con.Open();
-                    var sql = @"
-                UPDATE courses
-                SET approval_status = @approvalStatus,
-                    admin_notes = @adminNotes
-                WHERE id = @courseId;";
 
-                    using (var cmd = new MySqlCommand(sql, con))
+                    // Obtener datos del curso
+                    var getCourseCmd = new MySqlCommand(@"
+                SELECT c.id, c.parent_course_id, c.renewal_count,
+                       u.center_id, ctr.type AS centerType, ctr.identifier AS centerIdentifier
+                FROM courses c
+                JOIN users u ON c.user_id = u.id
+                JOIN centers ctr ON u.center_id = ctr.id
+                WHERE c.id = @courseId", con);
+
+                    getCourseCmd.Parameters.AddWithValue("@courseId", courseId);
+
+                    using (var reader = getCourseCmd.ExecuteReader())
                     {
-                        cmd.Parameters.AddWithValue("@approvalStatus", approvalStatus);
-                        cmd.Parameters.AddWithValue("@adminNotes", adminNotes ?? (object)DBNull.Value);
-                        cmd.Parameters.AddWithValue("@courseId", courseId);
-
-                        var rowsAffected = cmd.ExecuteNonQuery();
-                        if (rowsAffected > 0)
-                            return (1, $"Curso {approvalStatus} exitosamente.");
-                        else
+                        if (!reader.Read())
+                        {
                             return (0, "No se encontró el curso para actualizar.");
+                        }
+
+                        var parentCourseId = reader["parent_course_id"] as int?;
+                        var renewalCount = Convert.ToInt32(reader["renewal_count"]);
+                        var centerType = reader["centerType"].ToString();
+                        var centerIdentifier = Convert.ToInt32(reader["centerIdentifier"]).ToString("D2");
+                        reader.Close();
+
+                        // Si el curso es rechazado, solo actualiza estado y admin_notes
+                        if (approvalStatus.Equals("rejected", StringComparison.OrdinalIgnoreCase))
+                        {
+                            var sqlReject = @"
+                        UPDATE courses
+                        SET approval_status = @approvalStatus,
+                            admin_notes = @adminNotes
+                        WHERE id = @courseId;
+                    ";
+                            using (var cmdReject = new MySqlCommand(sqlReject, con))
+                            {
+                                cmdReject.Parameters.AddWithValue("@approvalStatus", approvalStatus);
+                                cmdReject.Parameters.AddWithValue("@adminNotes", adminNotes ?? (object)DBNull.Value);
+                                cmdReject.Parameters.AddWithValue("@courseId", courseId);
+
+                                var rows = cmdReject.ExecuteNonQuery();
+                                return rows > 0
+                                    ? (1, "Curso rechazado exitosamente.")
+                                    : (0, "No se pudo actualizar el curso como rechazado.");
+                            }
+                        }
+
+                        // Si el curso es aprobado, generamos la clave y la fecha de expiración
+                        var currentDate = DateTime.Now;
+                        var expirationDate = currentDate.AddYears(2); // Ahora la expiración se calcula al aprobar
+
+                        string courseKey;
+                        if (parentCourseId == null) // Nuevo curso
+                        {
+                            // Contamos solo los cursos APROBADOS en el año
+                            var countApprovedCoursesCmd = new MySqlCommand(@"
+                        SELECT COUNT(*)
+                        FROM courses
+                        WHERE YEAR(created_at) = @currentYear 
+                        AND course_key IS NOT NULL", con);
+
+                            countApprovedCoursesCmd.Parameters.AddWithValue("@currentYear", currentDate.Year);
+                            var approvedCount = Convert.ToInt32(countApprovedCoursesCmd.ExecuteScalar()) + 1;
+
+                            var courseCount = approvedCount.ToString("D3");
+                            var vigencia = $"{currentDate.Year}-{currentDate.Year + 2}";
+
+                            courseKey = $"DVDR/{centerType}/{centerIdentifier}/{courseCount}/{vigencia}";
+                        }
+                        else // Curso renovado
+                        {
+                            var newRenewalCount = renewalCount + 1;
+
+                            var countApprovedCoursesCmd = new MySqlCommand(@"
+                        SELECT COUNT(*)
+                        FROM courses
+                        WHERE YEAR(created_at) = @currentYear 
+                        AND course_key IS NOT NULL", con);
+
+                            countApprovedCoursesCmd.Parameters.AddWithValue("@currentYear", currentDate.Year);
+                            var approvedCount = Convert.ToInt32(countApprovedCoursesCmd.ExecuteScalar()) + 1;
+
+                            var courseCount = approvedCount.ToString("D3");
+                            var vigencia = $"{currentDate.Year}-{currentDate.Year + 2}";
+
+                            courseKey = $"DVDR/{centerType}/{centerIdentifier}/{courseCount}_{newRenewalCount}/{vigencia}";
+
+                            renewalCount = newRenewalCount;
+                        }
+
+                        // Actualizar curso con clave generada y nueva fecha de expiración
+                        var sqlApprove = @"
+                    UPDATE courses
+                    SET approval_status = @approvalStatus,
+                        admin_notes = @adminNotes,
+                        course_key = @courseKey,
+                        expiration_date = @expirationDate,
+                        renewal_count = @renewalCount
+                    WHERE id = @courseId;
+                ";
+
+                        using (var cmdApprove = new MySqlCommand(sqlApprove, con))
+                        {
+                            cmdApprove.Parameters.AddWithValue("@approvalStatus", approvalStatus);
+                            cmdApprove.Parameters.AddWithValue("@adminNotes", adminNotes ?? (object)DBNull.Value);
+                            cmdApprove.Parameters.AddWithValue("@courseKey", courseKey);
+                            cmdApprove.Parameters.AddWithValue("@expirationDate", expirationDate);
+                            cmdApprove.Parameters.AddWithValue("@renewalCount", renewalCount);
+                            cmdApprove.Parameters.AddWithValue("@courseId", courseId);
+
+                            var rows = cmdApprove.ExecuteNonQuery();
+                            if (rows > 0)
+                                return (1, "Curso aprobado, clave generada y fecha de expiración asignada.");
+                            else
+                                return (0, "No se pudo actualizar el curso como aprobado.");
+                        }
                     }
                 }
             }
@@ -1137,7 +1250,7 @@ namespace DVDR_courses
                                 SessionId = reader.GetInt32("session_id"),
                                 CourseId = reader.GetInt32("course_id"),
                                 CourseName = reader.GetString("course_name"),
-                                CourseKey = reader.GetString("course_key"),
+                                CourseKey = reader.IsDBNull("course_key") ? null : reader.GetString("course_key"),
                                 Period = reader.GetString("period"),
                                 NumberOfParticipants = reader.GetInt32("number_of_participants"),
                                 NumberOfCertificates = reader.GetInt32("number_of_certificates"),

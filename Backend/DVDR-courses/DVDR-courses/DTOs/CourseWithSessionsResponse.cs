@@ -4,7 +4,7 @@
     {
         public int Id { get; set; } // Id del curso
         public string Title { get; set; } // Nombre del curso
-        public List<string> CourseKeys { get; set; } = new List<string>(); // Claves de los cursos (incluyendo renovaciones)
+        public List<string>? CourseKeys { get; set; } = new List<string>(); // Claves de los cursos (incluyendo renovaciones)
         public List<SessionResponse> Sessions { get; set; } = new List<SessionResponse>(); // Lista de sesiones del curso y sus renovaciones
         public string CourseStatus { get; set; } // Estatus del curso
         public string ApprovalStatus { get; set; } // Estatus de aprobación del curso

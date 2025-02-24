@@ -9,6 +9,7 @@ import {
   STEPPER_GLOBAL_OPTIONS,
   StepperSelectionEvent,
 } from '@angular/cdk/stepper';
+import { Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -49,7 +50,8 @@ export class InstructorRegisterComponent {
 
   constructor(
     private instructorRegisterService: InstructorRegisterService,
-    private storageService: StorageService
+    private storageService: StorageService,
+    private router: Router
   ) {}
 
   @ViewChild(GeneralInformationInstructorComponent)
@@ -235,6 +237,8 @@ export class InstructorRegisterComponent {
           icon: 'success',
           title: 'Éxito',
           text: 'Instructor registrado correctamente.',
+        }).then(() => {
+          this.router.navigate(['/profile/dashboard']);
         });
       },
       error: (error) => {

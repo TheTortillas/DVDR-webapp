@@ -20,6 +20,7 @@ import {
   CourseFullData,
 } from '../../../core/services/courses.service';
 import { DataService } from '../../../core/services/data.service';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-all-courses',
@@ -250,7 +251,13 @@ export class AllCoursesComponent implements OnInit {
           });
         },
         error: (error) => {
-          console.error('Error al cargar sesiones:', error);
+          // console.error('Error al cargar sesiones:', error);
+          Swal.fire({
+            icon: 'info',
+            title: 'Sin aperturas',
+            text: 'Este curso no ha solicitado aperturas.',
+            confirmButtonText: 'Aceptar',
+          });
         },
       });
     }

@@ -2,7 +2,7 @@
   <div class="sm:w-5/6">
     <div class="bg-white border border-gray-400 rounded-lg p-8 shadow">
       <div class="space-x-40 text-center">
-        <h1 class="heading">Solicitar Apertura de curso</h1>
+        <h1 class="heading">Solicitar apertura de curso</h1>
       </div>
 
       <table mat-table [dataSource]="dataSource">
@@ -21,7 +21,7 @@
         <!-- Clave del curso -->
         <ng-container matColumnDef="clave">
           <th mat-header-cell *matHeaderCellDef>CLAVE</th>
-          <td mat-cell *matCellDef="let course">{{ course.clave }}</td>
+          <td mat-cell *matCellDef="let course">{{ course.clave || "-" }}</td>
         </ng-container>
 
         <!-- Botón Solicitar -->
@@ -30,7 +30,11 @@
           <td mat-cell *matCellDef="let course">
             <button
               mat-button
-              *ngIf="!isCursoExpirado(course)"
+              *ngIf="
+                !isCursoExpirado(course) &&
+                course.approvalStatus !== 'pending' &&
+                course.approvalStatus !== 'rejected'
+              "
               [disabled]="!isCursoAprobado(course)"
               (click)="solicitarApertura(course)"
             >
@@ -39,12 +43,32 @@
 
             <button
               mat-button
-              *ngIf="isCursoExpirado(course)"
+              *ngIf="
+                isCursoExpirado(course) &&
+                course.approvalStatus !== 'pending' &&
+                course.approvalStatus !== 'rejected'
+              "
               [disabled]="!isCursoAprobado(course)"
               class="bg-red-500 text-white px-4 py-2 rounded"
               (click)="renovarCurso(course)"
             >
               Renovar
+            </button>
+
+            <button
+              mat-button
+              *ngIf="course.approvalStatus === 'pending'"
+              disabled
+            >
+              Curso en revisión
+            </button>
+
+            <button
+              mat-button
+              *ngIf="course.approvalStatus === 'rejected'"
+              disabled
+            >
+              Curso rechazado, revisar correcciones
             </button>
           </td>
         </ng-container>

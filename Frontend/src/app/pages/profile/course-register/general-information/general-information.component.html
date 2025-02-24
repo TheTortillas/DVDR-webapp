@@ -49,14 +49,12 @@
         <mat-radio-group
           formControlName="service_type"
           class="flex flex-wrap gap-4"
+          (change)="onServiceTypeChange($event)"
         >
-          <mat-radio-button class="flex-1" value="Curso"
-            >Curso</mat-radio-button
-          >
-          <mat-radio-button class="flex-1" value="Diplomado"
+          <mat-radio-button class="flex-1" [value]="1">Curso</mat-radio-button>
+          <mat-radio-button class="flex-1" [value]="2"
             >Diplomado</mat-radio-button
           >
-          <mat-radio-button class="flex-1" value="Otro">Otro</mat-radio-button>
         </mat-radio-group>
 
         <mat-error
@@ -69,21 +67,6 @@
           <span style="display: inline-block; width: 20px"></span>El tipo de
           servicio <strong>requerido</strong>.
         </mat-error>
-        <div class="w-full mt-4" *ngIf="typeService === 3">
-          <label
-            for="tipo-servicio"
-            class="flex mb-1 text-base font-medium text-gray-900"
-            >Ingresa el tipo de servicio</label
-          >
-          <mat-form-field appearance="fill" class="w-full">
-            <mat-label>Ingresa el tipo de tu servicio aquí</mat-label>
-            <input
-              matInput
-              placeholder="Especifique que tipo de servicio brindará"
-              (input)="onOtherServiceTypeInput($event)"
-            />
-          </mat-form-field>
-        </div>
       </div>
       <mat-divider></mat-divider>
 

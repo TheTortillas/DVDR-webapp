@@ -136,9 +136,6 @@ export class GeneralInformationComponent implements OnInit {
   //-------------------------------------- TIPO SERVICIO ---------------------------------------
   typeService: number = 0;
 
-  onOtroServicioChange(event: any) {
-    this.typeService = event.value;
-  }
   onServiceTypeChange(event: any) {
     const val = event.value;
     this.typeService = val;
@@ -147,14 +144,7 @@ export class GeneralInformationComponent implements OnInit {
       this.formGroup.get('service_type')?.setValue('Curso');
     } else if (val === 2) {
       this.formGroup.get('service_type')?.setValue('Diplomado');
-    } else {
-      // Limpia para que el usuario escriba
-      this.formGroup.get('service_type')?.reset();
     }
-  }
-
-  onOtherServiceTypeInput(event: any) {
-    this.formGroup.get('service_type')?.setValue(event.target.value);
   }
   //-------------------------------------- CATEGORÍA ---------------------------------------
   categories: string[] = [];

@@ -17,6 +17,7 @@ import {
   FormBuilder,
   Validators,
 } from '@angular/forms';
+import { Router } from '@angular/router';
 import Swal from 'sweetalert2';
 import { ApertureStateService } from '../../../core/services/aperture-state.service';
 import { ApertureCoursesSessionsService } from '../../../core/services/aperture-courses-sessions.service';
@@ -66,7 +67,8 @@ export class ApertureInfoComponent {
     private route: ActivatedRoute,
     private fb: FormBuilder,
     private apertureState: ApertureStateService,
-    private apertureCoursesService: ApertureCoursesSessionsService
+    private apertureCoursesService: ApertureCoursesSessionsService,
+    private router: Router
   ) {
     this.route.queryParams.subscribe((params) => {
       this.title = params['title'] || '';
@@ -207,7 +209,9 @@ export class ApertureInfoComponent {
                 'Éxito',
                 'La apertura se ha registrado correctamente.',
                 'success'
-              );
+              ).then(() => {
+                this.router.navigate(['/profile/my-courses']); // Redirige a /profile/my-courses
+              });
               this.solicitudForm.reset();
               this.generatedSchedule = [];
             },

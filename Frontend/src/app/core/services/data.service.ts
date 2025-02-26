@@ -35,6 +35,11 @@ export class DataService {
     return this.httpClient.get(url, HttpOptions);
   }
 
+  public getDiplomaeDocumentTemplates(): Observable<any> {
+    const url = this.URLBase + '/api/Data/DiplomaeDocumentTemplates';
+    return this.httpClient.get(url, HttpOptions);
+  }
+
   public getCertificateDocumentTemplates(): Observable<any> {
     const url = this.URLBase + '/api/Data/CertificateDocumentTemplates';
     return this.httpClient.get(url, HttpOptions);

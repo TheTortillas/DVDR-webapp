@@ -10,7 +10,7 @@
 
     <div class="xl:p-10 bg-white">
       <div>
-        <!-- NOMBRE DEL DIPLOMADO  -->
+        <!-- NOMBRE DEL CURSO  -->
         <div class="course-name-container mb-3">
           <label
             for="nombre-curso"
@@ -18,9 +18,7 @@
             >Nombre de la acción de formación:</label
           >
           <mat-form-field appearance="fill" class="w-full">
-            <mat-label
-              >Ingresa el nombre de tu curso o diplomado aquí</mat-label
-            >
+            <mat-label>Ingresa el nombre de tu curso aquí</mat-label>
             <input
               matInput
               placeholder="Ex. Curso de Excel Básico"
@@ -40,7 +38,7 @@
       <mat-divider></mat-divider>
 
       <!-- TIPO DE SERVICIO -->
-      <div class="service-type-container py-5">
+      <!-- <div class="service-type-container py-5">
         <label
           for="tipo-servicio"
           class="flex mb-2 text-xl font-medium text-gray-900"
@@ -68,7 +66,7 @@
           servicio <strong>requerido</strong>.
         </mat-error>
       </div>
-      <mat-divider></mat-divider>
+      <mat-divider></mat-divider> -->
 
       <!-- CATEGORÍA DEL CURSO -->
       <div class="category-type-container py-5">
@@ -106,7 +104,6 @@
           class="flex mb-2 text-xl font-medium text-gray-900"
           >Convenio</label
         >
-        <!-- ...existing code... -->
         <mat-slide-toggle (change)="tieneConvenioChange($event)">
         </mat-slide-toggle>
         <span class="ms-3 text-base font-medium text-gray-900"
@@ -133,8 +130,6 @@
               El convenio es <strong>requerido</strong>.
             </mat-error>
           </mat-form-field>
-
-          <!-- ...existing code... -->
 
           <div *ngIf="selectedConvenioOption">
             <label
@@ -166,9 +161,10 @@
           <input
             matInput
             type="number"
-            min="20"
+            min="1"
+            max="20"
             formControlName="total_duration"
-            placeholder="Ej. 40"
+            placeholder="Ej. 8"
             required
           />
           <mat-error
@@ -177,8 +173,18 @@
               formGroup.get('total_duration')?.touched
             "
           >
-            La duración es <strong>requerida</strong> y debe ser un valor entero
-            y no menor a 20 horas.
+            <span *ngIf="formGroup.get('total_duration')?.errors?.['required']">
+              La duración es <strong>requerida</strong>
+            </span>
+            <span
+              *ngIf="formGroup.get('total_duration')?.errors?.['min'] || 
+                         formGroup.get('total_duration')?.errors?.['max']"
+            >
+              La duración debe estar entre <strong>1 y 20 horas</strong>
+            </span>
+            <span *ngIf="formGroup.get('total_duration')?.errors?.['pattern']">
+              La duración debe ser un número entero
+            </span>
           </mat-error>
         </mat-form-field>
       </div>

@@ -3,12 +3,19 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatIconModule } from '@angular/material/icon';
 import { Router, RouterLink } from '@angular/router';
+import { MatMenuModule } from '@angular/material/menu';
 import { StorageService } from '../../../core/services/storage.service';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [RouterLink, MatButtonModule, MatDividerModule, MatIconModule],
+  imports: [
+    RouterLink,
+    MatButtonModule,
+    MatDividerModule,
+    MatIconModule,
+    MatMenuModule,
+  ],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss',
 })
@@ -34,5 +41,14 @@ export class DashboardComponent {
       console.error('No hay token disponible');
       this.router.navigate(['/auth/login']);
     }
+  }
+
+  navToCourses() {
+    this.router.navigate(['/profile/course-register']);
+  }
+
+  navToDiplomas() {
+    // Ajusta la ruta según tu ruta real para registro de diplomados
+    this.router.navigate(['/profile/diploema-register']);
   }
 }

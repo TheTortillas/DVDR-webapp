@@ -22,23 +22,36 @@
             alt="content"
           />
           <h3 class="tracking-widest text-pink-900 text-xs">
-            Registro de Curso
+            Registro de cursos y diplomados
           </h3>
-          <p class="leading-relaxed text-base">Registra cursos y diplomados.</p>
-          <a
+          <p class="leading-relaxed text-base">
+            Elige entre registrar un curso o un diplomado.
+          </p>
+
+          <!-- Menú para elegir entre cursos o diplomados -->
+          <button
             mat-flat-button
             extended
-            routerLink="../course-register"
+            [matMenuTriggerFor]="registrationMenu"
             class="w-full"
           >
             <div
               class="content-center align-middle"
-              style="display: inline-flex; align-items: right"
+              style="display: inline-flex; align-items: center"
             >
               Siguiente
               <mat-icon style="margin-left: 8px">arrow_right_alt</mat-icon>
             </div>
-          </a>
+          </button>
+
+          <mat-menu #registrationMenu="matMenu">
+            <button mat-menu-item (click)="navToCourses()">
+              Cursos de 20 horas o menos
+            </button>
+            <button mat-menu-item (click)="navToDiplomas()">
+              Cursos de más de 20 horas y diplomados
+            </button>
+          </mat-menu>
         </div>
       </div>
       <div class="xl:w-1/4 md:w-1/2 p-4">

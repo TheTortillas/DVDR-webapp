@@ -60,8 +60,15 @@ CREATE TABLE courses (
 CREATE TABLE documents_templates (
     id INT PRIMARY KEY AUTO_INCREMENT,
     name VARCHAR(255) NOT NULL,
-    filePath VARCHAR(2083) NOT NULL, -- Ampliado para soportar URLs largas
-    type ENUM('file', 'url') DEFAULT 'file' NOT NULL -- O es URL o es archivo
+    filePath VARCHAR(2083) NOT NULL,
+    type ENUM('file', 'url') DEFAULT 'file' NOT NULL
+);
+
+CREATE TABLE documents_templates_diplomae (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(255) NOT NULL,
+    filePath VARCHAR(2083) NOT NULL, 
+    type ENUM('file', 'url') DEFAULT 'file' NOT NULL 
 );
 
 CREATE TABLE certificate_documents_templates (
@@ -1204,6 +1211,13 @@ INSERT INTO centers (name, type, identifier) VALUES
 ('Centro de Vinculación y Desarrollo Regional Unidad Tijuana', 'CVDR', 11),
 ('Centro de Vinculación y Desarrollo Regional Unidad Tampico', 'CVDR', 10);
 
+INSERT INTO documents_templates_diplomae (name, filePath, type) VALUES
+('Solicitud de registro', 'assets/diplomae_templates/1-solicitud-de-registro-22.doc', 'file'),
+('Síntesis del programa del diplomado', 'assets/diplomae_templates/2-síntesis-del-programa-del-diplomado.doc', 'file'),
+('Cronograma de actividades', 'assets/diplomae_templates/3-cronograma-de-actividades.doc', 'file'),
+('Lista inicial de participantes', 'assets/diplomae_templates/4-lista-inicial-de-participantes.doc', 'file'),
+('Lista final de calificaciones', 'assets/diplomae_templates/5-lista-final-de-calificaciones.doc', 'file');
+
 INSERT INTO documents_templates (name, filePath, type) VALUES
 ('Formato de registro de cursos de formación a lo largo de la vida', 'assets/templates/01 FS20H 2024-2.docx', 'file'),
 ('Lista de cotejo para formato de registro de cursos', 'assets/templates/01 LC20H 2024-2.xlsx', 'file'),
@@ -1527,7 +1541,12 @@ WHERE id = 3;
 /*
 UPDATE courses 
 SET expiration_date = '2020-01-29' 
-WHERE id = 3;*/
+WHERE id = 5;*/
+
+/*
+UPDATE courses 
+SET approval_status = 'approved' 
+WHERE id = 5;*/
 
 /*
 UPDATE course_schedules 
@@ -1537,6 +1556,6 @@ WHERE id = 15;*/
 call sp_get_all_courses();
 CALL sp_update_user_password('admin', 'pass_admin', @p_status_code, @p_message);
 SELECT @p_status_code, @p_message; 
-SELECT * FROM course_sessions;
+SELECT * FROM courses;
 
 -- DROP DATABASE dvdr_cursos;

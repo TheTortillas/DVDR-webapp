@@ -124,13 +124,26 @@ export class GeneralInformationComponent implements OnInit {
   constructor(private dataService: DataService, private dialog: MatDialog) {}
 
   ngOnInit() {
+    // Establecer automáticamente el tipo de servicio como 'Curso'
+    this.formGroup.get('service_type')?.setValue('Curso');
+
     this.dataService.getCategoriasAcademicas().subscribe((data: any) => {
       this.categories = data;
     });
 
     this.formGroup.get('educational_platform')?.setValue([]);
-
     this.formGroup.get('actors')?.addValidators(requireActorRoles());
+
+    // Modificar el validador de duración total
+    this.formGroup
+      .get('total_duration')
+      ?.setValidators([
+        Validators.required,
+        Validators.min(1),
+        Validators.max(20),
+        Validators.pattern('^[0-9]*$'),
+      ]);
+    this.formGroup.get('total_duration')?.updateValueAndValidity();
   }
 
   //-------------------------------------- TIPO SERVICIO ---------------------------------------

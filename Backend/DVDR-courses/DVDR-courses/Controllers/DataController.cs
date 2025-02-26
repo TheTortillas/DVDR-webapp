@@ -6,7 +6,7 @@ using static Org.BouncyCastle.Math.EC.ECCurve;
 
 namespace DVDR_courses.Controllers
 {
-    [Authorize]
+    //[Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class DataController : ControllerBase
@@ -36,6 +36,20 @@ namespace DVDR_courses.Controllers
             try
             {
                 var templates = new DBManager(_config).GetDocumentTemplates(modality);
+                return new JsonResult(templates);
+            }
+            catch (Exception ex)
+            {
+                return new JsonResult(new { error = ex.Message }) { StatusCode = 500 };
+            }
+        }
+
+        [HttpGet("DiplomaeDocumentTemplates", Name = "GetDiplomaeDocumentTemplates")]
+        public JsonResult GetDiplomaeDocumentTemplates()
+        {
+            try
+            {
+                var templates = new DBManager(_config).GetDiplomaeDocumentTemplates();
                 return new JsonResult(templates);
             }
             catch (Exception ex)

@@ -44,7 +44,7 @@ namespace DVDR_courses.Controllers
 
             return Ok(result);
         }
-  [HttpPost("RefreshToken", Name = "PostRefreshToken")]
+        [HttpPost("RefreshToken", Name = "PostRefreshToken")]
         public IActionResult RefreshToken()
         {
             var authHeader = Request.Headers["Authorization"].ToString();

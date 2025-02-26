@@ -233,6 +233,43 @@ namespace DVDR_courses
             return templates;
         }
 
+        public List<DocumentTemplate> GetDiplomaeDocumentTemplates()
+        {
+            var templates = new List<DocumentTemplate>();
+            try
+            {
+                using (MySqlConnection con = new MySqlConnection(_config.GetConnectionString("default")))
+                {
+                    string query = @"
+                SELECT id, name, filePath, type
+                FROM documents_templates_diplomae
+                ORDER BY id";
+
+                    MySqlCommand command = new MySqlCommand(query, con);
+                    con.Open();
+
+                    using (MySqlDataReader reader = command.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            templates.Add(new DocumentTemplate
+                            {
+                                Id = reader.GetInt32("id"),
+                                Name = reader.GetString("name"),
+                                FilePath = reader.GetString("filePath"),
+                                Type = reader.GetString("type")
+                            });
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+            }
+            return templates;
+        }
+
         public List<DocumentTemplate> GetCertificateDocumentTemplates()
         {
             var templates = new List<DocumentTemplate>();

@@ -62,6 +62,9 @@ export class MyErrorStateMatcher implements ErrorStateMatcher {
 })
 export class GeneralInformationInstructorComponent {
   @Input() formGroup!: FormGroup;
+  @Input() isAdmin: boolean = false; // Nuevo input para determinar si es admin
+
+  centers: string[] = []; // Array para almacenar los centros
 
   matcher = new MyErrorStateMatcher();
 
@@ -72,6 +75,13 @@ export class GeneralInformationInstructorComponent {
     this.dataService.getCategoriasAcademicas().subscribe((data: any) => {
       this.categories = data;
     });
+
+    // Solo cargar los centros si es admin
+    if (this.isAdmin) {
+      this.dataService.getCenters().subscribe((centers: string[]) => {
+        this.centers = centers;
+      });
+    }
   }
 
   hide = signal(true);

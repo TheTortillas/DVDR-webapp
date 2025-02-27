@@ -1,6 +1,6 @@
 import { Component, EventEmitter, inject, Output } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
-import { EvidenceDialogComponent } from '../../../../shared/components/evidence-dialog/evidence-dialog.component';
+import { EvidenceDialogComponent } from '../../evidence-dialog/evidence-dialog.component';
 import { MatButton } from '@angular/material/button';
 import { MatTableModule } from '@angular/material/table';
 import { MatIcon } from '@angular/material/icon';

@@ -5,7 +5,7 @@ import { LoginPageComponent } from './pages/auth/login-page/login-page.component
 import { ContactUsPageComponent } from './pages/landing/contact-us-page/contact-us-page.component';
 import { CourseRegisterComponent } from './pages/profile/course-register/course-register.component';
 import { PruebasComponentesComponent } from './pages/pruebas-componentes/pruebas-componentes.component';
-import { InstructorRegisterComponent } from './pages/profile/instructor-register/instructor-register.component';
+import { InstructorRegisterComponent } from './shared/components/instructor-register/instructor-register.component';
 import { ProfileComponent } from './pages/profile/profile.component';
 import { AuthComponent } from './pages/auth/auth.component';
 import { RequestApertureComponent } from './pages/profile/request-aperture/request-aperture.component';
@@ -23,6 +23,8 @@ import { CourseRegisterRequestComponent } from './pages/management/course-regist
 import { CertificateRequestsComponent } from './pages/management/certificate-requests/certificate-requests.component';
 import { CentersComponent } from './pages/management/centers/centers.component';
 import { DiploemaRegisterComponent } from './pages/profile/diploema-register/diploema-register.component';
+import { InstructorRegisterAdminComponent } from './pages/management/instructor-register-admin/instructor-register-admin.component';
+import { InstructorRegisterClientComponent } from './pages/profile/instructor-register-client/instructor-register-client.component';
 
 export const routes: Routes = [
   {
@@ -92,6 +94,10 @@ export const routes: Routes = [
         component: CentersComponent,
       },
       {
+        path: 'instructor-register',
+        component: InstructorRegisterAdminComponent,
+      },
+      {
         path: '',
         redirectTo: 'dashboard',
         pathMatch: 'full',
@@ -119,7 +125,7 @@ export const routes: Routes = [
       },
       {
         path: 'instructor-register',
-        component: InstructorRegisterComponent,
+        component: InstructorRegisterClientComponent,
       },
       {
         path: 'course-register',

@@ -1,6 +1,6 @@
 import { Component, EventEmitter, inject, Output } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
-import { WorkExperienceDialogComponent } from '../../../../shared/components/work-experience-dialog/work-experience-dialog.component';
+import { WorkExperienceDialogComponent } from '../../work-experience-dialog/work-experience-dialog.component';
 import { MatButton } from '@angular/material/button';
 import { MatTableModule } from '@angular/material/table';
 import { MatIcon } from '@angular/material/icon';

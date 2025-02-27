@@ -373,6 +373,34 @@
             </mat-form-field>
           </div>
         </div>
+
+        <mat-divider class="py-3" *ngIf="isAdmin"></mat-divider>
+        <div class="w-full" *ngIf="isAdmin">
+          <div class="center-container px-2">
+            <h4 class="">Centro</h4>
+            <label
+              for="centro"
+              class="block mb-2 text-xl font-medium text-gray-900"
+              >Seleccione el centro al que pertenece el instructor:</label
+            >
+            <mat-form-field class="w-full">
+              <mat-label>Seleccione el centro </mat-label>
+              <mat-select formControlName="center" required>
+                <mat-option *ngFor="let center of centers" [value]="center">
+                  {{ center }}
+                </mat-option>
+              </mat-select>
+              <mat-error
+                *ngIf="
+                  formGroup.get('center')?.hasError('required') &&
+                  formGroup.get('center')?.touched
+                "
+              >
+                Centro es <strong>requerido</strong>
+              </mat-error>
+            </mat-form-field>
+          </div>
+        </div>
       </form>
     </div>
   </form>

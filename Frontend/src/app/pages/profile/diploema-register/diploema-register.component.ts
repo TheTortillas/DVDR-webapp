@@ -49,13 +49,17 @@ export class DiploemaRegisterComponent implements OnInit {
   loadDiplomaeDocumentTemplates(): void {
     this.dataService.getDiplomaeDocumentTemplates().subscribe({
       next: (data: DiplomaDocumentRow[]) => {
-        this.dataSource.data = data.map((item) => ({
+        // Filtrar sólo los documentos que tienen required = true
+        const requiredDocs = data.filter((doc) => doc.required);
+
+        this.dataSource.data = requiredDocs.map((item) => ({
           id: item.id,
           name: item.name,
           filePath: item.filePath,
           type: item.type,
           required: item.required,
         }));
+        //console.log('Diploma templates loaded:', this.dataSource.data);
       },
       error: (err) => {
         console.error('Error loading diploma templates:', err);

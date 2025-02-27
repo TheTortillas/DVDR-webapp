@@ -64,11 +64,51 @@ CREATE TABLE documents_templates (
     type ENUM('file', 'url') DEFAULT 'file' NOT NULL
 );
 
+CREATE TABLE diplomas (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  name VARCHAR(255) NOT NULL,
+  total_duration INT NOT NULL,
+  diploma_key VARCHAR(50),
+  service_type VARCHAR(50) NOT NULL,        
+  modality VARCHAR(50) NOT NULL,           
+  educational_offer ENUM('DEMS','DES') NOT NULL,
+  status ENUM('active','finished','ongoing') DEFAULT 'ongoing',
+  cost DECIMAL(10, 2) DEFAULT 0,
+  participants INT DEFAULT 0,
+  start_date DATE,
+  end_date DATE,
+  expiration_date DATE,
+  user_id INT NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE diploma_actor_roles (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  diploma_id INT NOT NULL,
+  actor_id INT NOT NULL,                -- Relación con actors_general_information
+  role VARCHAR(50) NOT NULL,            -- Rol del actor en el diplomado
+  FOREIGN KEY (diploma_id) REFERENCES diplomas(id) ON DELETE CASCADE,
+  FOREIGN KEY (actor_id) REFERENCES actors_general_information(id) ON DELETE CASCADE
+);
+
+CREATE TABLE diploma_documentation (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  diploma_id INT NOT NULL,
+  document_id INT NOT NULL,             
+  filePath VARCHAR(255) NOT NULL,
+  uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (diploma_id) REFERENCES diplomas(id) ON DELETE CASCADE,
+  FOREIGN KEY (document_id) REFERENCES documents_templates_diplomae(id) ON DELETE CASCADE
+);
+
 CREATE TABLE documents_templates_diplomae (
     id INT PRIMARY KEY AUTO_INCREMENT,
-    name VARCHAR(255) NOT NULL,
-    filePath VARCHAR(2083) NOT NULL, 
-    type ENUM('file', 'url') DEFAULT 'file' NOT NULL 
+    name VARCHAR(255),
+    filePath VARCHAR(2083), 
+    type ENUM('file', 'url') DEFAULT 'file' NOT NULL,
+	required BOOLEAN DEFAULT true
 );
 
 CREATE TABLE certificate_documents_templates (
@@ -1211,12 +1251,16 @@ INSERT INTO centers (name, type, identifier) VALUES
 ('Centro de Vinculación y Desarrollo Regional Unidad Tijuana', 'CVDR', 11),
 ('Centro de Vinculación y Desarrollo Regional Unidad Tampico', 'CVDR', 10);
 
-INSERT INTO documents_templates_diplomae (name, filePath, type) VALUES
-('Solicitud de registro', 'assets/diplomae_templates/1-solicitud-de-registro-22.doc', 'file'),
-('Síntesis del programa del diplomado', 'assets/diplomae_templates/2-síntesis-del-programa-del-diplomado.doc', 'file'),
-('Cronograma de actividades', 'assets/diplomae_templates/3-cronograma-de-actividades.doc', 'file'),
-('Lista inicial de participantes', 'assets/diplomae_templates/4-lista-inicial-de-participantes.doc', 'file'),
-('Lista final de calificaciones', 'assets/diplomae_templates/5-lista-final-de-calificaciones.doc', 'file');
+INSERT INTO documents_templates_diplomae (name, filePath, type, required) VALUES
+('Formato de oficio de solicitud', 'assets/diplomae_templates/oficio-de-solicitud.doc', 'file', true),							-- NO HAY PLANTILLA
+('Formato de solicitud de dictamen académico', 'assets/diplomae_templates/solicitud-de-registro-22.doc', 'file', true),
+('Formato de potesta de autoría', 'assets/diplomae_templates/protesta-de-autoría.docx', 'file', true),							-- NO HAY PLANTILLA
+('Síntesis del programa del diplomado', 'assets/diplomae_templates/síntesis-del-programa-del-diplomado.doc', 'file', true),
+('Cronograma de actividades', 'assets/diplomae_templates/cronograma-de-actividades.doc', 'file', true),
+('Currículum Vitae de Instructor y Aval', 'assets/diplomae_templates/formato-cv-instructor.docx', 'file', true),
+('Carta Aval', 'assets/diplomae_templates/ejemplo-carta-aval.pdf', 'file', true),
+('Lista inicial de participantes', 'assets/diplomae_templates/lista-inicial-de-participantes.doc', 'file', false),
+('Lista final de calificaciones', 'assets/diplomae_templates/lista-final-de-calificaciones.doc', 'file', false);
 
 INSERT INTO documents_templates (name, filePath, type) VALUES
 ('Formato de registro de cursos de formación a lo largo de la vida', 'assets/templates/01 FS20H 2024-2.docx', 'file'),
@@ -1287,7 +1331,6 @@ SET FOREIGN_KEY_CHECKS = 0;
 TRUNCATE TABLE nombre_de_la_tabla;
 SET FOREIGN_KEY_CHECKS = 1;
 */
-
  
 -- SELECT * FROM actors_general_information;
 /*
@@ -1547,6 +1590,11 @@ WHERE id = 5;*/
 UPDATE courses 
 SET approval_status = 'approved' 
 WHERE id = 5;*/
+
+/*
+UPDATE course_sessions
+SET status = 'completed' 
+WHERE id = 4;*/
 
 /*
 UPDATE course_schedules 

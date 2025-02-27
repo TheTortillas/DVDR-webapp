@@ -43,7 +43,6 @@ interface Instructor {
     MatTableModule,
     MatCheckboxModule,
     MatIcon,
-    MatDivider,
     MatPaginatorModule,
   ],
   templateUrl: './add-instructors-dialog.component.html',

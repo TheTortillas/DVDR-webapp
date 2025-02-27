@@ -241,7 +241,7 @@ namespace DVDR_courses
                 using (MySqlConnection con = new MySqlConnection(_config.GetConnectionString("default")))
                 {
                     string query = @"
-                SELECT id, name, filePath, type
+                SELECT id, name, filePath, type, required
                 FROM documents_templates_diplomae
                 ORDER BY id";
 
@@ -257,7 +257,8 @@ namespace DVDR_courses
                                 Id = reader.GetInt32("id"),
                                 Name = reader.GetString("name"),
                                 FilePath = reader.GetString("filePath"),
-                                Type = reader.GetString("type")
+                                Type = reader.GetString("type"),
+                                Required = reader.GetBoolean("required") 
                             });
                         }
                     }

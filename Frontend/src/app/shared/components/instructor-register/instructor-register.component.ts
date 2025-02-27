@@ -1,4 +1,4 @@
-import { Component, inject, ViewChild } from '@angular/core';
+import { Component, inject, Input, ViewChild } from '@angular/core';
 import {
   FormBuilder,
   Validators,
@@ -47,6 +47,7 @@ import { StorageService } from '../../../core/services/storage.service';
 })
 export class InstructorRegisterComponent {
   private _formBuilder = inject(FormBuilder);
+  @Input() isAdmin: boolean = false;
 
   constructor(
     private instructorRegisterService: InstructorRegisterService,
@@ -158,7 +159,8 @@ export class InstructorRegisterComponent {
     // Agregar información general
     const generalInfo = {
       ...this.firstFormGroup.value,
-      center: claims.center, // Use center from claims instead of localStorage
+      // Si es admin, usar el centro seleccionado, de lo contrario, usar el centro del usuario
+      center: this.isAdmin ? this.firstFormGroup.value.center : claims.center,
     };
 
     formData.append('GeneralInfo.FirstName', generalInfo.firstName || '');
@@ -238,7 +240,11 @@ export class InstructorRegisterComponent {
           title: 'Éxito',
           text: 'Instructor registrado correctamente.',
         }).then(() => {
-          this.router.navigate(['/profile/dashboard']);
+          // Redirigir según si es admin o no
+          const redirectPath = this.isAdmin
+            ? '/management/dashboard'
+            : '/profile/dashboard';
+          this.router.navigate([redirectPath]);
         });
       },
       error: (error) => {

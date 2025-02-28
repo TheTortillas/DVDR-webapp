@@ -66,13 +66,14 @@ CREATE TABLE documents_templates (
 
 CREATE TABLE diplomas (
   id INT PRIMARY KEY AUTO_INCREMENT,
-  name VARCHAR(255) NOT NULL,
-  total_duration INT NOT NULL,
+  name VARCHAR(255),
+  total_duration INT,
   diploma_key VARCHAR(50),
-  service_type VARCHAR(50) NOT NULL,        
-  modality VARCHAR(50) NOT NULL,           
-  educational_offer ENUM('DEMS','DES') NOT NULL,
+  service_type VARCHAR(50),        
+  modality VARCHAR(50) ,           
+  educational_offer ENUM('DEMS','DES'),
   status ENUM('active','finished','ongoing') DEFAULT 'ongoing',
+  approval_status ENUM('pending', 'approved', 'rejected') DEFAULT 'pending' NOT NULL,
   cost DECIMAL(10, 2) DEFAULT 0,
   participants INT DEFAULT 0,
   start_date DATE,
@@ -1261,7 +1262,7 @@ INSERT INTO documents_templates_diplomae (name, filePath, type, required) VALUES
 ('Carta Aval', 'assets/diplomae_templates/ejemplo-carta-aval.pdf', 'file', true),
 ('Lista inicial de participantes', 'assets/diplomae_templates/lista-inicial-de-participantes.doc', 'file', false),
 ('Lista final de calificaciones', 'assets/diplomae_templates/lista-final-de-calificaciones.doc', 'file', false);
-
+select * from actors_general_information;
 INSERT INTO documents_templates (name, filePath, type) VALUES
 ('Formato de registro de cursos de formación a lo largo de la vida', 'assets/templates/01 FS20H 2024-2.docx', 'file'),
 ('Lista de cotejo para formato de registro de cursos', 'assets/templates/01 LC20H 2024-2.xlsx', 'file'),

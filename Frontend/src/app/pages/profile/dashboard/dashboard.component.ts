@@ -48,7 +48,6 @@ export class DashboardComponent {
   }
 
   navToDiplomas() {
-    // Ajusta la ruta según tu ruta real para registro de diplomados
-    this.router.navigate(['/profile/diploema-register']);
+    this.router.navigate(['/profile/diploma-register']);
   }
 }

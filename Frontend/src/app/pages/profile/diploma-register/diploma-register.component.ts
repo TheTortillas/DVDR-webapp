@@ -19,7 +19,7 @@ interface DiplomaDocumentRow {
 }
 
 @Component({
-  selector: 'app-diploema-register',
+  selector: 'app-diploma-register',
   standalone: true,
   imports: [
     MatIcon,
@@ -30,10 +30,10 @@ interface DiplomaDocumentRow {
     MatError,
     MatButton,
   ],
-  templateUrl: './diploema-register.component.html',
-  styleUrl: './diploema-register.component.scss',
+  templateUrl: './diploma-register.component.html',
+  styleUrl: './diploma-register.component.scss',
 })
-export class DiploemaRegisterComponent implements OnInit {
+export class DiplomaRegisterComponent implements OnInit {
   dataSource = new MatTableDataSource<DiplomaDocumentRow>([]);
   displayedColumns: string[] = ['icon', 'name', 'files', 'actions'];
   // Variable para mostrar/ocultar el error

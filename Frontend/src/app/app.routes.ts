@@ -22,7 +22,7 @@ import { AllCoursesComponent } from './pages/management/all-courses/all-courses.
 import { CourseRegisterRequestComponent } from './pages/management/course-register-request/course-register-request.component';
 import { CertificateRequestsComponent } from './pages/management/certificate-requests/certificate-requests.component';
 import { CentersComponent } from './pages/management/centers/centers.component';
-import { DiploemaRegisterComponent } from './pages/profile/diploema-register/diploema-register.component';
+import { DiplomaRegisterComponent } from './pages/profile/diploma-register/diploma-register.component';
 import { InstructorRegisterAdminComponent } from './pages/management/instructor-register-admin/instructor-register-admin.component';
 import { InstructorRegisterClientComponent } from './pages/profile/instructor-register-client/instructor-register-client.component';
 
@@ -132,8 +132,8 @@ export const routes: Routes = [
         component: CourseRegisterComponent,
       },
       {
-        path: 'diploema-register',
-        component: DiploemaRegisterComponent,
+        path: 'diploma-register',
+        component: DiplomaRegisterComponent,
       },
       {
         path: 'my-courses',

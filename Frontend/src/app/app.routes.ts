@@ -25,6 +25,7 @@ import { CentersComponent } from './pages/management/centers/centers.component';
 import { DiplomaRegisterComponent } from './pages/profile/diploma-register/diploma-register.component';
 import { InstructorRegisterAdminComponent } from './pages/management/instructor-register-admin/instructor-register-admin.component';
 import { InstructorRegisterClientComponent } from './pages/profile/instructor-register-client/instructor-register-client.component';
+import { DiplomaRegisterRequestComponent } from './pages/management/diploma-register-request/diploma-register-request.component';
 
 export const routes: Routes = [
   {
@@ -96,6 +97,10 @@ export const routes: Routes = [
       {
         path: 'instructor-register',
         component: InstructorRegisterAdminComponent,
+      },
+      {
+        path: 'diploma-register-request',
+        component: DiplomaRegisterRequestComponent,
       },
       {
         path: '',

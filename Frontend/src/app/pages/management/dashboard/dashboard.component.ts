@@ -12,6 +12,7 @@ import { CourseFullData } from '../../../core/services/courses.service';
 import { MatBadgeModule } from '@angular/material/badge';
 import { RouterLink } from '@angular/router';
 import { StorageService } from '../../../core/services/storage.service';
+import { DiplomasService } from '../../../core/services/diplomas.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -34,11 +35,13 @@ export class ManagementDashboardComponent implements OnInit {
   username: string | null = '';
   pendingCoursesCount = 0;
   pendingCertificatesCount = 0;
+  pendingDiplomasCount = 0;
 
   constructor(
     private router: Router,
     private coursesService: CoursesService,
-    private storageService: StorageService
+    private storageService: StorageService,
+    private diplomasService: DiplomasService
   ) {}
 
   ngOnInit(): void {
@@ -57,6 +60,7 @@ export class ManagementDashboardComponent implements OnInit {
 
     this.loadPendingCoursesCount();
     this.loadPendingCertificatesCount();
+    this.loadPendingDiplomasCount();
   }
 
   loadPendingCoursesCount(): void {
@@ -82,6 +86,19 @@ export class ManagementDashboardComponent implements OnInit {
       },
       error: (err) => {
         console.error('Error al obtener solicitudes de constancias:', err);
+      },
+    });
+  }
+
+  loadPendingDiplomasCount(): void {
+    this.diplomasService.getAllDiplomas().subscribe({
+      next: (diplomas: any[]) => {
+        const pending = diplomas.filter((d) => d.approvalStatus === 'pending');
+        this.pendingDiplomasCount = pending.length;
+        console.log('Diplomas pendientes:', pending.length);
+      },
+      error: (err) => {
+        console.error('Error al obtener diplomados:', err);
       },
     });
   }

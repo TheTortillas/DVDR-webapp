@@ -1,0 +1,132 @@
+<main class="flex justify-center py-10">
+  <div class="sm:w-5/6">
+    <div class="bg-white border border-gray-400 rounded-lg p-8 shadow">
+      <div class="space-x-40 text-center">
+        <h1 class="heading">
+          Solicitudes de diplomados y cursos de más de 20 horas
+        </h1>
+      </div>
+      <table
+        mat-table
+        [dataSource]="diplomasData"
+        multiTemplateDataRows
+        class="w-full"
+      >
+        <!-- Nombre del diplomado -->
+        <ng-container matColumnDef="name">
+          <th mat-header-cell *matHeaderCellDef>Diplomado</th>
+          <td mat-cell *matCellDef="let element">{{ element.name }}</td>
+        </ng-container>
+
+        <!-- Estado de aprobación -->
+        <ng-container matColumnDef="approvalStatus">
+          <th mat-header-cell *matHeaderCellDef>Estado</th>
+          <td mat-cell *matCellDef="let element">
+            {{ element.approvalStatus }}
+          </td>
+        </ng-container>
+
+        <!-- Columna para expandir fila: ver documentación -->
+        <ng-container matColumnDef="expand">
+          <th mat-header-cell *matHeaderCellDef></th>
+          <td mat-cell *matCellDef="let element">
+            <button
+              mat-icon-button
+              (click)="
+                expandedElement = expandedElement === element ? null : element;
+                $event.stopPropagation()
+              "
+              matTooltip="Ver documentación"
+            >
+              <mat-icon class="hover-blue">
+                {{
+                  expandedElement === element
+                    ? "keyboard_arrow_up"
+                    : "keyboard_arrow_down"
+                }}
+              </mat-icon>
+            </button>
+          </td>
+        </ng-container>
+
+        <!-- Columna de acciones con iconos hover -->
+        <ng-container matColumnDef="acciones">
+          <th mat-header-cell *matHeaderCellDef>Acciones</th>
+          <td mat-cell *matCellDef="let element">
+            <button
+              mat-icon-button
+              matTooltip="Aprobar diplomado"
+              (click)="approveDiploma(element.diplomaId)"
+            >
+              <mat-icon class="hover-green">check_circle</mat-icon>
+            </button>
+            <button
+              mat-icon-button
+              matTooltip="Rechazar diplomado"
+              (click)="rejectDiploma(element.diplomaId)"
+            >
+              <mat-icon class="hover-red">cancel</mat-icon>
+            </button>
+          </td>
+        </ng-container>
+
+        <!-- Fila principal -->
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr
+          mat-row
+          *matRowDef="let row; columns: displayedColumns"
+          (click)="expandedElement = expandedElement === row ? null : row"
+          [class.expanded-row]="expandedElement === row"
+        ></tr>
+
+        <!-- Fila expandida: muestra la documentación -->
+        <ng-container matColumnDef="detail">
+          <td
+            mat-cell
+            *matCellDef="let row"
+            [attr.colspan]="displayedColumns.length"
+          >
+            <div class="p-4 bg-gray-50" *ngIf="expandedElement === row">
+              <h3 class="text-lg font-semibold mb-3">Documentación cargada</h3>
+              <table class="w-full">
+                <thead>
+                  <tr class="text-left">
+                    <th>Documento</th>
+                    <th class="text-center">Archivo</th>
+                    <!-- Centrar el encabezado -->
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let doc of row.documentation">
+                    <td>{{ doc.name }}</td>
+                    <td class="text-center">
+                      <!-- Centrar el contenido -->
+                      <ng-container *ngIf="doc.filePath; else sinArchivo">
+                        <a
+                          mat-icon-button
+                          [href]="doc.filePath"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          <mat-icon class="hover-blue">description</mat-icon>
+                        </a>
+                      </ng-container>
+                      <ng-template #sinArchivo>
+                        <span class="text-gray-500">Sin archivo</span>
+                      </ng-template>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </td>
+        </ng-container>
+        <tr
+          mat-row
+          *matRowDef="let row; columns: ['detail']"
+          class="example-detail-row"
+        ></tr>
+      </table>
+    </div>
+  </div>
+</main>

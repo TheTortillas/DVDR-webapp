@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using DVDR_courses.DTOs;
+using Microsoft.AspNetCore.Mvc;
 
 namespace DVDR_courses.Controllers
 {
@@ -11,9 +12,95 @@ namespace DVDR_courses.Controllers
         {
             _config = config;
         }
-        public IActionResult Index()
+
+        [HttpPost("RequestDiplomaRegistration", Name = "PostRequesDiplomaRegistration")]
+        public async Task<IActionResult> RequestDiplomaRegistration([FromForm] DiplomaRegistrationRequest request)
         {
-            return View();
+            if (request == null || request.Documents == null)
+            {
+                return BadRequest(new { message = "La información proporcionada es inválida." });
+            }
+
+            // Generar carpeta aleatoria
+            var folderName = Guid.NewGuid().ToString();
+            request.FolderName = folderName;
+
+            var baseFolderPath = Path.Combine("..", "..", "..", "Frontend", "public", "assets", "files", "diploma-documentation", folderName);
+
+            try
+            {
+                Directory.CreateDirectory(baseFolderPath);
+
+                foreach (var document in request.Documents)
+                {
+                    if (document.File != null)
+                    {
+                        var fileName = document.File.FileName;
+                        var filePath = Path.Combine("assets", "files", "diploma-documentation", folderName, fileName);
+                        var physicalPath = Path.Combine("..", "..", "..", "Frontend", "public", filePath);
+
+                        using (var stream = new FileStream(physicalPath, FileMode.Create))
+                        {
+                            await document.File.CopyToAsync(stream);
+                        }
+                    }
+                }
+
+                var dbManager = new DBManager(_config);
+                var (statusCode, message) = dbManager.RequestDiplomaRegistration(request);
+
+                return statusCode == 1 ?
+                    Ok(new { message }) :
+                    StatusCode(500, new { message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Error al procesar la solicitud.", error = ex.Message });
+            }
+        }
+
+        [HttpPost("RegisterDiploma", Name = "PostRegisterDiploma")]
+        public IActionResult RegisterDiploma([FromBody] DiplomaApprovalDTO request)
+        {
+            if (request == null)
+            {
+                return BadRequest(new { message = "La información proporcionada es inválida." });
+            }
+
+            try
+            {
+                var dbManager = new DBManager(_config);
+                var (statusCode, message) = dbManager.RegisterDiploma(request);
+
+                return statusCode == 1 ?
+                    Ok(new { message }) :
+                    StatusCode(500, new { message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Error al registrar el diplomado.", error = ex.Message });
+            }
+        }
+
+        [HttpGet("GetAllDiplomas")]
+        public IActionResult GetAllDiplomas()
+        {
+            try
+            {
+                var dbManager = new DBManager(_config);
+                var diplomas = dbManager.GetAllDiplomas();
+
+                if (diplomas == null || !diplomas.Any())
+                {
+                    return NotFound(new { message = "No se encontraron diplomados registrados." });
+                }
+
+                return Ok(diplomas);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Error al obtener los diplomados.", error = ex.Message });
+            }
         }
     }
 }

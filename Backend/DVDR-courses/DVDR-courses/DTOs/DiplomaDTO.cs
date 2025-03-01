@@ -1,0 +1,74 @@
+﻿namespace DVDR_courses.DTOs
+{
+    public class DiplomaRegistrationRequest
+    {
+        public string Username { get; set; }
+        public List<DiplomaDocumentDTO> Documents { get; set; }
+        public string FolderName { get; set; }
+    }
+
+    public class DiplomaDocumentDTO
+    {
+        public int DocumentId { get; set; }
+        public IFormFile File { get; set; }
+    }
+
+    public class DiplomaApprovalDTO
+    {
+        public string Name { get; set; }
+        public int TotalDuration { get; set; }
+        public string DiplomaKey { get; set; }
+        public string ServiceType { get; set; }
+        public string Modality { get; set; }
+        public string EducationalOffer { get; set; }
+        public decimal Cost { get; set; }
+        public int Participants { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
+        public DateTime ExpirationDate { get; set; }
+        public string Username { get; set; }
+        public List<ActorRoleDTO> ActorRoles { get; set; }
+    }
+
+    public class ActorRoleDTO
+    {
+        public int ActorId { get; set; }
+        public string Role { get; set; }
+    }
+    public class DiplomaFullDataDTO
+    {
+        public int DiplomaId { get; set; }
+        public string? Name { get; set; }
+        public int TotalDuration { get; set; }
+        public string? DiplomaKey { get; set; }
+        public string? ServiceType { get; set; }
+        public string? Modality { get; set; }
+        public string? EducationalOffer { get; set; }
+        public string? Status { get; set; }
+        public string? ApprovalStatus { get; set; }
+        public decimal Cost { get; set; }
+        public int Participants { get; set; }
+        public DateTime? StartDate { get; set; }
+        public DateTime? EndDate { get; set; }
+        public DateTime? ExpirationDate { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public DateTime UpdatedAt { get; set; }
+        public string? RegisteredBy { get; set; }
+        public List<DiplomaActorDTO> Actors { get; set; } = new List<DiplomaActorDTO>();
+        public List<DiplomaDocumentationDTO> Documentation { get; set; } = new List<DiplomaDocumentationDTO>();
+    }
+    public class DiplomaActorDTO
+    {
+        public int ActorId { get; set; }
+        public string Name { get; set; }
+        public string Role { get; set; }
+    }
+
+    public class DiplomaDocumentationDTO
+    {
+        public int DocumentId { get; set; }
+        public string Name { get; set; }
+        public string FilePath { get; set; }
+        public DateTime UploadedAt { get; set; }
+    }
+}

@@ -1224,6 +1224,238 @@ BEGIN
 END$$
 DELIMITER ;
 
+DELIMITER $$
+CREATE PROCEDURE sp_request_diploma_registration(
+    IN p_username VARCHAR(50),
+    IN p_documentation JSON,
+    OUT p_status_code INT,
+    OUT p_message VARCHAR(255)
+)
+BEGIN
+    DECLARE v_user_id INT;
+    DECLARE v_diploma_id INT;
+
+    -- Manejo de errores
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION 
+    BEGIN
+        ROLLBACK;
+        SET p_status_code = -1;
+        SET p_message = 'Error: No se pudo registrar la solicitud del diplomado.';
+    END;
+
+    START TRANSACTION;
+
+    -- Obtener el ID del usuario
+    SELECT id INTO v_user_id
+    FROM users
+    WHERE username = p_username;
+
+    IF v_user_id IS NULL THEN
+        SET p_status_code = -2;
+        SET p_message = 'Error: Usuario no encontrado.';
+        ROLLBACK;
+    END IF;
+
+    -- Crear un registro temporal en diplomas
+    INSERT INTO diplomas (
+        name,
+        service_type,
+        user_id,
+        approval_status
+    ) VALUES (
+        'Pendiente de revisión',
+        'Diplomado',
+        v_user_id,
+        'pending'
+    );
+
+    SET v_diploma_id = LAST_INSERT_ID();
+
+    -- Insertar la documentación usando JSON_TABLE
+    INSERT INTO diploma_documentation (
+        diploma_id,
+        document_id,
+        filePath,
+        uploaded_at
+    )
+    SELECT
+        v_diploma_id,
+        d.document_id,
+        d.filePath,
+        CURRENT_TIMESTAMP
+    FROM
+        JSON_TABLE(
+            p_documentation,
+            '$[*]'
+            COLUMNS (
+                document_id INT PATH '$.document_id',
+                filePath VARCHAR(255) PATH '$.filePath'
+            )
+        ) AS d;
+
+    COMMIT;
+
+    SET p_status_code = 1;
+    SET p_message = 'Solicitud de registro de diplomado enviada correctamente.';
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE PROCEDURE sp_register_diploma(
+    IN p_name VARCHAR(255),
+    IN p_total_duration INT,
+    IN p_diploma_key VARCHAR(50),
+    IN p_service_type VARCHAR(50),
+    IN p_modality VARCHAR(50),
+    IN p_educational_offer ENUM('DEMS','DES'),
+    IN p_cost DECIMAL(10, 2),
+    IN p_participants INT,
+    IN p_start_date DATE,
+    IN p_end_date DATE,
+    IN p_expiration_date DATE,
+    IN p_username VARCHAR(50),
+    IN p_actor_roles JSON,
+    OUT p_status_code INT,
+    OUT p_message VARCHAR(255)
+)
+BEGIN
+    DECLARE v_user_id INT;
+    DECLARE v_diploma_id INT;
+
+    -- Manejo de errores
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION 
+    BEGIN
+        ROLLBACK;
+        SET p_status_code = -1;
+        SET p_message = 'Error: No se pudo registrar el diplomado.';
+    END;
+
+    START TRANSACTION;
+
+    -- Obtener el ID del usuario
+    SELECT id INTO v_user_id
+    FROM users
+    WHERE username = p_username;
+
+    IF v_user_id IS NULL THEN
+        SET p_status_code = -2;
+        SET p_message = 'Error: Usuario no encontrado.';
+        ROLLBACK;
+    END IF;
+
+    -- Insertar el diplomado
+    INSERT INTO diplomas (
+        name,
+        total_duration,
+        diploma_key,
+        service_type,
+        modality,
+        educational_offer,
+        status,
+        cost,
+        participants,
+        start_date,
+        end_date,
+        expiration_date,
+        user_id
+    ) VALUES (
+        p_name,
+        p_total_duration,
+        p_diploma_key,
+        p_service_type,
+        p_modality,
+        p_educational_offer,
+        'active',
+        p_cost,
+        p_participants,
+        p_start_date,
+        p_end_date,
+        p_expiration_date,
+        v_user_id
+    );
+
+    SET v_diploma_id = LAST_INSERT_ID();
+
+    -- Insertar los actores y sus roles usando JSON_TABLE
+    INSERT INTO diploma_actor_roles (
+        diploma_id,
+        actor_id,
+        role
+    )
+    SELECT
+        v_diploma_id,
+        t.actor_id,
+        t.role
+    FROM
+        JSON_TABLE(
+            p_actor_roles,
+            '$[*]'
+            COLUMNS (
+                actor_id INT PATH '$.actor_id',
+                role VARCHAR(50) PATH '$.role'
+            )
+        ) AS t;
+
+    COMMIT;
+
+    SET p_status_code = 1;
+    SET p_message = 'Diplomado registrado exitosamente.';
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE PROCEDURE sp_get_all_diplomas()
+BEGIN
+    /* 1er resultset: datos principales del diplomado */
+    SELECT 
+        d.id AS diploma_id,
+        d.name,
+        d.total_duration,
+        d.diploma_key,
+        d.service_type,
+        d.modality,
+        d.educational_offer,
+        d.status,
+        d.approval_status,
+        d.cost,
+        d.participants,
+        d.start_date,
+        d.end_date,
+        d.expiration_date,
+        d.user_id,
+        d.created_at,
+        d.updated_at,
+        u.username AS registered_by
+    FROM diplomas d
+    JOIN users u ON d.user_id = u.id
+    ORDER BY d.created_at DESC;
+
+    /* 2do resultset: actores y roles */
+    SELECT 
+        dar.diploma_id,
+        dar.actor_id,
+        CONCAT(agi.first_name, ' ', agi.last_name, ' ', agi.second_last_name) AS actor_name,
+        dar.role
+    FROM diploma_actor_roles dar
+    JOIN actors_general_information agi ON dar.actor_id = agi.id;
+
+    /* 3er resultset: TODAS las plantillas + el documento si existe */
+    SELECT
+        d.id AS diploma_id,
+        dtd.id AS document_id,
+        dtd.name AS document_name,
+        dtd.type AS document_type,
+        dtd.required,
+        dd.filePath,
+        dd.uploaded_at
+    FROM diplomas d
+    CROSS JOIN documents_templates_diplomae dtd
+    LEFT JOIN diploma_documentation dd 
+      ON dd.document_id = dtd.id 
+      AND dd.diploma_id = d.id
+    ORDER BY d.id, dtd.id;
+END$$
+DELIMITER ;
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ LLENADO DE TABLAS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 INSERT INTO academic_categories (name) VALUES
 ('Ingeniería y Ciencias Físico-Matemáticas'),

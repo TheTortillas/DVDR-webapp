@@ -258,7 +258,7 @@ namespace DVDR_courses
                                 Name = reader.GetString("name"),
                                 FilePath = reader.GetString("filePath"),
                                 Type = reader.GetString("type"),
-                                Required = reader.GetBoolean("required") 
+                                Required = reader.GetBoolean("required")
                             });
                         }
                     }
@@ -1449,6 +1449,187 @@ namespace DVDR_courses
                 Console.WriteLine($"Error: {ex.Message}");
             }
             return centers;
+        }
+
+        public (int statusCode, string message) RequestDiplomaRegistration(DiplomaRegistrationRequest request)
+        {
+            try
+            {
+                using (MySqlConnection con = new MySqlConnection(_config.GetConnectionString("default")))
+                {
+                    using (MySqlCommand cmd = new MySqlCommand("sp_request_diploma_registration", con))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+
+                        cmd.Parameters.AddWithValue("p_username", request.Username);
+
+                        // Convertir la documentación a JSON
+                        var documentation = JsonConvert.SerializeObject(request.Documents.Select(d => new
+                        {
+                            document_id = d.DocumentId,
+                            filePath = Path.Combine("assets", "files", "diploma-documentation", request.FolderName, d.File.FileName)
+                        }));
+                        cmd.Parameters.AddWithValue("p_documentation", documentation);
+
+                        cmd.Parameters.Add("p_status_code", MySqlDbType.Int32);
+                        cmd.Parameters["p_status_code"].Direction = ParameterDirection.Output;
+                        cmd.Parameters.Add("p_message", MySqlDbType.VarChar, 255);
+                        cmd.Parameters["p_message"].Direction = ParameterDirection.Output;
+
+                        con.Open();
+                        cmd.ExecuteNonQuery();
+
+                        var statusCode = Convert.ToInt32(cmd.Parameters["p_status_code"].Value);
+                        var message = cmd.Parameters["p_message"].Value.ToString();
+
+                        return (statusCode, message);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                return (-1, $"Error: {ex.Message}");
+            }
+        }
+
+        public (int statusCode, string message) RegisterDiploma(DiplomaApprovalDTO request)
+        {
+            try
+            {
+                using (MySqlConnection con = new MySqlConnection(_config.GetConnectionString("default")))
+                {
+                    using (MySqlCommand cmd = new MySqlCommand("sp_register_diploma", con))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+
+                        cmd.Parameters.AddWithValue("p_name", request.Name);
+                        cmd.Parameters.AddWithValue("p_total_duration", request.TotalDuration);
+                        cmd.Parameters.AddWithValue("p_diploma_key", request.DiplomaKey);
+                        cmd.Parameters.AddWithValue("p_service_type", request.ServiceType);
+                        cmd.Parameters.AddWithValue("p_modality", request.Modality);
+                        cmd.Parameters.AddWithValue("p_educational_offer", request.EducationalOffer);
+                        cmd.Parameters.AddWithValue("p_cost", request.Cost);
+                        cmd.Parameters.AddWithValue("p_participants", request.Participants);
+                        cmd.Parameters.AddWithValue("p_start_date", request.StartDate);
+                        cmd.Parameters.AddWithValue("p_end_date", request.EndDate);
+                        cmd.Parameters.AddWithValue("p_expiration_date", request.ExpirationDate);
+                        cmd.Parameters.AddWithValue("p_username", request.Username);
+
+                        var actorRolesJson = JsonConvert.SerializeObject(request.ActorRoles);
+                        cmd.Parameters.AddWithValue("p_actor_roles", actorRolesJson);
+
+                        cmd.Parameters.Add("p_status_code", MySqlDbType.Int32);
+                        cmd.Parameters["p_status_code"].Direction = ParameterDirection.Output;
+                        cmd.Parameters.Add("p_message", MySqlDbType.VarChar, 255);
+                        cmd.Parameters["p_message"].Direction = ParameterDirection.Output;
+
+                        con.Open();
+                        cmd.ExecuteNonQuery();
+
+                        var statusCode = Convert.ToInt32(cmd.Parameters["p_status_code"].Value);
+                        var message = cmd.Parameters["p_message"].Value.ToString();
+
+                        return (statusCode, message);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                return (-1, $"Error: {ex.Message}");
+            }
+        }
+
+        public List<DiplomaFullDataDTO> GetAllDiplomas()
+        {
+            var diplomas = new List<DiplomaFullDataDTO>();
+            try
+            {
+                using (var con = new MySqlConnection(_config.GetConnectionString("default")))
+                {
+                    using (var cmd = new MySqlCommand("sp_get_all_diplomas", con))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+                        con.Open();
+
+                        using (var reader = cmd.ExecuteReader())
+                        {
+                            // 1. Primer resultset: datos principales
+                            var diplomaMap = new Dictionary<int, DiplomaFullDataDTO>();
+                            while (reader.Read())
+                            {
+                                int diplomaId = reader.GetInt32("diploma_id");
+                                var dto = new DiplomaFullDataDTO
+                                {
+                                    DiplomaId = diplomaId,
+                                    Name = reader.IsDBNull(reader.GetOrdinal("name")) ? null : reader.GetString("name"),
+                                    TotalDuration = reader.IsDBNull(reader.GetOrdinal("total_duration")) ? 0 : reader.GetInt32("total_duration"),
+                                    DiplomaKey = reader.IsDBNull(reader.GetOrdinal("diploma_key")) ? null : reader.GetString("diploma_key"),
+                                    ServiceType = reader.IsDBNull(reader.GetOrdinal("service_type")) ? null : reader.GetString("service_type"),
+                                    Modality = reader.IsDBNull(reader.GetOrdinal("modality")) ? null : reader.GetString("modality"),
+                                    EducationalOffer = reader.IsDBNull(reader.GetOrdinal("educational_offer")) ? null : reader.GetString("educational_offer"),
+                                    Status = reader.IsDBNull(reader.GetOrdinal("status")) ? null : reader.GetString("status"),
+                                    ApprovalStatus = reader.IsDBNull(reader.GetOrdinal("approval_status")) ? null : reader.GetString("approval_status"),
+                                    Cost = reader.IsDBNull(reader.GetOrdinal("cost")) ? 0 : reader.GetDecimal("cost"),
+                                    Participants = reader.IsDBNull(reader.GetOrdinal("participants")) ? 0 : reader.GetInt32("participants"),
+                                    StartDate = reader.IsDBNull(reader.GetOrdinal("start_date")) ? null : reader.GetDateTime("start_date"),
+                                    EndDate = reader.IsDBNull(reader.GetOrdinal("end_date")) ? null : reader.GetDateTime("end_date"),
+                                    ExpirationDate = reader.IsDBNull(reader.GetOrdinal("expiration_date")) ? null : reader.GetDateTime("expiration_date"),
+                                    CreatedAt = reader.GetDateTime("created_at"),
+                                    UpdatedAt = reader.GetDateTime("updated_at"),
+                                    RegisteredBy = reader.IsDBNull(reader.GetOrdinal("registered_by")) ? null : reader.GetString("registered_by"),
+                                    Actors = new List<DiplomaActorDTO>(),
+                                    Documentation = new List<DiplomaDocumentationDTO>()
+                                };
+                                diplomaMap[diplomaId] = dto;
+                            }
+
+                            // 2. Segundo resultset: actores y roles
+                            if (reader.NextResult())
+                            {
+                                while (reader.Read())
+                                {
+                                    int diplomaId = reader.GetInt32("diploma_id");
+                                    if (diplomaMap.TryGetValue(diplomaId, out var diploma))
+                                    {
+                                        diploma.Actors.Add(new DiplomaActorDTO
+                                        {
+                                            ActorId = reader.GetInt32("actor_id"),
+                                            Name = reader.IsDBNull(reader.GetOrdinal("actor_name")) ? "" : reader.GetString("actor_name"),
+                                            Role = reader.IsDBNull(reader.GetOrdinal("role")) ? "" : reader.GetString("role")
+                                        });
+                                    }
+                                }
+                            }
+
+                            // 3. Tercer resultset: documentación
+                            if (reader.NextResult())
+                            {
+                                while (reader.Read())
+                                {
+                                    int diplomaId = reader.GetInt32("diploma_id");
+                                    if (diplomaMap.TryGetValue(diplomaId, out var diploma))
+                                    {
+                                        diploma.Documentation.Add(new DiplomaDocumentationDTO
+                                        {
+                                            DocumentId = reader.GetInt32("document_id"),
+                                            Name = reader.IsDBNull(reader.GetOrdinal("document_name")) ? "" : reader.GetString("document_name"),
+                                            FilePath = reader.IsDBNull(reader.GetOrdinal("filePath")) ? "" : reader.GetString("filePath"),
+                                            UploadedAt = DateTime.Now // Asigna la fecha según tu lógica
+                                        });
+                                    }
+                                }
+                            }
+
+                            diplomas = diplomaMap.Values.ToList();
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+            }
+            return diplomas;
         }
     }
 }

@@ -82,6 +82,29 @@ namespace DVDR_courses.Controllers
             }
         }
 
+        [HttpPost("ApproveDiplomaRequest", Name = "PostApproveDiplomaRequest")]
+        public IActionResult ApproveDiplomaRequest([FromBody] DiplomaApprovalRequest request)
+        {
+            if (request == null)
+            {
+                return BadRequest(new { message = "La información proporcionada es inválida." });
+            }
+
+            try
+            {
+                var dbManager = new DBManager(_config);
+                var (statusCode, message) = dbManager.ApproveDiplomaRequest(request);
+
+                return statusCode == 1 ?
+                    Ok(new { message }) :
+                    StatusCode(500, new { message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Error al aprobar el diplomado.", error = ex.Message });
+            }
+        }
+
         [HttpGet("GetAllDiplomas")]
         public IActionResult GetAllDiplomas()
         {

@@ -4,7 +4,6 @@ using DVDR_courses.Services;
 using MySql.Data.MySqlClient;
 using Newtonsoft.Json;
 using System.Data;
-
 namespace DVDR_courses
 {
     public class DBManager
@@ -1574,6 +1573,7 @@ namespace DVDR_courses
                                     StartDate = reader.IsDBNull(reader.GetOrdinal("start_date")) ? null : reader.GetDateTime("start_date"),
                                     EndDate = reader.IsDBNull(reader.GetOrdinal("end_date")) ? null : reader.GetDateTime("end_date"),
                                     ExpirationDate = reader.IsDBNull(reader.GetOrdinal("expiration_date")) ? null : reader.GetDateTime("expiration_date"),
+                                    Center = reader.GetString("center"),
                                     CreatedAt = reader.GetDateTime("created_at"),
                                     UpdatedAt = reader.GetDateTime("updated_at"),
                                     RegisteredBy = reader.IsDBNull(reader.GetOrdinal("registered_by")) ? null : reader.GetString("registered_by"),
@@ -1630,6 +1630,61 @@ namespace DVDR_courses
                 Console.WriteLine($"Error: {ex.Message}");
             }
             return diplomas;
+        }
+
+        public (int statusCode, string message) ApproveDiplomaRequest(DiplomaApprovalRequest request)
+        {
+            try
+            {
+                using (MySqlConnection con = new MySqlConnection(_config.GetConnectionString("default")))
+                {
+                    using (MySqlCommand cmd = new MySqlCommand("sp_approve_diploma_request", con))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+
+                        // Parámetros de entrada
+                        cmd.Parameters.AddWithValue("p_diploma_id", request.DiplomaId);
+                        cmd.Parameters.AddWithValue("p_name", request.Name);
+                        cmd.Parameters.AddWithValue("p_total_duration", request.TotalDuration);
+                        cmd.Parameters.AddWithValue("p_diploma_key", request.DiplomaKey);
+                        cmd.Parameters.AddWithValue("p_service_type", request.ServiceType);
+                        cmd.Parameters.AddWithValue("p_modality", request.Modality);
+                        cmd.Parameters.AddWithValue("p_educational_offer", request.EducationalOffer);
+                        cmd.Parameters.AddWithValue("p_cost", request.Cost);
+                        cmd.Parameters.AddWithValue("p_participants", request.Participants);
+                        cmd.Parameters.AddWithValue("p_start_date", request.StartDate);
+                        cmd.Parameters.AddWithValue("p_end_date", request.EndDate);
+                        cmd.Parameters.AddWithValue("p_username", request.Username);
+                        cmd.Parameters.AddWithValue("p_expiration_date", request.ExpirationDate);
+
+                        var actorRolesJson = JsonConvert.SerializeObject(request.ActorRoles.Select(a => new
+                        {
+                            actor_id = a.ActorId,
+                            role = a.Role
+                        }));
+
+                        cmd.Parameters.AddWithValue("p_actor_roles", actorRolesJson);
+
+                        // Parámetros de salida
+                        cmd.Parameters.Add("p_status_code", MySqlDbType.Int32);
+                        cmd.Parameters["p_status_code"].Direction = ParameterDirection.Output;
+                        cmd.Parameters.Add("p_message", MySqlDbType.VarChar, 255);
+                        cmd.Parameters["p_message"].Direction = ParameterDirection.Output;
+
+                        con.Open();
+                        cmd.ExecuteNonQuery();
+
+                        var statusCode = Convert.ToInt32(cmd.Parameters["p_status_code"].Value);
+                        var message = cmd.Parameters["p_message"].Value.ToString();
+
+                        return (statusCode, message);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                return (-1, $"Error: {ex.Message}");
+            }
         }
     }
 }

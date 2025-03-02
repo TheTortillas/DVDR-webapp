@@ -80,6 +80,7 @@ CREATE TABLE diplomas (
   end_date DATE,
   expiration_date DATE,
   user_id INT NOT NULL,
+  center VARCHAR(100) NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
@@ -1234,6 +1235,7 @@ CREATE PROCEDURE sp_request_diploma_registration(
 BEGIN
     DECLARE v_user_id INT;
     DECLARE v_diploma_id INT;
+    DECLARE v_center VARCHAR(100);
 
     -- Manejo de errores
     DECLARE EXIT HANDLER FOR SQLEXCEPTION 
@@ -1245,10 +1247,11 @@ BEGIN
 
     START TRANSACTION;
 
-    -- Obtener el ID del usuario
-    SELECT id INTO v_user_id
-    FROM users
-    WHERE username = p_username;
+    -- Obtener user_id y center del usuario
+    SELECT u.id, c.name INTO v_user_id, v_center
+    FROM users u
+    JOIN centers c ON u.center_id = c.id
+    WHERE u.username = p_username;
 
     IF v_user_id IS NULL THEN
         SET p_status_code = -2;
@@ -1402,7 +1405,6 @@ BEGIN
     SET p_message = 'Diplomado registrado exitosamente.';
 END$$
 DELIMITER ;
-
 DELIMITER $$
 CREATE PROCEDURE sp_get_all_diplomas()
 BEGIN
@@ -1423,6 +1425,7 @@ BEGIN
         d.end_date,
         d.expiration_date,
         d.user_id,
+        d.center,
         d.created_at,
         d.updated_at,
         u.username AS registered_by
@@ -1456,6 +1459,102 @@ BEGIN
     ORDER BY d.id, dtd.id;
 END$$
 DELIMITER ;
+
+DELIMITER $$
+CREATE PROCEDURE sp_approve_diploma_request(
+    IN p_diploma_id INT,
+    IN p_name VARCHAR(255),
+    IN p_total_duration INT,
+    IN p_diploma_key VARCHAR(50),
+    IN p_service_type VARCHAR(50),
+    IN p_modality VARCHAR(50),
+    IN p_educational_offer ENUM('DEMS','DES'),
+    IN p_cost DECIMAL(10, 2),
+    IN p_participants INT,
+    IN p_start_date DATE,
+    IN p_end_date DATE,
+    IN p_expiration_date DATE,
+    IN p_actor_roles JSON,
+    OUT p_status_code INT,
+    OUT p_message VARCHAR(255)
+)
+BEGIN
+    DECLARE v_exists INT;
+
+    -- Manejo de errores
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION 
+    BEGIN
+        ROLLBACK;
+        SET p_status_code = -1;
+        SET p_message = 'Error: No se pudo aprobar el diplomado.';
+    END;
+
+    START TRANSACTION;
+
+    -- Verificar si existe el diplomado
+    SELECT COUNT(*) INTO v_exists
+    FROM diplomas
+    WHERE id = p_diploma_id;
+
+    IF v_exists = 0 THEN
+        SET p_status_code = -2;
+        SET p_message = 'Error: El diplomado no existe.';
+        ROLLBACK;
+    END IF;
+
+    -- Actualizar la información del diplomado
+    UPDATE diplomas
+    SET
+        name = p_name,
+        total_duration = p_total_duration,
+        diploma_key = p_diploma_key,
+        service_type = p_service_type,
+        modality = p_modality,
+        educational_offer = p_educational_offer,
+        status = 'active',
+        approval_status = 'approved',
+        cost = p_cost,
+        participants = p_participants,
+        start_date = p_start_date,
+        end_date = p_end_date,
+        expiration_date = p_expiration_date,
+        updated_at = CURRENT_TIMESTAMP
+    WHERE id = p_diploma_id;
+
+    -- Eliminar roles de actores existentes
+    DELETE FROM diploma_actor_roles
+    WHERE diploma_id = p_diploma_id;
+
+    -- Insertar nuevos roles de actores
+    INSERT INTO diploma_actor_roles (
+        diploma_id,
+        actor_id,
+        role
+    )
+    SELECT
+        p_diploma_id,
+        t.actor_id,
+        t.role
+    FROM
+        JSON_TABLE(
+            p_actor_roles,
+            '$[*]'
+            COLUMNS (
+                actor_id INT PATH '$.actor_id',
+                role VARCHAR(50) PATH '$.role'
+            )
+        ) AS t;
+
+    COMMIT;
+
+    SET p_status_code = 1;
+    SET p_message = 'Diplomado aprobado exitosamente.';
+END$$
+DELIMITER ;
+UPDATE diplomas 
+SET approval_status = 'pending' 
+WHERE id = 1;
+select *from diploma_actor_roles;
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ LLENADO DE TABLAS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 INSERT INTO academic_categories (name) VALUES
 ('Ingeniería y Ciencias Físico-Matemáticas'),

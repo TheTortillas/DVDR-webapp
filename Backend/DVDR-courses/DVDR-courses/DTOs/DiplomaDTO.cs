@@ -51,11 +51,30 @@
         public DateTime? StartDate { get; set; }
         public DateTime? EndDate { get; set; }
         public DateTime? ExpirationDate { get; set; }
+        public string Center { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
         public string? RegisteredBy { get; set; }
         public List<DiplomaActorDTO> Actors { get; set; } = new List<DiplomaActorDTO>();
         public List<DiplomaDocumentationDTO> Documentation { get; set; } = new List<DiplomaDocumentationDTO>();
+    }
+
+    public class DiplomaApprovalRequest
+    {
+        public int DiplomaId { get; set; }
+        public string Name { get; set; }
+        public int TotalDuration { get; set; }
+        public string DiplomaKey { get; set; }
+        public string ServiceType { get; set; }
+        public string Modality { get; set; }
+        public string EducationalOffer { get; set; }
+        public decimal Cost { get; set; }
+        public int Participants { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
+        public DateTime ExpirationDate { get; set; }
+        public string Username { get; set; }
+        public List<ActorRoleDTO> ActorRoles { get; set; }
     }
     public class DiplomaActorDTO
     {

@@ -26,6 +26,7 @@ import { DiplomaRegisterComponent } from './pages/profile/diploma-register/diplo
 import { InstructorRegisterAdminComponent } from './pages/management/instructor-register-admin/instructor-register-admin.component';
 import { InstructorRegisterClientComponent } from './pages/profile/instructor-register-client/instructor-register-client.component';
 import { DiplomaRegisterRequestComponent } from './pages/management/diploma-register-request/diploma-register-request.component';
+import { AllDiplomasComponent } from './pages/management/all-diplomas/all-diplomas.component';
 
 export const routes: Routes = [
   {
@@ -72,15 +73,19 @@ export const routes: Routes = [
   {
     path: 'management',
     component: ManagementComponent,
-    canActivate: [AuthGuard], // Protegido para "root"
+    canActivate: [AuthGuard],
     children: [
       {
         path: 'dashboard',
         component: ManagementDashboardComponent,
       },
       {
-        path: 'all-courses', // Add this new route
+        path: 'all-courses',
         component: AllCoursesComponent,
+      },
+      {
+        path: 'all-diplomas',
+        component: AllDiplomasComponent,
       },
       {
         path: 'course-register-request',

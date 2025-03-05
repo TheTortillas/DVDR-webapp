@@ -1,0 +1,112 @@
+<main class="flex justify-center py-10">
+  <div class="sm:w-5/6">
+    <div class="bg-white border border-gray-400 rounded-lg p-8 shadow">
+      <div class="space-x-40 text-center">
+        <h1 class="heading">Todos los diplomados</h1>
+      </div>
+
+      <!-- Filtros -->
+      <div class="flex gap-4 mb-6">
+        <!-- Buscador por nombre -->
+        <mat-form-field class="w-1/2">
+          <mat-label>Buscar diplomado</mat-label>
+          <span matTextPrefix><mat-icon>search</mat-icon> &nbsp;</span>
+          <input
+            matInput
+            [(ngModel)]="searchText"
+            (keyup)="applyFilter()"
+            placeholder="Ingresa el nombre del diplomado"
+          />
+        </mat-form-field>
+
+        <!-- Filtro por centro -->
+        <mat-form-field class="w-1/2">
+          <mat-label>Filtrar por centro</mat-label>
+          <span matTextPrefix><mat-icon>location_city</mat-icon> &nbsp;</span>
+          <mat-select
+            [(ngModel)]="selectedCenter"
+            (selectionChange)="applyFilter()"
+          >
+            <mat-option value="">Todos</mat-option>
+            <mat-option *ngFor="let center of centers" [value]="center">
+              {{ center }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+
+      <!-- Tabla -->
+      <table mat-table [dataSource]="dataSource" class="w-full">
+        <!-- Nombre del diplomado -->
+        <ng-container matColumnDef="name">
+          <th mat-header-cell *matHeaderCellDef>Nombre del diplomado</th>
+          <td mat-cell *matCellDef="let row">{{ row.name }}</td>
+        </ng-container>
+
+        <!-- Clave -->
+        <ng-container matColumnDef="diplomaKey">
+          <th mat-header-cell *matHeaderCellDef>Clave</th>
+          <td mat-cell *matCellDef="let row">{{ row.diplomaKey }}</td>
+        </ng-container>
+
+        <!-- Centro -->
+        <ng-container matColumnDef="center">
+          <th mat-header-cell *matHeaderCellDef>Centro</th>
+          <td mat-cell *matCellDef="let row">{{ row.center }}</td>
+        </ng-container>
+
+        <!-- Información general -->
+        <ng-container matColumnDef="generalInfo">
+          <th mat-header-cell *matHeaderCellDef>Datos generales</th>
+          <td mat-cell *matCellDef="let row">
+            <button
+              mat-icon-button
+              (click)="openGeneralInfoDialog(row.diplomaId)"
+              matTooltip="Ver información general"
+            >
+              <mat-icon class="hover-blue">info</mat-icon>
+            </button>
+          </td>
+        </ng-container>
+
+        <!-- Actores -->
+        <ng-container matColumnDef="actors">
+          <th mat-header-cell *matHeaderCellDef>Instructores</th>
+          <td mat-cell *matCellDef="let row">
+            <button
+              mat-icon-button
+              (click)="openActorsDialog(row.diplomaId)"
+              matTooltip="Ver instructores"
+            >
+              <mat-icon class="hover-blue">group</mat-icon>
+            </button>
+          </td>
+        </ng-container>
+
+        <!-- Documentación -->
+        <ng-container matColumnDef="documentation">
+          <th mat-header-cell *matHeaderCellDef>Documentación</th>
+          <td mat-cell *matCellDef="let row">
+            <button
+              mat-icon-button
+              (click)="openDocumentationDialog(row.diplomaId)"
+              matTooltip="Ver documentos"
+            >
+              <mat-icon class="hover-blue">description</mat-icon>
+            </button>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+      </table>
+
+      <mat-paginator
+        [pageSizeOptions]="[5, 10, 15, 20]"
+        showFirstLastButtons
+        aria-label="Seleccionar página de diplomados"
+      >
+      </mat-paginator>
+    </div>
+  </div>
+</main>

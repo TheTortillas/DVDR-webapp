@@ -9,8 +9,6 @@ import { RouterLink } from '@angular/router';
   standalone: true,
   imports: [RouterLink, MatButtonModule, MatDividerModule, MatIconModule],
   templateUrl: './page-not-found.component.html',
-  styleUrl: './page-not-found.component.scss'
+  styleUrl: './page-not-found.component.scss',
 })
-export class PageNotFoundComponent {
-
-}
+export class PageNotFoundComponent {}

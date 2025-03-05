@@ -76,6 +76,82 @@
           </mat-expansion-panel>
         </ng-container>
       </mat-accordion>
+
+      <!-- Accordion para diplomados aprobados -->
+      <mat-accordion>
+        <mat-expansion-panel
+          *ngFor="let diploma of diplomas"
+          [disabled]="diploma.approvalStatus !== 'approved'"
+        >
+          <mat-expansion-panel-header>
+            <mat-panel-title>
+              {{ diploma.name }} ({{ diploma.approvalStatus }})
+            </mat-panel-title>
+          </mat-expansion-panel-header>
+
+          <!-- Datos generales del diplomado -->
+          <div class="p-4">
+            <p><strong>Modalidad:</strong> {{ diploma.modality }}</p>
+            <p>
+              <strong>Oferta educativa:</strong> {{ diploma.educationalOffer }}
+            </p>
+            <p>
+              <strong>Fecha de inicio:</strong> {{ diploma.startDate | date }}
+            </p>
+            <p><strong>Fecha de fin:</strong> {{ diploma.endDate | date }}</p>
+            <p>
+              <strong>Fecha de expiración:</strong>
+              {{ diploma.expirationDate | date }}
+            </p>
+            <p>
+              <strong>Número de participantes:</strong>
+              {{ diploma.participants }}
+            </p>
+          </div>
+
+          <!-- Lista de actores -->
+          <div class="p-4">
+            <h3>Actores</h3>
+            <ul>
+              <li *ngFor="let actor of diploma.actors">
+                {{ actor.name }} - <em>{{ actor.role }}</em>
+              </li>
+            </ul>
+          </div>
+
+          <!-- Documentos -->
+          <div class="p-4">
+            <h3 class="font-semibold mb-4">Documentación</h3>
+            <table class="w-full">
+              <tbody>
+                <tr *ngFor="let doc of diploma.documentation" class="border-b">
+                  <td class="py-2">{{ doc.name }}</td>
+                  <td class="py-2 w-20">
+                    <!-- Si hay archivo -->
+                    <ng-container *ngIf="doc.filePath">
+                      <a [href]="doc.filePath" target="_blank">
+                        <mat-icon
+                          class="hover-blue cursor-pointer"
+                          matTooltip="Ver documento"
+                          >description</mat-icon
+                        >
+                      </a>
+                    </ng-container>
+                    <!-- Si no hay archivo -->
+                    <ng-container *ngIf="!doc.filePath">
+                      <mat-icon
+                        class="text-gray-400"
+                        matTooltip="Documento no disponible"
+                        >block</mat-icon
+                      >
+                    </ng-container>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </mat-expansion-panel>
+      </mat-accordion>
     </div>
   </div>
 </main>

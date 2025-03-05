@@ -1686,5 +1686,98 @@ namespace DVDR_courses
                 return (-1, $"Error: {ex.Message}");
             }
         }
+
+        public List<DiplomaFullDataDTO> GetDiplomasByCenter(string center)
+        {
+            var diplomas = new List<DiplomaFullDataDTO>();
+            try
+            {
+                using (var con = new MySqlConnection(_config.GetConnectionString("default")))
+                {
+                    using (var cmd = new MySqlCommand("sp_get_diplomas_by_center", con))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+                        cmd.Parameters.AddWithValue("p_center", center);
+                        con.Open();
+
+                        using (var reader = cmd.ExecuteReader())
+                        {
+                            var diplomaMap = new Dictionary<int, DiplomaFullDataDTO>();
+
+                            // Primer resultset: datos principales
+                            while (reader.Read())
+                            {
+                                var diploma = new DiplomaFullDataDTO
+                                {
+                                    DiplomaId = reader.GetInt32("diploma_id"),
+                                    Name = reader.IsDBNull("name") ? null : reader.GetString("name"),
+                                    TotalDuration = reader.GetInt32("total_duration"),
+                                    DiplomaKey = reader.IsDBNull("diploma_key") ? null : reader.GetString("diploma_key"),
+                                    ServiceType = reader.IsDBNull("service_type") ? null : reader.GetString("service_type"),
+                                    Modality = reader.IsDBNull("modality") ? null : reader.GetString("modality"),
+                                    EducationalOffer = reader.IsDBNull("educational_offer") ? null : reader.GetString("educational_offer"),
+                                    Status = reader.IsDBNull("status") ? null : reader.GetString("status"),
+                                    ApprovalStatus = reader.IsDBNull("approval_status") ? null : reader.GetString("approval_status"),
+                                    Cost = reader.GetDecimal("cost"),
+                                    Participants = reader.GetInt32("participants"),
+                                    StartDate = reader.IsDBNull("start_date") ? null : reader.GetDateTime("start_date"),
+                                    EndDate = reader.IsDBNull("end_date") ? null : reader.GetDateTime("end_date"),
+                                    ExpirationDate = reader.IsDBNull("expiration_date") ? null : reader.GetDateTime("expiration_date"),
+                                    Center = reader.GetString("center"),
+                                    CreatedAt = reader.GetDateTime("created_at"),
+                                    UpdatedAt = reader.GetDateTime("updated_at"),
+                                    RegisteredBy = reader.IsDBNull("registered_by") ? null : reader.GetString("registered_by")
+                                };
+                                diplomaMap[diploma.DiplomaId] = diploma;
+                            }
+
+                            // Segundo resultset: actores y roles
+                            if (reader.NextResult())
+                            {
+                                while (reader.Read())
+                                {
+                                    var diplomaId = reader.GetInt32("diploma_id");
+                                    if (diplomaMap.TryGetValue(diplomaId, out var diploma))
+                                    {
+                                        diploma.Actors.Add(new DiplomaActorDTO
+                                        {
+                                            ActorId = reader.GetInt32("actor_id"),
+                                            Name = reader.GetString("actor_name"),
+                                            Role = reader.GetString("role")
+                                        });
+                                    }
+                                }
+                            }
+
+                            // Tercer resultset: documentación
+                            if (reader.NextResult())
+                            {
+                                while (reader.Read())
+                                {
+                                    var diplomaId = reader.GetInt32("diploma_id");
+                                    if (diplomaMap.TryGetValue(diplomaId, out var diploma))
+                                    {
+                                        diploma.Documentation.Add(new DiplomaDocumentationDTO
+                                        {
+                                            DocumentId = reader.GetInt32("document_id"),
+                                            Name = reader.GetString("document_name"),
+                                            FilePath = reader.IsDBNull("filePath") ? null : reader.GetString("filePath"),
+                                            UploadedAt = reader.IsDBNull("uploaded_at") ? DateTime.MinValue : reader.GetDateTime("uploaded_at")
+                                        });
+                                    }
+                                }
+                            }
+
+                            diplomas = diplomaMap.Values.ToList();
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error al obtener diplomados por centro: {ex.Message}");
+            }
+            return diplomas;
+        }
     }
 }

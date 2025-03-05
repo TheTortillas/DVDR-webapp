@@ -1264,11 +1264,13 @@ BEGIN
         name,
         service_type,
         user_id,
+        center,            -- Añadir el campo center
         approval_status
     ) VALUES (
         'Pendiente de revisión',
         'Diplomado',
         v_user_id,
+        v_center,         -- Incluir el valor del centro
         'pending'
     );
 
@@ -1405,6 +1407,7 @@ BEGIN
     SET p_message = 'Diplomado registrado exitosamente.';
 END$$
 DELIMITER ;
+
 DELIMITER $$
 CREATE PROCEDURE sp_get_all_diplomas()
 BEGIN
@@ -1551,10 +1554,68 @@ BEGIN
     SET p_message = 'Diplomado aprobado exitosamente.';
 END$$
 DELIMITER ;
-UPDATE diplomas 
-SET approval_status = 'pending' 
-WHERE id = 1;
-select *from diploma_actor_roles;
+
+DELIMITER $$
+CREATE PROCEDURE sp_get_diplomas_by_center(
+    IN p_center VARCHAR(100)
+)
+BEGIN
+    -- Datos principales del diplomado
+    SELECT 
+        d.id AS diploma_id,
+        d.name,
+        d.total_duration,
+        d.diploma_key,
+        d.service_type,
+        d.modality,
+        d.educational_offer,
+        d.status,
+        d.approval_status,
+        d.cost,
+        d.participants,
+        d.start_date,
+        d.end_date,
+        d.expiration_date,
+        d.center,
+        d.created_at,
+        d.updated_at,
+        u.username AS registered_by
+    FROM diplomas d
+    JOIN users u ON d.user_id = u.id
+    WHERE d.center = p_center
+    ORDER BY d.created_at DESC;
+
+    -- Actores y sus roles
+    SELECT 
+        dar.diploma_id,
+        dar.actor_id,
+        CONCAT(agi.first_name, ' ', agi.last_name, ' ', IFNULL(agi.second_last_name, '')) AS actor_name,
+        dar.role,
+        agi.knowledge_area
+    FROM diploma_actor_roles dar
+    JOIN actors_general_information agi ON dar.actor_id = agi.id
+    JOIN diplomas d ON dar.diploma_id = d.id
+    WHERE d.center = p_center;
+
+    -- TODAS las plantillas + documentación existente
+    SELECT
+        d.id AS diploma_id,
+        dtd.id AS document_id,
+        dtd.name AS document_name,
+        dtd.type AS document_type,
+        dtd.required,
+        dd.filePath,
+        dd.uploaded_at
+    FROM diplomas d
+    CROSS JOIN documents_templates_diplomae dtd
+    LEFT JOIN diploma_documentation dd 
+      ON dd.document_id = dtd.id 
+      AND dd.diploma_id = d.id
+    WHERE d.center = p_center
+    ORDER BY d.id, dtd.id;
+END$$
+DELIMITER ;
+
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ LLENADO DE TABLAS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 INSERT INTO academic_categories (name) VALUES
 ('Ingeniería y Ciencias Físico-Matemáticas'),
@@ -1565,7 +1626,7 @@ INSERT INTO academic_categories (name) VALUES
 ('Multidisciplinarios'),
 ('Educación'),
 ('TIC');
-
+call sp_get_diplomas_by_center('Centro de Innovación e Integración de Tecnologías Avanzadas Chihuahua');
 INSERT INTO centers (name, type, identifier) VALUES
 ('Centro de Innovación e Integración de Tecnologías Avanzadas Chihuahua', 'CITTA', 2),
 ('Centro de Innovación e Integración de Tecnologías Avanzadas Puebla', 'CITTA', 3),
@@ -1605,7 +1666,7 @@ INSERT INTO certificate_documents_templates (name, filePath, type, required) VAL
 ('Oficio de Solicitud', NULL, 'file', true),
 ('Formato de Lista de Asistencia', 'assets/certificate_documents_templates/lista-asistencia.xlsx', 'file', true),
 ('Facturas / Comprobante de Pago', NULL, 'file', true);
-
+select * from diplomas;
 INSERT INTO document_access (document_id, modality, required) VALUES
 (3, 'non-schooled', 1),
 (3, 'mixed', 1),
@@ -1932,6 +1993,13 @@ WHERE id = 4;*/
 UPDATE course_schedules 
 SET date = '2025-01-29' 
 WHERE id = 15;*/
+
+/*
+UPDATE diplomas 
+SET approval_status = 'pending' 
+WHERE id = 1;
+select *from diploma_actor_roles;
+*/
 -- update course_sessions set status = 'opened' where id = 4;
 call sp_get_all_courses();
 CALL sp_update_user_password('admin', 'pass_admin', @p_status_code, @p_message);

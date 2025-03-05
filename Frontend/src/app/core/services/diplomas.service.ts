@@ -31,9 +31,12 @@ export class DiplomasService {
   }
 
   approveDiplomaRequest(data: any): Observable<any> {
-    return this.httpClient.post(
-      `${this.URLBase}/api/Diploma/ApproveDiplomaRequest`,
-      data
-    );
+    const url = this.URLBase + '/api/Diploma/ApproveDiplomaRequest';
+    return this.httpClient.post(url, data);
+  }
+
+  getDiplomasByCenter(center: string): Observable<any> {
+    const url = this.URLBase + '/api/Diploma/GetDiplomasByCenter/' + center;
+    return this.httpClient.get(url);
   }
 }

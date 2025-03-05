@@ -125,5 +125,26 @@ namespace DVDR_courses.Controllers
                 return StatusCode(500, new { message = "Error al obtener los diplomados.", error = ex.Message });
             }
         }
+
+        [HttpGet("GetDiplomasByCenter/{center}")]
+        public IActionResult GetDiplomasByCenter(string center)
+        {
+            try
+            {
+                var dbManager = new DBManager(_config);
+                var diplomas = dbManager.GetDiplomasByCenter(center);
+
+                if (diplomas == null || !diplomas.Any())
+                {
+                    return Ok(new { message = $"No se encontraron diplomados para el centro {center}." });
+                }
+
+                return Ok(diplomas);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Error al obtener los diplomados.", error = ex.Message });
+            }
+        }
     }
 }

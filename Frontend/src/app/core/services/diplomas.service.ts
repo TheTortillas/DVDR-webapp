@@ -54,4 +54,9 @@ export class DiplomasService {
     const url = `${this.URLBase}/api/Diploma/GetCertificateOfficialLetter/${diplomaId}`;
     return this.httpClient.get(url);
   }
+
+  uploadSingleDiplomaDocument(formData: FormData): Observable<any> {
+    const url = `${this.URLBase}/api/Diploma/UploadDiplomaDocument`;
+    return this.httpClient.post(url, formData);
+  }
 }

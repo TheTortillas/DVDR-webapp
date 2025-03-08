@@ -217,5 +217,44 @@ namespace DVDR_courses.Controllers
                 return StatusCode(500, new { message = "Error al procesar la solicitud.", error = ex.Message });
             }
         }
+
+        [HttpPost("UploadDiplomaDocument", Name = "PostUploadDiplomaDocument")]
+        public IActionResult UploadDiplomaDocument([FromForm] SingleDiplomaDocumentRequest request)
+        {
+            if (request == null || request.File == null)
+            {
+                return BadRequest(new { message = "La información proporcionada es inválida." });
+            }
+
+            try
+            {
+                // Generar carpeta aleatoria o usa la ruta preferida
+                var folderName = request.FolderName;
+                var basePath = Path.Combine("..", "..", "..", "Frontend", "public", "assets", "files", "diploma-documentation", folderName);
+                Directory.CreateDirectory(basePath);
+
+                var fileName = request.File.FileName;
+                var physicalPath = Path.Combine(basePath, fileName);
+
+                using (var stream = new FileStream(physicalPath, FileMode.Create))
+                {
+                    request.File.CopyTo(stream);
+                }
+
+                // Llamar a DBManager para invocar el SP
+                var dbManager = new DBManager(_config);
+                var relativePath = Path.Combine("assets", "files", "diploma-documentation", folderName, fileName);
+                var (statusCode, message) = dbManager.UploadDiplomaDocument(request.DiplomaId, request.DocumentId, relativePath);
+
+                if (statusCode == 1)
+                    return Ok(new { message });
+                else
+                    return StatusCode(500, new { message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Error al subir el documento.", error = ex.Message });
+            }
+        }
     }
 }

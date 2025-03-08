@@ -1672,6 +1672,35 @@ END$$
 DELIMITER ;
 
 DELIMITER $$
+CREATE PROCEDURE sp_upload_diploma_document(
+    IN p_diploma_id INT,
+    IN p_document_id INT,
+    IN p_file_path VARCHAR(255),
+    OUT p_status_code INT,
+    OUT p_message VARCHAR(255)
+)
+BEGIN
+    DECLARE v_exists INT;
+
+    SELECT COUNT(*) INTO v_exists
+    FROM diplomas
+    WHERE id = p_diploma_id
+    AND approval_status = 'approved';
+
+    IF v_exists = 0 THEN
+        SET p_status_code = -1;
+        SET p_message = 'El diplomado no existe o no está aprobado';
+    END IF;
+
+    INSERT INTO diploma_documentation (diploma_id, document_id, filePath, uploaded_at)
+    VALUES (p_diploma_id, p_document_id, p_file_path, NOW());
+
+    SET p_status_code = 1;
+    SET p_message = 'Documento de diplomado subido correctamente';
+END$$
+DELIMITER ;
+
+DELIMITER $$
 CREATE PROCEDURE sp_update_course_sessions_status()
 BEGIN
     -- Actualizar el estado de las sesiones basado en la última fecha programada

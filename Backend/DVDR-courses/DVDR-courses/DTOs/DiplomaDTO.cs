@@ -109,4 +109,12 @@
         public List<DiplomaDocumentDTO> Documents { get; set; }
         public string? FolderName { get; set; }
     }
+
+    public class SingleDiplomaDocumentRequest
+    {
+        public int DiplomaId { get; set; }
+        public int DocumentId { get; set; }
+        public IFormFile File { get; set; }
+        public string FolderName { get; set; }
+    }
 }

@@ -60,6 +60,7 @@ interface Diploma {
   registeredBy: string;
   actors: DiplomaActor[];
   documentation: DiplomaDocument[];
+  documentation_folder: string;
 }
 
 @Component({
@@ -230,18 +231,19 @@ export class MyCoursesComponent implements OnInit {
       cancelButtonText: 'Cancelar',
     }).then((result) => {
       if (result.isConfirmed) {
-        // Aquí creas tu FormData y llamas a tu servicio
         const formData = new FormData();
-        formData.append('diplomaId', diploma.diplomaId.toString());
-        formData.append('Documents[0].DocumentId', doc.documentId.toString());
-        formData.append('Documents[0].File', file);
+        formData.append('DiplomaId', diploma.diplomaId.toString());
+        formData.append('DocumentId', doc.documentId.toString());
+        formData.append('File', file);
+        formData.append('FolderName', diploma.documentation_folder);
 
-        this.diplomasService.requestDiplomaRegistration(formData).subscribe({
-          next: (res) => {
+        this.diplomasService.uploadSingleDiplomaDocument(formData).subscribe({
+          next: () => {
             Swal.fire('Archivo subido', '', 'success');
-            // Actualiza la vista local de documentos si procede
+            this.loadCourses();
+            this.loadDiplomas();
           },
-          error: (err) => {
+          error: () => {
             Swal.fire('Error', 'No se pudo subir el archivo', 'error');
           },
         });

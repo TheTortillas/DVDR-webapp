@@ -1873,5 +1873,33 @@ namespace DVDR_courses
                 return (-1, "Error interno del servidor");
             }
         }
+
+        public (int statusCode, string message) UploadDiplomaDocument(int diplomaId, int documentId, string filePath)
+        {
+            using (var con = new MySqlConnection(_config.GetConnectionString("default")))
+            {
+                con.Open();
+                using (var cmd = new MySqlCommand("sp_upload_diploma_document", con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+
+                    cmd.Parameters.AddWithValue("p_diploma_id", diplomaId);
+                    cmd.Parameters.AddWithValue("p_document_id", documentId);
+                    cmd.Parameters.AddWithValue("p_file_path", filePath);
+
+                    var statusParam = new MySqlParameter("p_status_code", MySqlDbType.Int32)
+                    { Direction = ParameterDirection.Output };
+                    var messageParam = new MySqlParameter("p_message", MySqlDbType.VarChar, 255)
+                    { Direction = ParameterDirection.Output };
+
+                    cmd.Parameters.Add(statusParam);
+                    cmd.Parameters.Add(messageParam);
+
+                    cmd.ExecuteNonQuery();
+
+                    return (Convert.ToInt32(statusParam.Value), messageParam.Value.ToString());
+                }
+            }
+        }
     }
 }

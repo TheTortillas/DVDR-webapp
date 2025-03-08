@@ -5,159 +5,182 @@
         <h1 class="heading">Mis registros</h1>
       </div>
 
-      <mat-accordion>
-        <ng-container *ngFor="let course of courses">
+      <div class="mt-8 mb-6">
+        <h2 class="text-xl font-semibold text-gray-700 mb-4">
+          Cursos registrados
+        </h2>
+        <mat-accordion>
+          <ng-container *ngFor="let course of courses">
+            <mat-expansion-panel
+              [disabled]="course.approvalStatus === 'rejected'"
+              (opened)="panelOpenState.set(true)"
+              (closed)="panelOpenState.set(false)"
+            >
+              <mat-expansion-panel-header>
+                <mat-panel-title
+                  class="flex items-center justify-between w-full"
+                >
+                  <span>{{ course.title }}</span>
+                  <button
+                    *ngIf="course.approvalStatus === 'rejected'"
+                    mat-icon-button
+                    color="warn"
+                    class="warning-button"
+                    matTooltip="Atender correcciones"
+                    (click)="onAttendCorrections(course.id, $event)"
+                  >
+                    <mat-icon>warning</mat-icon>
+                  </button>
+                </mat-panel-title>
+              </mat-expansion-panel-header>
+              <table mat-table [dataSource]="course.dataSource">
+                <ng-container matColumnDef="no">
+                  <th mat-header-cell *matHeaderCellDef>No.</th>
+                  <td mat-cell *matCellDef="let element; let i = index">
+                    {{ i + 1 }}
+                  </td>
+                </ng-container>
+
+                <ng-container matColumnDef="clave">
+                  <th mat-header-cell *matHeaderCellDef>CLAVE</th>
+                  <td mat-cell *matCellDef="let element">
+                    {{ element.clave }}
+                  </td>
+                </ng-container>
+
+                <ng-container matColumnDef="periodo">
+                  <th mat-header-cell *matHeaderCellDef>Periodo</th>
+                  <td mat-cell *matCellDef="let element">
+                    {{ element.periodo }}
+                  </td>
+                </ng-container>
+
+                <ng-container matColumnDef="participantes">
+                  <th mat-header-cell *matHeaderCellDef>
+                    No. de participantes
+                  </th>
+                  <td mat-cell *matCellDef="let element">
+                    {{ element.participantes }}
+                  </td>
+                </ng-container>
+
+                <ng-container matColumnDef="constancias">
+                  <th mat-header-cell *matHeaderCellDef>No. de constancias</th>
+                  <td mat-cell *matCellDef="let element">
+                    {{ element.constancias }}
+                  </td>
+                </ng-container>
+
+                <ng-container matColumnDef="estatus">
+                  <th mat-header-cell *matHeaderCellDef>Estatus</th>
+                  <td mat-cell *matCellDef="let element">
+                    {{ element.estatus }}
+                  </td>
+                </ng-container>
+
+                <!-- Mostrar nombres de las columnas -->
+                <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                <!-- Mostrar contenido de cada fila -->
+                <tr
+                  mat-row
+                  *matRowDef="let row; columns: displayedColumns"
+                ></tr>
+              </table>
+            </mat-expansion-panel>
+          </ng-container>
+        </mat-accordion>
+      </div>
+      <!-- Accordion para diplomados aprobados -->
+      <div class="mt-8">
+        <h2 class="text-xl font-semibold text-gray-700 mb-4">
+          Diplomados registrados
+        </h2>
+
+        <mat-accordion>
           <mat-expansion-panel
-            [disabled]="course.approvalStatus === 'rejected'"
-            (opened)="panelOpenState.set(true)"
-            (closed)="panelOpenState.set(false)"
+            *ngFor="let diploma of diplomas"
+            [disabled]="diploma.approvalStatus !== 'approved'"
           >
             <mat-expansion-panel-header>
-              <mat-panel-title class="flex items-center justify-between w-full">
-                <span>{{ course.title }}</span>
-                <button
-                  *ngIf="course.approvalStatus === 'rejected'"
-                  mat-icon-button
-                  color="warn"
-                  class="warning-button"
-                  matTooltip="Atender correcciones"
-                  (click)="onAttendCorrections(course.id, $event)"
-                >
-                  <mat-icon>warning</mat-icon>
-                </button>
+              <mat-panel-title>
+                {{ diploma.name }} ({{ diploma.approvalStatus }})
               </mat-panel-title>
             </mat-expansion-panel-header>
-            <table mat-table [dataSource]="course.dataSource">
-              <ng-container matColumnDef="no">
-                <th mat-header-cell *matHeaderCellDef>No.</th>
-                <td mat-cell *matCellDef="let element; let i = index">
-                  {{ i + 1 }}
-                </td>
-              </ng-container>
 
-              <ng-container matColumnDef="clave">
-                <th mat-header-cell *matHeaderCellDef>CLAVE</th>
-                <td mat-cell *matCellDef="let element">{{ element.clave }}</td>
-              </ng-container>
+            <!-- Datos generales del diplomado -->
+            <div class="p-4">
+              <p><strong>Modalidad:</strong> {{ diploma.modality }}</p>
+              <p>
+                <strong>Oferta educativa:</strong>
+                {{ diploma.educationalOffer }}
+              </p>
+              <p>
+                <strong>Fecha de inicio:</strong> {{ diploma.startDate | date }}
+              </p>
+              <p><strong>Fecha de fin:</strong> {{ diploma.endDate | date }}</p>
+              <p>
+                <strong>Fecha de expiración:</strong>
+                {{ diploma.expirationDate | date }}
+              </p>
+              <p>
+                <strong>Número de participantes:</strong>
+                {{ diploma.participants }}
+              </p>
+            </div>
 
-              <ng-container matColumnDef="periodo">
-                <th mat-header-cell *matHeaderCellDef>Periodo</th>
-                <td mat-cell *matCellDef="let element">
-                  {{ element.periodo }}
-                </td>
-              </ng-container>
+            <!-- Lista de actores -->
+            <div class="p-4">
+              <h3>Actores</h3>
+              <ul>
+                <li *ngFor="let actor of diploma.actors">
+                  {{ actor.name }} - <em>{{ actor.role }}</em>
+                </li>
+              </ul>
+            </div>
 
-              <ng-container matColumnDef="participantes">
-                <th mat-header-cell *matHeaderCellDef>No. de participantes</th>
-                <td mat-cell *matCellDef="let element">
-                  {{ element.participantes }}
-                </td>
-              </ng-container>
-
-              <ng-container matColumnDef="constancias">
-                <th mat-header-cell *matHeaderCellDef>No. de constancias</th>
-                <td mat-cell *matCellDef="let element">
-                  {{ element.constancias }}
-                </td>
-              </ng-container>
-
-              <ng-container matColumnDef="estatus">
-                <th mat-header-cell *matHeaderCellDef>Estatus</th>
-                <td mat-cell *matCellDef="let element">
-                  {{ element.estatus }}
-                </td>
-              </ng-container>
-
-              <!-- Mostrar nombres de las columnas -->
-              <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-              <!-- Mostrar contenido de cada fila -->
-              <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
-            </table>
-          </mat-expansion-panel>
-        </ng-container>
-      </mat-accordion>
-
-      <!-- Accordion para diplomados aprobados -->
-      <mat-accordion>
-        <mat-expansion-panel
-          *ngFor="let diploma of diplomas"
-          [disabled]="diploma.approvalStatus !== 'approved'"
-        >
-          <mat-expansion-panel-header>
-            <mat-panel-title>
-              {{ diploma.name }} ({{ diploma.approvalStatus }})
-            </mat-panel-title>
-          </mat-expansion-panel-header>
-
-          <!-- Datos generales del diplomado -->
-          <div class="p-4">
-            <p><strong>Modalidad:</strong> {{ diploma.modality }}</p>
-            <p>
-              <strong>Oferta educativa:</strong> {{ diploma.educationalOffer }}
-            </p>
-            <p>
-              <strong>Fecha de inicio:</strong> {{ diploma.startDate | date }}
-            </p>
-            <p><strong>Fecha de fin:</strong> {{ diploma.endDate | date }}</p>
-            <p>
-              <strong>Fecha de expiración:</strong>
-              {{ diploma.expirationDate | date }}
-            </p>
-            <p>
-              <strong>Número de participantes:</strong>
-              {{ diploma.participants }}
-            </p>
-          </div>
-
-          <!-- Lista de actores -->
-          <div class="p-4">
-            <h3>Actores</h3>
-            <ul>
-              <li *ngFor="let actor of diploma.actors">
-                {{ actor.name }} - <em>{{ actor.role }}</em>
-              </li>
-            </ul>
-          </div>
-
-          <!-- Documentos -->
-          <div class="p-4">
-            <h3 class="font-semibold mb-4">Documentación</h3>
-            <table class="w-full">
-              <tbody>
-                <tr *ngFor="let doc of diploma.documentation" class="border-b">
-                  <td class="py-2">{{ doc.name }}</td>
-                  <td class="py-2 w-20">
-                    <ng-container *ngIf="doc.filePath">
-                      <a [href]="doc.filePath" target="_blank">
+            <!-- Documentos -->
+            <div class="p-4">
+              <h3 class="font-semibold mb-4">Documentación</h3>
+              <table class="w-full">
+                <tbody>
+                  <tr
+                    *ngFor="let doc of diploma.documentation"
+                    class="border-b"
+                  >
+                    <td class="py-2">{{ doc.name }}</td>
+                    <td class="py-2 w-20">
+                      <ng-container *ngIf="doc.filePath">
+                        <a [href]="doc.filePath" target="_blank">
+                          <mat-icon
+                            class="hover-blue cursor-pointer"
+                            matTooltip="Ver documento"
+                            >description</mat-icon
+                          >
+                        </a>
+                      </ng-container>
+                      <ng-container *ngIf="!doc.filePath">
+                        <input
+                          type="file"
+                          hidden
+                          #fileInput
+                          (change)="onDocFileSelected(diploma, doc, $event)"
+                          accept=".pdf"
+                        />
                         <mat-icon
                           class="hover-blue cursor-pointer"
-                          matTooltip="Ver documento"
-                          >description</mat-icon
+                          (click)="fileInput.click()"
+                          matTooltip="Subir documento"
+                          >cloud_upload</mat-icon
                         >
-                      </a>
-                    </ng-container>
-                    <ng-container *ngIf="!doc.filePath">
-                      <input
-                        type="file"
-                        hidden
-                        #fileInput
-                        (change)="onDocFileSelected(diploma, doc, $event)"
-                        accept=".pdf"
-                      />
-                      <mat-icon
-                        class="hover-blue cursor-pointer"
-                        (click)="fileInput.click()"
-                        matTooltip="Subir documento"
-                        >cloud_upload</mat-icon
-                      >
-                    </ng-container>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </mat-expansion-panel>
-      </mat-accordion>
+                      </ng-container>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </mat-expansion-panel>
+        </mat-accordion>
+      </div>
     </div>
   </div>
 </main>

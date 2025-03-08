@@ -1769,9 +1769,7 @@ INSERT INTO documents_templates_diplomae (name, filePath, type, required) VALUES
 ('Cronograma de actividades', 'assets/diplomae_templates/cronograma-de-actividades.doc', 'file', true),
 ('Currículum Vitae de Instructor y Aval', 'assets/diplomae_templates/formato-cv-instructor.docx', 'file', true),
 ('Carta Aval', 'assets/diplomae_templates/ejemplo-carta-aval.pdf', 'file', true),
-('Lista inicial de participantes', 'assets/diplomae_templates/lista-inicial-de-participantes.doc', 'file', false),
-('Lista final de calificaciones', 'assets/diplomae_templates/lista-final-de-calificaciones.doc', 'file', false);
-
+('Lista inicial de participantes', 'assets/diplomae_templates/lista-inicial-de-participantes.doc', 'file', false);
 INSERT INTO documents_templates (name, filePath, type) VALUES
 ('Formato de registro de cursos de formación a lo largo de la vida', 'assets/templates/01 FS20H 2024-2.docx', 'file'),
 ('Lista de cotejo para formato de registro de cursos', 'assets/templates/01 LC20H 2024-2.xlsx', 'file'),
@@ -1781,9 +1779,8 @@ INSERT INTO documents_templates (name, filePath, type) VALUES
 
 INSERT INTO certificate_documents_templates (name, filePath, type, required) VALUES
 ('Oficio de Solicitud', 'assets/certificate_documents_templates/formato-oficio-de-solicitud.docx', 'file', true),
-('Formato de Lista de Calificaciones', 'assets/certificate_documents_templates/lista-asistencia.xlsx', 'file', true),
+('Formato de Lista de Calificaciones', 'assets/certificate_documents_templates/lista-final-de-calificaciones.doc', 'file', true),
 ('Comprobante de Pago', NULL, 'file', true);
-select * from  session_certificates_request_documentation;
 
 INSERT INTO document_access (document_id, modality, required) VALUES
 (3, 'non-schooled', 1),
@@ -2121,7 +2118,7 @@ select *from diploma_actor_roles;
 select * from diplomas;
 /*
 UPDATE diplomas 
-SET status = 'finished' 
+SET certificates_requested = 0 
 WHERE id = 1;
 select *from diploma_actor_roles;
 */
@@ -2129,6 +2126,6 @@ select *from diploma_actor_roles;
 call sp_get_all_courses();
 CALL sp_update_user_password('admin', 'pass_admin', @p_status_code, @p_message);
 SELECT @p_status_code, @p_message; 
-SELECT * FROM courses;
+SELECT * FROM diplomas;
 
 -- DROP DATABASE dvdr_cursos;

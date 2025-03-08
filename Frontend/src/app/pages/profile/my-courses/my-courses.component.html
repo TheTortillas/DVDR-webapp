@@ -127,7 +127,6 @@
                 <tr *ngFor="let doc of diploma.documentation" class="border-b">
                   <td class="py-2">{{ doc.name }}</td>
                   <td class="py-2 w-20">
-                    <!-- Si hay archivo -->
                     <ng-container *ngIf="doc.filePath">
                       <a [href]="doc.filePath" target="_blank">
                         <mat-icon
@@ -137,12 +136,19 @@
                         >
                       </a>
                     </ng-container>
-                    <!-- Si no hay archivo -->
                     <ng-container *ngIf="!doc.filePath">
+                      <input
+                        type="file"
+                        hidden
+                        #fileInput
+                        (change)="onDocFileSelected(diploma, doc, $event)"
+                        accept=".pdf"
+                      />
                       <mat-icon
-                        class="text-gray-400"
-                        matTooltip="Documento no disponible"
-                        >block</mat-icon
+                        class="hover-blue cursor-pointer"
+                        (click)="fileInput.click()"
+                        matTooltip="Subir documento"
+                        >cloud_upload</mat-icon
                       >
                     </ng-container>
                   </td>

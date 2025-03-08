@@ -1469,6 +1469,8 @@ namespace DVDR_courses
                             filePath = Path.Combine("assets", "files", "diploma-documentation", request.FolderName, d.File.FileName)
                         }));
                         cmd.Parameters.AddWithValue("p_documentation", documentation);
+                        cmd.Parameters.AddWithValue("p_documentation_folder", request.FolderName);
+
 
                         cmd.Parameters.Add("p_status_code", MySqlDbType.Int32);
                         cmd.Parameters["p_status_code"].Direction = ParameterDirection.Output;
@@ -1577,6 +1579,7 @@ namespace DVDR_courses
                                     CreatedAt = reader.GetDateTime("created_at"),
                                     UpdatedAt = reader.GetDateTime("updated_at"),
                                     RegisteredBy = reader.IsDBNull(reader.GetOrdinal("registered_by")) ? null : reader.GetString("registered_by"),
+                                    FolderName = reader.IsDBNull(reader.GetOrdinal("documentation_folder")) ? null : reader.GetString("documentation_folder"),
                                     Actors = new List<DiplomaActorDTO>(),
                                     Documentation = new List<DiplomaDocumentationDTO>()
                                 };
@@ -1711,24 +1714,25 @@ namespace DVDR_courses
                                 {
                                     DiplomaId = reader.GetInt32("diploma_id"),
                                     Name = reader.IsDBNull("name") ? null : reader.GetString("name"),
-                                    TotalDuration = reader.GetInt32("total_duration"),
+                                    TotalDuration = reader.IsDBNull("total_duration") ? (int?)null : reader.GetInt32("total_duration"),
                                     DiplomaKey = reader.IsDBNull("diploma_key") ? null : reader.GetString("diploma_key"),
                                     ServiceType = reader.IsDBNull("service_type") ? null : reader.GetString("service_type"),
                                     Modality = reader.IsDBNull("modality") ? null : reader.GetString("modality"),
                                     EducationalOffer = reader.IsDBNull("educational_offer") ? null : reader.GetString("educational_offer"),
                                     Status = reader.IsDBNull("status") ? null : reader.GetString("status"),
                                     ApprovalStatus = reader.IsDBNull("approval_status") ? null : reader.GetString("approval_status"),
-                                    Cost = reader.GetDecimal("cost"),
-                                    Participants = reader.GetInt32("participants"),
+                                    Cost = reader.IsDBNull("cost") ? null : reader.GetDecimal("cost"),
+                                    Participants = reader.IsDBNull("participants") ? (int?)null : reader.GetInt32("participants"),
                                     StartDate = reader.IsDBNull("start_date") ? null : reader.GetDateTime("start_date"),
                                     EndDate = reader.IsDBNull("end_date") ? null : reader.GetDateTime("end_date"),
                                     ExpirationDate = reader.IsDBNull("expiration_date") ? null : reader.GetDateTime("expiration_date"),
                                     Center = reader.GetString("center"),
                                     CreatedAt = reader.GetDateTime("created_at"),
                                     UpdatedAt = reader.GetDateTime("updated_at"),
-                                    RegisteredBy = reader.IsDBNull("registered_by") ? null : reader.GetString("registered_by")
+                                    RegisteredBy = reader.IsDBNull("registered_by") ? null : reader.GetString("registered_by"),
+                                    FolderName = reader.IsDBNull("documentation_folder") ? null : reader.GetString("documentation_folder"),
                                 };
-                                diplomaMap[diploma.DiplomaId] = diploma;
+                                diplomaMap[diploma.DiplomaId.Value] = diploma;
                             }
 
                             // Segundo resultset: actores y roles

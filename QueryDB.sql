@@ -84,6 +84,7 @@ CREATE TABLE diplomas (
   certificates_requested TINYINT(1) DEFAULT 0,
   certificates_delivered TINYINT(1) DEFAULT 0,
   official_letter_path VARCHAR(255) DEFAULT NULL,
+  documentation_folder VARCHAR (255) DEFAULT NULL,
   
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -1204,6 +1205,7 @@ DELIMITER $$
 CREATE PROCEDURE sp_request_diploma_registration(
     IN p_username VARCHAR(50),
     IN p_documentation JSON,
+    IN p_documentation_folder VARCHAR(50),
     OUT p_status_code INT,
     OUT p_message VARCHAR(255)
 )
@@ -1240,13 +1242,15 @@ BEGIN
         service_type,
         user_id,
         center,            -- Añadir el campo center
-        approval_status
+        approval_status,
+		documentation_folder
     ) VALUES (
         'Pendiente de revisión',
         'Diplomado',
         v_user_id,
         v_center,         -- Incluir el valor del centro
-        'pending'
+        'pending',
+        p_documentation_folder
     );
 
     SET v_diploma_id = LAST_INSERT_ID();
@@ -1337,7 +1341,8 @@ BEGIN
         start_date,
         end_date,
         expiration_date,
-        user_id
+        user_id,
+        documentation_folder
     ) VALUES (
         p_name,
         p_total_duration,
@@ -1406,7 +1411,8 @@ BEGIN
         d.center,
         d.created_at,
         d.updated_at,
-        u.username AS registered_by
+        u.username AS registered_by,
+        d.documentation_folder
     FROM diplomas d
     JOIN users u ON d.user_id = u.id
     ORDER BY d.created_at DESC;
@@ -1554,7 +1560,8 @@ BEGIN
         d.center,
         d.created_at,
         d.updated_at,
-        u.username AS registered_by
+        u.username AS registered_by,
+        d.documentation_folder
     FROM diplomas d
     JOIN users u ON d.user_id = u.id
     WHERE d.center = p_center

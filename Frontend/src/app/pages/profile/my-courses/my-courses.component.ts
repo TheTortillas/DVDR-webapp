@@ -9,6 +9,7 @@ import { StorageService } from '../../../core/services/storage.service';
 import { DiplomasService } from '../../../core/services/diplomas.service';
 import { MatIconModule } from '@angular/material/icon';
 import { Router } from '@angular/router';
+import Swal from 'sweetalert2';
 
 interface Session {
   clave: string;
@@ -184,6 +185,7 @@ export class MyCoursesComponent implements OnInit {
               createdAt: new Date(diploma.createdAt),
               updatedAt: new Date(diploma.updatedAt),
               registeredBy: diploma.registeredBy,
+              documentation_folder: diploma.folderName,
               actors: diploma.actors.map(
                 (actor: { actorId: any; name: any; role: any }) => ({
                   actorId: actor.actorId,
@@ -213,5 +215,37 @@ export class MyCoursesComponent implements OnInit {
         },
       });
     }
+  }
+
+  onDocFileSelected(diploma: Diploma, doc: DiplomaDocument, event: any): void {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const fileURL = URL.createObjectURL(file);
+    Swal.fire({
+      title: '¿Confirmar archivo?',
+      html: `<embed src="${fileURL}" type="application/pdf" width="100%" height="300px">`,
+      showCancelButton: true,
+      confirmButtonText: 'Aceptar',
+      cancelButtonText: 'Cancelar',
+    }).then((result) => {
+      if (result.isConfirmed) {
+        // Aquí creas tu FormData y llamas a tu servicio
+        const formData = new FormData();
+        formData.append('diplomaId', diploma.diplomaId.toString());
+        formData.append('Documents[0].DocumentId', doc.documentId.toString());
+        formData.append('Documents[0].File', file);
+
+        this.diplomasService.requestDiplomaRegistration(formData).subscribe({
+          next: (res) => {
+            Swal.fire('Archivo subido', '', 'success');
+            // Actualiza la vista local de documentos si procede
+          },
+          error: (err) => {
+            Swal.fire('Error', 'No se pudo subir el archivo', 'error');
+          },
+        });
+      }
+    });
   }
 }

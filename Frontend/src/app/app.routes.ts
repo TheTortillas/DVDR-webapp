@@ -27,6 +27,7 @@ import { InstructorRegisterAdminComponent } from './pages/management/instructor-
 import { InstructorRegisterClientComponent } from './pages/profile/instructor-register-client/instructor-register-client.component';
 import { DiplomaRegisterRequestComponent } from './pages/management/diploma-register-request/diploma-register-request.component';
 import { AllDiplomasComponent } from './pages/management/all-diplomas/all-diplomas.component';
+import { RequestDiplomaCertificatesComponent } from './pages/profile/request-diploma-certificates/request-diploma-certificates.component';
 
 export const routes: Routes = [
   {
@@ -162,6 +163,10 @@ export const routes: Routes = [
         component: RequestCertificatesComponent,
       },
       {
+        path: 'request-diploma-certificates',
+        component: RequestDiplomaCertificatesComponent,
+      },
+      {
         path: '',
         redirectTo: 'dashboard',
         pathMatch: 'full',
@@ -176,11 +181,13 @@ export const routes: Routes = [
 
   {
     path: '',
-    component: PageNotFoundComponent,
+    redirectTo: 'home',
+    pathMatch: 'full',
   },
 
   {
     path: '**',
-    component: PageNotFoundComponent,
+    redirectTo: 'home',
+    pathMatch: 'full',
   },
 ];

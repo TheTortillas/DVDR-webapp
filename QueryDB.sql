@@ -81,6 +81,10 @@ CREATE TABLE diplomas (
   expiration_date DATE,
   user_id INT NOT NULL,
   center VARCHAR(100) NOT NULL,
+  certificates_requested TINYINT(1) DEFAULT 0,
+  certificates_delivered TINYINT(1) DEFAULT 0,
+  official_letter_path VARCHAR(255) DEFAULT NULL,
+  
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
@@ -228,7 +232,19 @@ CREATE TABLE session_certificates_request_documentation (
     session_id INT NOT NULL, -- Relación con cursos
     document_id INT NOT NULL, -- Relación con plantillas de documentos
     filePath VARCHAR(255) NOT NULL, -- Ruta al documento cargado o personalizado
+	uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (session_id) REFERENCES course_sessions(id) ON DELETE CASCADE,
+    FOREIGN KEY (document_id) REFERENCES certificate_documents_templates(id) ON DELETE CASCADE
+);
+
+-- Creación de tabla para documentación de solicitud de certificados de diplomados
+CREATE TABLE diploma_certificates_request_documentation (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    diploma_id INT NOT NULL,
+    document_id INT NOT NULL,
+    filePath VARCHAR(255) NOT NULL,
+    uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (diploma_id) REFERENCES diplomas(id) ON DELETE CASCADE,
     FOREIGN KEY (document_id) REFERENCES certificate_documents_templates(id) ON DELETE CASCADE
 );
 
@@ -1088,47 +1104,6 @@ END$$
 DELIMITER ;
 
 DELIMITER $$
-CREATE PROCEDURE sp_update_course_sessions_status()
-BEGIN
-    -- Actualizar el estado de las sesiones basado en la última fecha programada
-    UPDATE course_sessions cs
-    INNER JOIN (
-        -- Subconsulta para obtener la última fecha de cada sesión
-        SELECT 
-            session_id,
-            MAX(date) as last_session_date
-        FROM course_schedules
-        GROUP BY session_id
-    ) last_dates ON cs.id = last_dates.session_id
-    SET 
-        cs.status = 'completed'
-    WHERE 
-        -- Asegurar que la condición usa una clave primaria (cs.id)
-        cs.id IS NOT NULL
-        AND last_dates.last_session_date < CURDATE()
-        AND cs.status = 'opened'
-		AND cs.id IS NOT NULL;
-    -- Opcional: Retornar el número de sesiones actualizadas
-    SELECT CONCAT(ROW_COUNT(), ' sesiones han sido actualizadas a completed') as result;
-END$$
-DELIMITER ;
-
-DELIMITER $$
-CREATE EVENT event_update_course_sessions_status
-ON SCHEDULE EVERY 1 DAY
-STARTS TIMESTAMP(CURRENT_DATE, '19:42:00')  
-DO
-BEGIN
-    SET SQL_SAFE_UPDATES = 0;
-    CALL sp_update_course_sessions_status();
-    SET SQL_SAFE_UPDATES = 1;
-END$$
-DELIMITER ;
--- DROP EVENT IF EXISTS event_update_course_sessions_status;
-
-SET GLOBAL event_scheduler = ON;
-
-DELIMITER $$
 CREATE PROCEDURE sp_add_center(
     IN p_name VARCHAR(255),
     IN p_type ENUM('CITTA', 'CVDR', 'UA'),
@@ -1616,6 +1591,148 @@ BEGIN
 END$$
 DELIMITER ;
 
+DELIMITER $$
+CREATE PROCEDURE sp_get_completed_diplomas(IN p_username VARCHAR(50))
+BEGIN
+    SELECT 
+        d.id AS diplomaId,
+        d.name AS title,
+        d.diploma_key AS clave,
+        d.start_date AS startDate,
+        d.end_date AS endDate,
+        d.status,
+        d.certificates_requested,
+        d.certificates_delivered,
+        d.official_letter_path
+    FROM diplomas d
+    JOIN users u ON d.user_id = u.id
+    WHERE u.username = p_username
+    AND d.status = 'finished'
+    AND d.approval_status = 'approved'
+    ORDER BY d.end_date DESC;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE PROCEDURE sp_request_diploma_certificates(
+    IN p_diploma_id INT,
+    IN p_documentation JSON,
+    OUT p_status_code INT,
+    OUT p_message VARCHAR(255)
+)
+BEGIN
+    DECLARE v_exists INT;
+	START TRANSACTION;
+    -- Verificar si existe el diplomado y está completado
+    SELECT COUNT(*) INTO v_exists
+    FROM diplomas
+    WHERE id = p_diploma_id 
+    AND status = 'finished'  
+    AND certificates_requested = 0;
+
+    IF v_exists = 0 THEN
+        SET p_status_code = -1;
+        SET p_message = 'Diplomado no encontrado o ya tiene certificados solicitados';
+    END IF;
+
+    -- Marcar el diplomado como solicitado
+    UPDATE diplomas
+    SET certificates_requested = 1
+    WHERE id = p_diploma_id;
+
+    -- Insertar la documentación de la solicitud en la nueva tabla específica
+    INSERT INTO diploma_certificates_request_documentation (
+        diploma_id,
+        document_id,
+        filePath
+    )
+    SELECT 
+        p_diploma_id,
+        JSON_EXTRACT(doc, '$.document_id'),
+        JSON_EXTRACT(doc, '$.filePath')
+    FROM JSON_TABLE(
+        p_documentation,
+        '$[*]' COLUMNS (
+            doc JSON PATH '$'
+        )
+    ) AS docs;
+
+    COMMIT;
+
+    SET p_status_code = 1;
+    SET p_message = 'Solicitud de certificados registrada exitosamente';
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE PROCEDURE sp_update_course_sessions_status()
+BEGIN
+    -- Actualizar el estado de las sesiones basado en la última fecha programada
+    UPDATE course_sessions cs
+    INNER JOIN (
+        -- Subconsulta para obtener la última fecha de cada sesión
+        SELECT 
+            session_id,
+            MAX(date) as last_session_date
+        FROM course_schedules
+        GROUP BY session_id
+    ) last_dates ON cs.id = last_dates.session_id
+    SET 
+        cs.status = 'completed'
+    WHERE 
+        -- Asegurar que la condición usa una clave primaria (cs.id)
+        cs.id IS NOT NULL
+        AND last_dates.last_session_date < CURDATE()
+        AND cs.status = 'opened'
+		AND cs.id IS NOT NULL;
+    -- Opcional: Retornar el número de sesiones actualizadas
+    SELECT CONCAT(ROW_COUNT(), ' sesiones han sido actualizadas a completed') as result;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE PROCEDURE sp_update_diploma_status()
+BEGIN
+    -- Actualizar el estado de los diplomados basado en la fecha de fin
+    UPDATE diplomas
+    SET status = 'finished'
+    WHERE end_date < CURRENT_DATE 
+    AND status = 'ongoing';
+
+    -- Opcional: Retornar el número de diplomados actualizados
+    SELECT CONCAT(ROW_COUNT(), ' diplomados han sido actualizados a completed') as result;
+END$$
+DELIMITER ;
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ EVENTOS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+DELIMITER $$
+CREATE EVENT event_update_course_sessions_status
+ON SCHEDULE EVERY 1 DAY
+STARTS TIMESTAMP(CURRENT_DATE, '19:42:00')  
+DO
+BEGIN
+    SET SQL_SAFE_UPDATES = 0;
+    CALL sp_update_course_sessions_status();
+    SET SQL_SAFE_UPDATES = 1;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE EVENT event_update_diploma_status
+ON SCHEDULE EVERY 1 DAY
+STARTS TIMESTAMP(CURRENT_DATE, '19:42:00')
+DO
+BEGIN
+    SET SQL_SAFE_UPDATES = 0;
+    CALL sp_update_diploma_status();
+    SET SQL_SAFE_UPDATES = 1;
+END$$
+DELIMITER ;
+-- DROP EVENT IF EXISTS event_update_course_sessions_status;
+
+SET GLOBAL event_scheduler = ON;
+
+
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ LLENADO DE TABLAS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 INSERT INTO academic_categories (name) VALUES
 ('Ingeniería y Ciencias Físico-Matemáticas'),
@@ -1626,7 +1743,7 @@ INSERT INTO academic_categories (name) VALUES
 ('Multidisciplinarios'),
 ('Educación'),
 ('TIC');
-call sp_get_diplomas_by_center('Centro de Innovación e Integración de Tecnologías Avanzadas Chihuahua');
+
 INSERT INTO centers (name, type, identifier) VALUES
 ('Centro de Innovación e Integración de Tecnologías Avanzadas Chihuahua', 'CITTA', 2),
 ('Centro de Innovación e Integración de Tecnologías Avanzadas Puebla', 'CITTA', 3),
@@ -1654,7 +1771,7 @@ INSERT INTO documents_templates_diplomae (name, filePath, type, required) VALUES
 ('Carta Aval', 'assets/diplomae_templates/ejemplo-carta-aval.pdf', 'file', true),
 ('Lista inicial de participantes', 'assets/diplomae_templates/lista-inicial-de-participantes.doc', 'file', false),
 ('Lista final de calificaciones', 'assets/diplomae_templates/lista-final-de-calificaciones.doc', 'file', false);
-select * from actors_general_information;
+
 INSERT INTO documents_templates (name, filePath, type) VALUES
 ('Formato de registro de cursos de formación a lo largo de la vida', 'assets/templates/01 FS20H 2024-2.docx', 'file'),
 ('Lista de cotejo para formato de registro de cursos', 'assets/templates/01 LC20H 2024-2.xlsx', 'file'),
@@ -1663,10 +1780,11 @@ INSERT INTO documents_templates (name, filePath, type) VALUES
 ('Carta aval', 'assets/templates/05 CA-ejemplo.pdf', 'file');
 
 INSERT INTO certificate_documents_templates (name, filePath, type, required) VALUES
-('Oficio de Solicitud', NULL, 'file', true),
-('Formato de Lista de Asistencia', 'assets/certificate_documents_templates/lista-asistencia.xlsx', 'file', true),
-('Facturas / Comprobante de Pago', NULL, 'file', true);
-select * from diplomas;
+('Oficio de Solicitud', 'assets/certificate_documents_templates/formato-oficio-de-solicitud.docx', 'file', true),
+('Formato de Lista de Calificaciones', 'assets/certificate_documents_templates/lista-asistencia.xlsx', 'file', true),
+('Comprobante de Pago', NULL, 'file', true);
+select * from  session_certificates_request_documentation;
+
 INSERT INTO document_access (document_id, modality, required) VALUES
 (3, 'non-schooled', 1),
 (3, 'mixed', 1),
@@ -1996,7 +2114,14 @@ WHERE id = 15;*/
 
 /*
 UPDATE diplomas 
-SET approval_status = 'pending' 
+SET approval_status = 'approved' 
+WHERE id = 1;
+select *from diploma_actor_roles;
+*/
+select * from diplomas;
+/*
+UPDATE diplomas 
+SET status = 'finished' 
 WHERE id = 1;
 select *from diploma_actor_roles;
 */

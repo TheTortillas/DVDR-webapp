@@ -102,10 +102,11 @@
           <p class="leading-relaxed text-base">
             Solicita las constancias de un curso o diplomado.
           </p>
-          <a
+          <!-- Reemplazar el botón de solicitar constancias existente por: -->
+          <button
             mat-flat-button
             extended
-            routerLink="../request-certificates"
+            [matMenuTriggerFor]="certificatesMenu"
             class="w-full"
           >
             <div
@@ -115,7 +116,16 @@
               Siguiente
               <mat-icon style="margin-left: 8px">arrow_right_alt</mat-icon>
             </div>
-          </a>
+          </button>
+
+          <mat-menu #certificatesMenu="matMenu">
+            <button mat-menu-item (click)="navToCertificates('courses')">
+              Constancias de cursos
+            </button>
+            <button mat-menu-item (click)="navToCertificates('diplomas')">
+              Constancias de diplomados
+            </button>
+          </mat-menu>
         </div>
       </div>
       <div class="xl:w-1/4 md:w-1/2 p-4">

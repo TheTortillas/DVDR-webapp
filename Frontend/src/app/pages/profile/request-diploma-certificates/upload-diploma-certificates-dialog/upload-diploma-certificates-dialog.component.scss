@@ -1,0 +1,35 @@
+:host {
+    display: block;
+    max-width: 100%;
+    max-height: 100vh;
+    overflow-y: auto;
+  }
+  
+  .hover-blue {
+    &:hover {
+      color: #1976d2;
+    }
+  }
+  
+  .hover-red {
+    &:hover {
+      color: #f44336;
+    }
+  }
+  
+  .disabled-icon {
+    color: #ccc;
+    cursor: default;
+  }
+  
+  mat-table {
+    width: 100%;
+  }
+  
+  .mat-column-icon {
+    flex: 0 0 80px;
+  }
+  
+  .mat-column-actions {
+    flex: 0 0 80px;
+  }

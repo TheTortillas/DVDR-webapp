@@ -39,4 +39,19 @@ export class DiplomasService {
     const url = this.URLBase + '/api/Diploma/GetDiplomasByCenter/' + center;
     return this.httpClient.get(url);
   }
+
+  getCompletedDiplomas(username: string): Observable<any> {
+    const url = `${this.URLBase}/api/Diploma/GetCompletedDiplomas?username=${username}`;
+    return this.httpClient.get(url);
+  }
+
+  requestDiplomaCertificates(formData: FormData): Observable<any> {
+    const url = `${this.URLBase}/api/Diploma/RequestDiplomaCertificates`;
+    return this.httpClient.post(url, formData);
+  }
+
+  getCertificateOfficialLetter(diplomaId: number): Observable<any> {
+    const url = `${this.URLBase}/api/Diploma/GetCertificateOfficialLetter/${diplomaId}`;
+    return this.httpClient.get(url);
+  }
 }

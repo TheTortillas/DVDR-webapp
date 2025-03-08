@@ -1,0 +1,72 @@
+<div class="container mx-auto px-4 sm:px-8">
+  <div class="py-8">
+    <div class="flex justify-between">
+      <h2 class="text-2xl font-semibold leading-tight">
+        Solicitar Constancias de Diplomados
+      </h2>
+    </div>
+    <div class="-mx-4 sm:-mx-8 px-4 sm:px-8 py-4 overflow-x-auto">
+      <div class="inline-block min-w-full shadow-md rounded-lg overflow-hidden">
+        <table
+          mat-table
+          [dataSource]="completedDiplomas"
+          class="min-w-full leading-normal"
+        >
+          <ng-container matColumnDef="title">
+            <th mat-header-cell *matHeaderCellDef>Título</th>
+            <td mat-cell *matCellDef="let element">{{ element.title }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="clave">
+            <th mat-header-cell *matHeaderCellDef>Clave</th>
+            <td mat-cell *matCellDef="let element">{{ element.diplomaKey }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="periodo">
+            <th mat-header-cell *matHeaderCellDef>Periodo</th>
+            <td mat-cell *matCellDef="let element">
+              <!-- Mostrar directamente el período sin pipe de fecha -->
+              {{ element.startDate }} - {{ element.endDate }}
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="action">
+            <th mat-header-cell *matHeaderCellDef>Acción</th>
+            <td mat-cell *matCellDef="let element">
+              <button
+                mat-button
+                color="primary"
+                *ngIf="!element.certificatesRequested"
+                (click)="requestCertificate(element)"
+              >
+                Solicitar
+              </button>
+              <button
+                mat-button
+                color="accent"
+                *ngIf="
+                  element.certificatesRequested &&
+                  !element.certificatesDelivered
+                "
+                disabled
+              >
+                Solicitado
+              </button>
+              <button
+                mat-button
+                color="primary"
+                *ngIf="element.certificatesDelivered"
+                (click)="viewCertificateLetter(element.diplomaId)"
+              >
+                Ver Oficio
+              </button>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>

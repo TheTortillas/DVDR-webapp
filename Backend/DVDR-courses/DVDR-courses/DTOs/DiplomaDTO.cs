@@ -90,4 +90,22 @@
         public string FilePath { get; set; }
         public DateTime UploadedAt { get; set; }
     }
+
+    public class CompletedDiplomaDTO
+    {
+        public int DiplomaId { get; set; }
+        public string Title { get; set; }
+        public string DiplomaKey { get; set; }
+        public string StartDate { get; set; }
+        public string EndDate { get; set; }
+        public bool CertificatesRequested { get; set; }
+        public bool CertificatesDelivered { get; set; }
+    }
+
+    public class DiplomaCertificateRequestDTO
+    {
+        public int DiplomaId { get; set; }
+        public List<DiplomaDocumentDTO> Documents { get; set; }
+        public string? FolderName { get; set; }
+    }
 }

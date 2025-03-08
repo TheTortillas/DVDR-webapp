@@ -50,4 +50,12 @@ export class DashboardComponent {
   navToDiplomas() {
     this.router.navigate(['/profile/diploma-register']);
   }
+
+  navToCertificates(type: 'courses' | 'diplomas') {
+    if (type === 'courses') {
+      this.router.navigate(['/profile/request-certificates']);
+    } else {
+      this.router.navigate(['/profile/request-diploma-certificates']);
+    }
+  }
 }

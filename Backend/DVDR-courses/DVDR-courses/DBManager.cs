@@ -1779,5 +1779,95 @@ namespace DVDR_courses
             }
             return diplomas;
         }
+
+        public List<CompletedDiplomaDTO> GetCompletedDiplomas(string username)
+        {
+            var diplomas = new List<CompletedDiplomaDTO>();
+            try
+            {
+                using (var con = new MySqlConnection(_config.GetConnectionString("default")))
+                {
+                    using (var cmd = new MySqlCommand("sp_get_completed_diplomas", con))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+                        cmd.Parameters.AddWithValue("p_username", username);
+
+                        con.Open();
+                        using (var reader = cmd.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                diplomas.Add(new CompletedDiplomaDTO
+                                {
+                                    DiplomaId = reader.GetInt32("diplomaId"),
+                                    Title = reader.GetString("title"),
+                                    DiplomaKey = reader.GetString("clave"),
+                                    StartDate = reader.GetDateTime("startDate").ToString("dd/MM/yyyy"),
+                                    EndDate = reader.GetDateTime("endDate").ToString("dd/MM/yyyy"),
+                                    CertificatesRequested = reader.GetBoolean("certificates_requested"),
+                                    CertificatesDelivered = reader.GetBoolean("certificates_delivered")
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+            }
+            return diplomas;
+        }
+
+        public (int statusCode, string message) RequestDiplomaCertificates(DiplomaCertificateRequestDTO request)
+        {
+            try
+            {
+                using (var con = new MySqlConnection(_config.GetConnectionString("default")))
+                {
+                    using (var cmd = new MySqlCommand("sp_request_diploma_certificates", con))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+
+                        cmd.Parameters.AddWithValue("p_diploma_id", request.DiplomaId);
+
+                        // Convertir la documentación a JSON
+                        var documentationJson = JsonConvert.SerializeObject(request.Documents.Select(d => new
+                        {
+                            document_id = d.DocumentId,
+                            filePath = Path.Combine("assets", "files", "diploma-certificates", request.FolderName, d.File.FileName)
+                        }));
+
+                        cmd.Parameters.AddWithValue("p_documentation", documentationJson);
+
+                        // Parámetros de salida
+                        var statusCodeParam = new MySqlParameter("p_status_code", MySqlDbType.Int32)
+                        {
+                            Direction = ParameterDirection.Output
+                        };
+                        var messageParam = new MySqlParameter("p_message", MySqlDbType.VarChar, 255)
+                        {
+                            Direction = ParameterDirection.Output
+                        };
+
+                        cmd.Parameters.Add(statusCodeParam);
+                        cmd.Parameters.Add(messageParam);
+
+                        con.Open();
+                        cmd.ExecuteNonQuery();
+
+                        return (
+                            Convert.ToInt32(statusCodeParam.Value),
+                            messageParam.Value.ToString()
+                        );
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+                return (-1, "Error interno del servidor");
+            }
+        }
     }
 }

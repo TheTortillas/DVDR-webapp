@@ -12,8 +12,13 @@
           class="flex flex-col md:flex-row items-stretch justify-center md:space-x-6"
         >
           <!-- Formulario -->
-          <form class="w-full md:w-1/2 flex flex-col justify-between">
+          <form
+            [formGroup]="contactForm"
+            (ngSubmit)="onSubmit()"
+            class="w-full md:w-1/2 flex flex-col justify-between"
+          >
             <mat-divider></mat-divider>
+
             <div class="email-container mb-4">
               <label
                 for="nombre"
@@ -22,7 +27,11 @@
               >
               <mat-form-field appearance="fill" class="w-full">
                 <mat-label>Ingresa tu nombre</mat-label>
-                <input matInput placeholder="Ex. Juán Peréz" />
+                <input
+                  matInput
+                  formControlName="name"
+                  placeholder="Ex. Juán Peréz"
+                />
               </mat-form-field>
             </div>
 
@@ -34,7 +43,11 @@
               >
               <mat-form-field appearance="fill" class="w-full">
                 <mat-label>Ingresa tu correo electrónico</mat-label>
-                <input matInput placeholder="Ex. juan.perez@example.com" />
+                <input
+                  matInput
+                  formControlName="email"
+                  placeholder="Ex. juan.perez@example.com"
+                />
               </mat-form-field>
             </div>
 
@@ -46,7 +59,11 @@
               >
               <mat-form-field appearance="fill" class="w-full">
                 <mat-label>Ingresa tu asunto</mat-label>
-                <input matInput placeholder="Asunto de tu mensaje" />
+                <input
+                  matInput
+                  formControlName="subject"
+                  placeholder="Asunto de tu mensaje"
+                />
               </mat-form-field>
             </div>
 
@@ -60,6 +77,7 @@
                 <mat-label>¿Cómo podemos ayudarte?</mat-label>
                 <textarea
                   matInput
+                  formControlName="message"
                   placeholder="Ex. ¿cómo registro un curso?"
                 ></textarea>
               </mat-form-field>
@@ -70,7 +88,8 @@
               <button
                 mat-flat-button
                 class="bg-blue-500 text-white w-full py-2 rounded-md"
-                (click)="onSubmit()"
+                type="submit"
+                [disabled]="!contactForm.valid"
               >
                 <span class="inline-flex items-center">
                   Enviar

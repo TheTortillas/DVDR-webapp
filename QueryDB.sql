@@ -294,6 +294,19 @@ CREATE TABLE diploma_official_letter (
     FOREIGN KEY (diploma_id) REFERENCES diplomas(id) ON DELETE CASCADE
 );
 
+CREATE TABLE messages (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(255) NOT NULL,
+    subject VARCHAR(255) NOT NULL,
+    message TEXT NOT NULL,
+    sent_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    attended BOOLEAN DEFAULT FALSE,
+    attended_at TIMESTAMP NULL,
+    attended_by INT NULL,
+    FOREIGN KEY (attended_by) REFERENCES users(id)
+);
+
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ PROCEDMIENTOS ALMACENADOS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 -- Procedimiento para dar de alta un usuario
 DELIMITER $$
@@ -1775,35 +1788,56 @@ END$$
 DELIMITER ;
 
 DELIMITER $$
-CREATE PROCEDURE sp_upload_diploma_official_letter(
-    IN p_diploma_id INT,
-    IN p_file_path VARCHAR(255),
-    IN p_number_of_certificates INT,
+CREATE PROCEDURE sp_insert_message(
+    IN p_name VARCHAR(100),
+    IN p_email VARCHAR(255),
+    IN p_subject VARCHAR(255),
+    IN p_message TEXT,
     OUT p_status_code INT,
-    OUT p_message VARCHAR(255)
+    OUT p_response_message VARCHAR(255)
 )
 BEGIN
-    DECLARE v_exists INT;
-    SELECT COUNT(*) INTO v_exists
-      FROM diplomas
-      WHERE id = p_diploma_id AND certificates_requested = 1;
-
-    IF v_exists = 0 THEN
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        ROLLBACK;
         SET p_status_code = -1;
-        SET p_message = 'No existe la solicitud de certificados o no se encontró el diplomado';
-    END IF;
+        SET p_response_message = 'Error al registrar el mensaje';
+    END;
 
-    -- Registro del oficio en una tabla, o actualización del diplomado
-    INSERT INTO diploma_official_letter (diploma_id, filePath)  -- Cambiado a filePath
-    VALUES (p_diploma_id, p_file_path);  -- uploaded_at se llena automáticamente
+    START TRANSACTION;
+        INSERT INTO messages (name, email, subject, message)
+        VALUES (p_name, p_email, p_subject, p_message);
 
-    -- Actualizar cuántas constancias se otorgaron
-    UPDATE diplomas
-    SET certificates_delivered = p_number_of_certificates
-    WHERE id = p_diploma_id;
+        SET p_status_code = 1;
+        SET p_response_message = 'Mensaje registrado exitosamente';
+    COMMIT;
+END$$
+DELIMITER ;
 
-    SET p_status_code = 1;
-    SET p_message = 'Oficio de diplomado subido correctamente';
+DELIMITER $$
+CREATE PROCEDURE sp_insert_message(
+    IN p_name VARCHAR(100),
+    IN p_email VARCHAR(255),
+    IN p_subject VARCHAR(255),
+    IN p_message TEXT,
+    OUT p_status_code INT,
+    OUT p_response_message VARCHAR(255)
+)
+BEGIN
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        ROLLBACK;
+        SET p_status_code = -1;
+        SET p_response_message = 'Error al registrar el mensaje';
+    END;
+
+    START TRANSACTION;
+        INSERT INTO messages (name, email, subject, message)
+        VALUES (p_name, p_email, p_subject, p_message);
+
+        SET p_status_code = 1;
+        SET p_response_message = 'Mensaje registrado exitosamente';
+    COMMIT;
 END$$
 DELIMITER ;
 

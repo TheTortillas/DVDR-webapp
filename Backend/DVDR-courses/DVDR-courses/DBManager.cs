@@ -1,5 +1,6 @@
 ﻿using DVDR_courses.DTOs;
 using DVDR_courses.DTOs.Auth;
+using DVDR_courses.DTOs.Messages;
 using DVDR_courses.Services;
 using MySql.Data.MySqlClient;
 using Newtonsoft.Json;
@@ -2056,6 +2057,48 @@ namespace DVDR_courses
                 Console.WriteLine($"Error: {ex.Message}");
                 throw;
             }
-        } 
+        }
+
+        public (int statusCode, string message) InsertMessage(ContactMessageDTO message)
+        {
+            try
+            {
+                using (var con = new MySqlConnection(_config.GetConnectionString("default")))
+                {
+                    using (var cmd = new MySqlCommand("sp_insert_message", con))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+
+                        // Parámetros de entrada
+                        cmd.Parameters.AddWithValue("p_name", message.Name);
+                        cmd.Parameters.AddWithValue("p_email", message.Email);
+                        cmd.Parameters.AddWithValue("p_subject", message.Subject);
+                        cmd.Parameters.AddWithValue("p_message", message.Message);
+
+                        // Parámetros de salida
+                        var statusCodeParam = new MySqlParameter("p_status_code", MySqlDbType.Int32)
+                        { Direction = ParameterDirection.Output };
+                        var messageParam = new MySqlParameter("p_response_message", MySqlDbType.VarChar, 255)
+                        { Direction = ParameterDirection.Output };
+
+                        cmd.Parameters.Add(statusCodeParam);
+                        cmd.Parameters.Add(messageParam);
+
+                        con.Open();
+                        cmd.ExecuteNonQuery();
+
+                        return (
+                            Convert.ToInt32(statusCodeParam.Value),
+                            messageParam.Value.ToString() ?? "Mensaje enviado con éxito"
+                        );
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+                return (-1, "Error al procesar el mensaje");
+            }
+        }
     }
 }

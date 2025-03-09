@@ -94,7 +94,7 @@ export class CentersComponent implements OnInit {
   openAddDialog(): void {
     const dialogRef = this.dialog.open(AddCenterDialogComponent, {
       width: '40%',
-      height: '50%',
+      height: '60%',
       maxWidth: '100vw',
       maxHeight: '100vh',
       autoFocus: false,

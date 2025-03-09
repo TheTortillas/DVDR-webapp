@@ -1,61 +1,74 @@
 <h2 mat-dialog-title>Añadir Nuevo Centro</h2>
 <form [formGroup]="centerForm" (ngSubmit)="onSubmit()">
   <mat-dialog-content>
-    <div class="flex flex-col gap-4">
-      <mat-form-field>
-        <mat-label>Nombre COMPLETO del Centro</mat-label>
-        <input
-          matInput
-          formControlName="name"
-          placeholder="Ex. Centro de Innovación e Integración de Tecnologías Avanzadas Chihuahua"
-        />
-        <mat-error
-          *ngIf="
-            centerForm.get('name')?.hasError('required') &&
-            centerForm.get('name')?.touched
-          "
+    <div class="flex flex-col gap-6">
+      <div class="flex flex-col">
+        <label class="text-sm font-medium text-gray-700 mb-1"
+          >Nombre del Centro</label
         >
-          El nombre del centro es obligatorio.
-        </mat-error>
-      </mat-form-field>
+        <mat-form-field>
+          <mat-label>Nombre COMPLETO del Centro</mat-label>
+          <input
+            matInput
+            formControlName="name"
+            placeholder="Ex. Centro de Innovación e Integración de Tecnologías Avanzadas Chihuahua"
+          />
+          <mat-error
+            *ngIf="
+              centerForm.get('name')?.hasError('required') &&
+              centerForm.get('name')?.touched
+            "
+          >
+            El nombre del centro es obligatorio.
+          </mat-error>
+        </mat-form-field>
+      </div>
 
-      <mat-form-field>
-        <mat-label>Tipo de Centro</mat-label>
-        <mat-select formControlName="type">
-          <mat-option *ngFor="let type of centerTypes" [value]="type">
-            {{ type }}
-          </mat-option>
-        </mat-select>
-        <mat-error
-          *ngIf="
-            centerForm.get('type')?.hasError('required') &&
-            centerForm.get('type')?.touched
-          "
-        >
-          El tipo de centro es obligatorio.
-        </mat-error>
-      </mat-form-field>
+      <div class="flex flex-col">
+        <label class="text-sm font-medium text-gray-700 mb-1">Tipo</label>
+        <mat-form-field>
+          <mat-label>Tipo de Centro</mat-label>
+          <mat-select formControlName="type">
+            <mat-option *ngFor="let type of centerTypes" [value]="type">
+              {{ type }}
+            </mat-option>
+          </mat-select>
+          <mat-error
+            *ngIf="
+              centerForm.get('type')?.hasError('required') &&
+              centerForm.get('type')?.touched
+            "
+          >
+            El tipo de centro es obligatorio.
+          </mat-error>
+        </mat-form-field>
+      </div>
 
-      <mat-form-field>
-        <mat-label>Identificador</mat-label>
-        <input matInput type="number" formControlName="identifier" min="1" />
-        <mat-error
-          *ngIf="
-            centerForm.get('identifier')?.hasError('required') &&
-            centerForm.get('identifier')?.touched
-          "
+      <div class="flex flex-col">
+        <label class="text-sm font-medium text-gray-700 mb-1"
+          >Identificador Numérico</label
         >
-          El identificador es obligatorio.
-        </mat-error>
-        <mat-error
-          *ngIf="
-            centerForm.get('identifier')?.hasError('min') &&
-            centerForm.get('identifier')?.touched
-          "
-        >
-          El identificador debe ser mayor que 0.
-        </mat-error>
-      </mat-form-field>
+        <mat-form-field>
+          <mat-label>Identificador</mat-label>
+          <input matInput type="number" formControlName="identifier" min="1" />
+          <mat-error
+            *ngIf="
+              centerForm.get('identifier')?.hasError('required') &&
+              centerForm.get('identifier')?.touched
+            "
+          >
+            El identificador es obligatorio.
+          </mat-error>
+          <mat-error
+            *ngIf="
+              centerForm.get('identifier')?.hasError('min') &&
+              centerForm.get('identifier')?.touched
+            "
+          >
+            El identificador debe ser mayor que 0.
+          </mat-error>
+        </mat-form-field>
+      </div>
     </div>
   </mat-dialog-content>
 

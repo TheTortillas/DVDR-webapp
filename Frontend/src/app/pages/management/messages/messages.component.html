@@ -1,0 +1,113 @@
+<div class="messages-container flex h-full">
+  <mat-sidenav-container class="w-full site-content">
+    <mat-sidenav mode="side" opened class="w-1/3 p-4 side-panel">
+      <div class="messages-list mb-4">
+        <!-- Filtro de tiempo -->
+        <div class="flex items-center">
+          <mat-label class="mr-2">Filtrar por:</mat-label>
+          <mat-form-field appearance="outline" class="w-40">
+            <mat-select
+              [(value)]="selectedTimeFilter"
+              (selectionChange)="applyTimeFilter()"
+            >
+              <mat-option value="all">Todos</mat-option>
+              <mat-option value="month">Este mes</mat-option>
+              <mat-option value="year">Este año</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <mat-nav-list>
+          <a
+            mat-list-item
+            *ngFor="let msg of filteredMessages"
+            (click)="selectMessage(msg)"
+            [class.selected]="selectedMessage?.id === msg.id"
+            [class.unread]="!msg.attended"
+          >
+            <div class="flex items-center w-full py-2">
+              <div class="icon-container">
+                <mat-icon [class.text-accent]="!msg.attended">
+                  {{ msg.attended ? "mark_email_read" : "mail" }}
+                </mat-icon>
+              </div>
+              <div class="flex-grow overflow-hidden ml-4">
+                <div class="font-bold truncate">{{ msg.name }}</div>
+                <div class="text-sm text-gray-600 truncate">
+                  {{ msg.subject }}
+                </div>
+              </div>
+              <div class="text-xs text-gray-500">
+                {{ msg.sentAt | date : "short" }}
+              </div>
+            </div>
+          </a>
+        </mat-nav-list>
+      </div>
+    </mat-sidenav>
+
+    <!-- Panel derecho (detalle) -->
+    <mat-sidenav-content class="p-6 detail-panel">
+      <div *ngIf="selectedMessage" class="message-detail card">
+        <div class="flex justify-between items-center mb-6">
+          <h2 class="text-2xl font-bold">{{ selectedMessage.subject }}</h2>
+          <button
+            mat-flat-button
+            [color]="selectedMessage.attended ? 'accent' : 'primary'"
+            (click)="toggleAttended(selectedMessage)"
+            [disabled]="selectedMessage.attended"
+            class="action-button"
+          >
+            <mat-icon class="mr-2">
+              {{
+                selectedMessage.attended
+                  ? "check_circle"
+                  : "check_circle_outline"
+              }}
+            </mat-icon>
+            <span>
+              {{
+                selectedMessage.attended
+                  ? "Solicitud atendida"
+                  : "Marcar como atendida"
+              }}
+            </span>
+          </button>
+        </div>
+
+        <mat-divider></mat-divider>
+
+        <div class="my-4">
+          <div class="flex items-center mb-2">
+            <mat-icon class="mr-2">person</mat-icon>
+            <span class="font-bold mr-2">De:</span>
+            <span
+              >{{ selectedMessage.name }} ({{ selectedMessage.email }})</span
+            >
+          </div>
+          <div class="flex items-center">
+            <mat-icon class="mr-2">schedule</mat-icon>
+            <span class="font-bold mr-2">Recibido:</span>
+            <span>{{ selectedMessage.sentAt | date : "medium" }}</span>
+          </div>
+        </div>
+
+        <mat-divider></mat-divider>
+
+        <div class="message-content mt-6">
+          {{ selectedMessage.message }}
+        </div>
+      </div>
+
+      <div
+        *ngIf="!selectedMessage"
+        class="flex justify-center items-center h-full text-gray-500"
+      >
+        <div class="text-center">
+          <mat-icon class="text-6xl mb-4">mail_outline</mat-icon>
+          <p>Selecciona un mensaje para ver su contenido</p>
+        </div>
+      </div>
+    </mat-sidenav-content>
+  </mat-sidenav-container>
+</div>

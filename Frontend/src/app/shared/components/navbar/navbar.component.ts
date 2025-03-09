@@ -1,12 +1,21 @@
-import { Component } from '@angular/core';
+import {
+  Component,
+  Inject,
+  OnDestroy,
+  OnInit,
+  PLATFORM_ID,
+} from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { RouterLink, Router } from '@angular/router';
 import { StorageService } from '../../../core/services/storage.service';
-import { CommonModule } from '@angular/common';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
+import { MessagesService } from '../../../core/services/messages.service';
+import { MatBadgeModule } from '@angular/material/badge';
 
 import Swal from 'sweetalert2';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-navbar',
@@ -17,16 +26,48 @@ import Swal from 'sweetalert2';
     CommonModule,
     MatIconModule,
     MatMenuModule,
+    MatBadgeModule,
   ],
   templateUrl: './navbar.component.html',
   styleUrl: './navbar.component.scss',
 })
-export class NavbarComponent {
-  constructor(private router: Router, private storageService: StorageService) {}
+export class NavbarComponent implements OnInit, OnDestroy {
+  unattendMessages: number = 0;
+  private subscription: Subscription | null = null;
+
+  constructor(
+    private router: Router,
+    private storageService: StorageService,
+    private messagesService: MessagesService,
+    @Inject(PLATFORM_ID) private platformId: Object
+  ) {}
+
+  ngOnInit() {
+    if (isPlatformBrowser(this.platformId)) {
+      this.loadUnreadMessages();
+
+      // Suscribirse a cambios en el estado de los mensajes
+      this.subscription = this.messagesService.messageStatusChanged$.subscribe(
+        () => {
+          this.loadUnreadMessages();
+        }
+      );
+    }
+  }
+
+  ngOnDestroy() {
+    // Limpiar la suscripción al destruir el componente
+    if (this.subscription) {
+      this.subscription.unsubscribe();
+    }
+  }
 
   isLoggedInAndProfile(): boolean {
-    const token = this.storageService.getItem('token');
+    if (!isPlatformBrowser(this.platformId)) {
+      return false;
+    }
 
+    const token = this.storageService.getItem('token');
     if (!token || !this.storageService.isTokenValid(token)) {
       return false;
     }
@@ -38,8 +79,11 @@ export class NavbarComponent {
   }
 
   isLoggedInAndAdmin(): boolean {
-    const token = this.storageService.getItem('token');
+    if (!isPlatformBrowser(this.platformId)) {
+      return false;
+    }
 
+    const token = this.storageService.getItem('token');
     if (!token || !this.storageService.isTokenValid(token)) {
       return false;
     }
@@ -50,6 +94,21 @@ export class NavbarComponent {
       this.router.url.includes('/management') &&
       claims.role === 'root'
     );
+  }
+
+  private loadUnreadMessages() {
+    this.messagesService.getAllMessages().subscribe({
+      next: (messages) => {
+        this.unattendMessages = messages.filter((m) => !m.attended).length;
+      },
+      error: (error) => {
+        console.error('Error loading unread messages:', error);
+      },
+    });
+  }
+
+  goToMessages() {
+    this.router.navigate(['/management/messages']);
   }
 
   logout() {

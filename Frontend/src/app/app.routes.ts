@@ -29,6 +29,7 @@ import { DiplomaRegisterRequestComponent } from './pages/management/diploma-regi
 import { AllDiplomasComponent } from './pages/management/all-diplomas/all-diplomas.component';
 import { RequestDiplomaCertificatesComponent } from './pages/profile/request-diploma-certificates/request-diploma-certificates.component';
 import { DiplomaCertificateRequestsComponent } from './pages/management/diploma-certificate-requests/diploma-certificate-requests.component';
+import { MessagesComponent } from './pages/management/messages/messages.component';
 
 export const routes: Routes = [
   {
@@ -112,6 +113,10 @@ export const routes: Routes = [
       {
         path: 'diploma-register-request',
         component: DiplomaRegisterRequestComponent,
+      },
+      {
+        path: 'messages',
+        component: MessagesComponent,
       },
       {
         path: '',

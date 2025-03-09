@@ -68,6 +68,20 @@
           class="flex flex-wrap items-center mb-6 text-sm font-medium sm:mb-0"
         >
           <li>
+            <button
+              mat-icon-button
+              (click)="goToMessages()"
+              class="navbar-button"
+              [matBadge]="unattendMessages"
+              [matBadgeHidden]="unattendMessages === 0"
+              matBadgeColor="accent"
+              [style.--mdc-badge-size]="'22px'"
+              style="--mat-badge-font-size: 12px"
+            >
+              <mat-icon>mail</mat-icon>
+            </button>
+          </li>
+          <li>
             <a>
               <button
                 mat-icon-button

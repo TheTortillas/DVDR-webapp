@@ -1,0 +1,20 @@
+.hover-blue:hover { 
+    color: #1976d2; 
+  }
+  
+  .hover-red:hover { 
+    color: #d32f2f; 
+  }
+  
+  mat-icon {
+    font-size: 36px !important;
+    width: 36px !important;
+    height: 36px !important;
+    line-height: 36px !important;
+  }
+  
+  button[mat-icon-button] {
+    width: 48px !important;
+    height: 48px !important;
+    line-height: 48px !important;
+  }

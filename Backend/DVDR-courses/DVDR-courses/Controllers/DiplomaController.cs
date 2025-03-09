@@ -256,5 +256,51 @@ namespace DVDR_courses.Controllers
                 return StatusCode(500, new { message = "Error al subir el documento.", error = ex.Message });
             }
         }
+
+        [HttpGet("GetRequestedDiplomaCertificates")]
+        public IActionResult GetRequestedDiplomaCertificates()
+        {
+            var db = new DBManager(_config);
+            var requests = db.GetRequestedDiplomaCertificates(); // método que listará las solicitudes
+            return Ok(requests);
+        }
+
+        [HttpPost("UploadDiplomaOfficialLetter")]
+        public IActionResult UploadDiplomaOfficialLetter([FromForm] UploadDiplomaOfficialLetterDTO request)
+        {
+            if (request.File == null || request.File.Length == 0)
+                return BadRequest(new { message = "Archivo inválido." });
+            if (request.NumberOfCertificates <= 0)
+                return BadRequest(new { message = "El número de certificados debe ser mayor a 0." });
+
+            var db = new DBManager(_config);
+            var result = db.UploadDiplomaOfficialLetter(request);
+
+            if (result.statusCode == 1)
+                return Ok(new { message = result.message });
+            else
+                return StatusCode(500, new { message = result.message });
+        }
+
+        [HttpGet("GetCertificateOfficialLetter/{diplomaId}")]
+        public IActionResult GetCertificateOfficialLetter(int diplomaId)
+        {
+            try
+            {
+                var dbManager = new DBManager(_config);
+                var result = dbManager.GetDiplomaCertificateOfficialLetter(diplomaId);
+
+                if (result == null)
+                {
+                    return NotFound(new { message = "No se encontró el oficio de certificados para este diplomado." });
+                }
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Error al obtener el oficio.", error = ex.Message });
+            }
+        }
     }
 }

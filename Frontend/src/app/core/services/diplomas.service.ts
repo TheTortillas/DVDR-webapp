@@ -59,4 +59,17 @@ export class DiplomasService {
     const url = `${this.URLBase}/api/Diploma/UploadDiplomaDocument`;
     return this.httpClient.post(url, formData);
   }
+
+  getRequestedDiplomaCertificates(): Observable<any> {
+    return this.httpClient.get(
+      `${this.URLBase}/api/Diploma/GetRequestedDiplomaCertificates`
+    );
+  }
+
+  uploadDiplomaOfficialLetter(formData: FormData): Observable<any> {
+    return this.httpClient.post(
+      `${this.URLBase}/api/Diploma/UploadDiplomaOfficialLetter`,
+      formData
+    );
+  }
 }

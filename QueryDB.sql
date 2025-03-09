@@ -285,6 +285,15 @@ CREATE TABLE session_certificate_official_letter (
     FOREIGN KEY (session_id) REFERENCES course_sessions(id) ON DELETE CASCADE
 );
 
+CREATE TABLE diploma_official_letter (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    diploma_id INT NOT NULL,  -- Relación con el diplomado
+    filePath VARCHAR(255) NOT NULL,  -- Ruta al archivo del oficio de envío
+    uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,  -- Fecha de carga del oficio
+    
+    FOREIGN KEY (diploma_id) REFERENCES diplomas(id) ON DELETE CASCADE
+);
+
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ PROCEDMIENTOS ALMACENADOS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 -- Procedimiento para dar de alta un usuario
 DELIMITER $$
@@ -1629,7 +1638,8 @@ CREATE PROCEDURE sp_request_diploma_certificates(
 )
 BEGIN
     DECLARE v_exists INT;
-	START TRANSACTION;
+    START TRANSACTION;
+    
     -- Verificar si existe el diplomado y está completado
     SELECT COUNT(*) INTO v_exists
     FROM diplomas
@@ -1647,22 +1657,25 @@ BEGIN
     SET certificates_requested = 1
     WHERE id = p_diploma_id;
 
-    -- Insertar la documentación de la solicitud en la nueva tabla específica
+    -- Insertar la documentación usando JSON_TABLE como en los otros SPs
     INSERT INTO diploma_certificates_request_documentation (
         diploma_id,
         document_id,
         filePath
     )
-    SELECT 
+    SELECT
         p_diploma_id,
-        JSON_EXTRACT(doc, '$.document_id'),
-        JSON_EXTRACT(doc, '$.filePath')
-    FROM JSON_TABLE(
-        p_documentation,
-        '$[*]' COLUMNS (
-            doc JSON PATH '$'
-        )
-    ) AS docs;
+        d.document_id,
+        d.filePath
+    FROM
+        JSON_TABLE(
+            p_documentation,
+            '$[*]'
+            COLUMNS (
+                document_id INT PATH '$.document_id',
+                filePath VARCHAR(255) PATH '$.filePath'
+            )
+        ) AS d;
 
     COMMIT;
 
@@ -1670,7 +1683,7 @@ BEGIN
     SET p_message = 'Solicitud de certificados registrada exitosamente';
 END$$
 DELIMITER ;
-
+select * from diploma_certificates_request_documentation;
 DELIMITER $$
 CREATE PROCEDURE sp_upload_diploma_document(
     IN p_diploma_id INT,
@@ -1723,6 +1736,74 @@ BEGIN
 		AND cs.id IS NOT NULL;
     -- Opcional: Retornar el número de sesiones actualizadas
     SELECT CONCAT(ROW_COUNT(), ' sesiones han sido actualizadas a completed') as result;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE PROCEDURE sp_get_requested_diploma_certificates()
+BEGIN
+    -- Obtener datos principales de los diplomados que han solicitado certificados
+    SELECT 
+        d.id AS diploma_id,
+        d.name AS title,
+        d.diploma_key AS clave,
+        CONCAT(DATE_FORMAT(d.start_date, '%d/%m/%Y'), ' - ', DATE_FORMAT(d.end_date, '%d/%m/%Y')) AS period,
+        d.participants AS number_of_certificates,
+        d.status,
+        d.certificates_requested,
+        d.certificates_delivered,
+        d.official_letter_path
+    FROM diplomas d
+    WHERE d.certificates_requested = 1 
+    AND d.certificates_delivered = 0
+    AND d.status = 'finished'
+    AND d.approval_status = 'approved';
+
+    -- Obtener la documentación asociada a cada solicitud
+    SELECT 
+        dcrd.diploma_id,
+        cdt.id AS document_id,
+        cdt.name,  -- Cambiado de document_name a name
+        dcrd.filePath AS file_path,  -- Cambiado para coincidir con el código
+        dcrd.uploaded_at
+    FROM diploma_certificates_request_documentation dcrd
+    JOIN certificate_documents_templates cdt ON dcrd.document_id = cdt.id
+    JOIN diplomas d ON dcrd.diploma_id = d.id
+    WHERE d.certificates_requested = 1 
+    AND d.certificates_delivered = 0;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE PROCEDURE sp_upload_diploma_official_letter(
+    IN p_diploma_id INT,
+    IN p_file_path VARCHAR(255),
+    IN p_number_of_certificates INT,
+    OUT p_status_code INT,
+    OUT p_message VARCHAR(255)
+)
+BEGIN
+    DECLARE v_exists INT;
+    SELECT COUNT(*) INTO v_exists
+      FROM diplomas
+      WHERE id = p_diploma_id AND certificates_requested = 1;
+
+    IF v_exists = 0 THEN
+        SET p_status_code = -1;
+        SET p_message = 'No existe la solicitud de certificados o no se encontró el diplomado';
+    END IF;
+
+    -- Registro del oficio en una tabla, o actualización del diplomado
+    INSERT INTO diploma_official_letter (diploma_id, filePath)  -- Cambiado a filePath
+    VALUES (p_diploma_id, p_file_path);  -- uploaded_at se llena automáticamente
+
+    -- Actualizar cuántas constancias se otorgaron
+    UPDATE diplomas
+    SET certificates_delivered = p_number_of_certificates
+    WHERE id = p_diploma_id;
+
+    SET p_status_code = 1;
+    SET p_message = 'Oficio de diplomado subido correctamente';
 END$$
 DELIMITER ;
 
@@ -2151,7 +2232,7 @@ SET approval_status = 'approved'
 WHERE id = 1;
 select *from diploma_actor_roles;
 */
-select * from diplomas;
+select * from courses;
 /*
 UPDATE diplomas 
 SET certificates_requested = 0 

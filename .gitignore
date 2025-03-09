@@ -57,6 +57,8 @@ Thumbs.db
 /Frontend/public/assets/files/request-certificates-documentation/**/*
 /Frontend/public/assets/files/certificate-official-letters/**/*
 /Frontend/public/assets/files/diploma-documentation/**/*/
+/Frontend/public/assets/files/diploma-official-letters/**/*
+/Frontend/public/assets/files/diploma-official-letters/.gitkeep
 /Frontend/public/assets/files/request-diploma-certificates-documentation/**/*
 /Frontend/public/assets/files/request-diploma-certificates-documentation/.gitkeep
 !/Frontend/public/assets/files/courses-documentation/.gitkeep

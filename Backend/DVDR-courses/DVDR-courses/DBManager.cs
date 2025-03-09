@@ -1839,7 +1839,7 @@ namespace DVDR_courses
                         var documentationJson = JsonConvert.SerializeObject(request.Documents.Select(d => new
                         {
                             document_id = d.DocumentId,
-                            filePath = Path.Combine("assets", "files", "diploma-certificates", request.FolderName, d.File.FileName)
+                            filePath = Path.Combine("assets", "files", "request-diploma-certificates-documentation", request.FolderName, d.File.FileName)
                         }));
 
                         cmd.Parameters.AddWithValue("p_documentation", documentationJson);
@@ -1901,5 +1901,161 @@ namespace DVDR_courses
                 }
             }
         }
+
+        public (int statusCode, string message) UploadDiplomaOfficialLetter(UploadDiplomaOfficialLetterDTO request)
+        {
+            try
+            {
+                using (var con = new MySqlConnection(_config.GetConnectionString("default")))
+                {
+                    con.Open();
+
+                    // Crear carpeta para el oficio
+                    var folder = Guid.NewGuid().ToString();
+                    var basePath = Path.Combine("assets", "files", "diploma-official-letters", folder);
+                    var physicalPath = Path.Combine("..", "..", "..", "Frontend", "public", basePath);
+                    Directory.CreateDirectory(physicalPath);
+
+                    var fileName = request.File.FileName;
+                    var finalPath = Path.Combine(physicalPath, fileName);
+                    using (var stream = new FileStream(finalPath, FileMode.Create))
+                    {
+                        request.File.CopyTo(stream);
+                    }
+
+                    var savedPath = Path.Combine(basePath, fileName);
+
+                    using (var cmd = new MySqlCommand("sp_upload_diploma_official_letter", con))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+                        cmd.Parameters.AddWithValue("p_diploma_id", request.DiplomaId);
+                        cmd.Parameters.AddWithValue("p_file_path", savedPath);
+                        cmd.Parameters.AddWithValue("p_number_of_certificates", request.NumberOfCertificates);
+
+                        var p_status_code = new MySqlParameter("p_status_code", MySqlDbType.Int32) { Direction = ParameterDirection.Output };
+                        var p_message = new MySqlParameter("p_message", MySqlDbType.VarChar, 255) { Direction = ParameterDirection.Output };
+
+                        cmd.Parameters.Add(p_status_code);
+                        cmd.Parameters.Add(p_message);
+
+                        cmd.ExecuteNonQuery();
+
+                        return (Convert.ToInt32(p_status_code.Value), p_message.Value.ToString());
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                return (-1, $"Error: {ex.Message}");
+            }
+        }
+
+        public List<DiplomaCertificateRequestModel> GetRequestedDiplomaCertificates()
+        {
+            var requestsDict = new Dictionary<int, DiplomaCertificateRequestModel>();
+            try
+            {
+                using (var con = new MySqlConnection(_config.GetConnectionString("default")))
+                {
+                    con.Open();
+                    using (var cmd = new MySqlCommand("sp_get_requested_diploma_certificates", con))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+                        using (var reader = cmd.ExecuteReader())
+                        {
+                            // Primer resultset: Datos generales del diplomado
+                            while (reader.Read())
+                            {
+                                var diplomaId = reader.GetInt32("diploma_id");
+                                if (!requestsDict.ContainsKey(diplomaId))
+                                {
+                                    requestsDict[diplomaId] = new DiplomaCertificateRequestModel
+                                    {
+                                        DiplomaId = diplomaId,
+                                        Title = reader.GetString("title"),
+                                        Period = reader.GetString("period"),
+                                        NumberOfCertificates = reader.GetInt32("number_of_certificates"),
+                                        Status = reader.GetString("status"),
+                                        Documents = new List<DiplomaCertificateDocumentModel>()
+                                    };
+                                }
+                            }
+
+                            // Segundo resultset (si lo usas) para cargar documentos
+                            if (reader.NextResult())
+                            {
+                                while (reader.Read())
+                                {
+                                    var diplomaId = reader.GetInt32("diploma_id");
+                                    if (requestsDict.TryGetValue(diplomaId, out var request))
+                                    {
+                                        request.Documents.Add(new DiplomaCertificateDocumentModel
+                                        {
+                                            DocumentId = reader.GetInt32("document_id"),
+                                            Name = reader.GetString("name"),  // Cambiado de "name" a "document_name"
+                                            FilePath = reader.GetString("file_path"),   // Cambiado de "file_path" a "filePath"
+                                        });
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                // Manejo de errores
+                Console.WriteLine(ex.Message);
+                return new List<DiplomaCertificateRequestModel>();
+            }
+
+            return requestsDict.Values.ToList();
+        }
+
+
+        public object GetDiplomaCertificateOfficialLetter(int diplomaId)
+        {
+            try
+            {
+                using (var con = new MySqlConnection(_config.GetConnectionString("default")))
+                {
+                    string query = @"
+                SELECT 
+                    id,
+                    diploma_id,
+                    filePath,
+                    uploaded_at
+                FROM diploma_official_letter 
+                WHERE diploma_id = @diplomaId
+                LIMIT 1";
+
+                    using (var cmd = new MySqlCommand(query, con))
+                    {
+                        cmd.Parameters.AddWithValue("@diplomaId", diplomaId);
+                        con.Open();
+
+                        using (var reader = cmd.ExecuteReader())
+                        {
+                            if (reader.Read())
+                            {
+                                return new
+                                {
+                                    Id = reader.GetInt32("id"),
+                                    DiplomaId = reader.GetInt32("diploma_id"),
+                                    FilePath = reader.GetString("filePath"),
+                                    UploadedAt = reader.GetDateTime("uploaded_at")
+                                };
+                            }
+                        }
+                    }
+                }
+                return null;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+                throw;
+            }
+        } 
     }
 }

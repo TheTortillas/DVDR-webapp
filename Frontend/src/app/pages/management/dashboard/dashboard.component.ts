@@ -36,6 +36,7 @@ export class ManagementDashboardComponent implements OnInit {
   pendingCoursesCount = 0;
   pendingCertificatesCount = 0;
   pendingDiplomasCount = 0;
+  pendingDiplomaCertificatesCount: number = 0;
 
   constructor(
     private router: Router,
@@ -99,6 +100,17 @@ export class ManagementDashboardComponent implements OnInit {
       },
       error: (err) => {
         console.error('Error al obtener diplomados:', err);
+      },
+    });
+  }
+
+  loadPendingDiplomaCertificatesCount(): void {
+    this.diplomasService.getRequestedDiplomaCertificates().subscribe({
+      next: (requests) => {
+        this.pendingDiplomaCertificatesCount = requests.length;
+      },
+      error: (err) => {
+        console.error('Error al obtener solicitudes de constancias:', err);
       },
     });
   }

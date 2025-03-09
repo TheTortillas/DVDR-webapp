@@ -1,0 +1,65 @@
+<div class="w-full">
+  <div class="p-2 text-center">
+    <h2 mat-dialog-title class="text-2xl font-bold text-black-800 mb-2">
+      Subir Oficio de Envío de Constancias
+    </h2>
+    <p class="text-gray-600">
+      Diplomado:
+      <span class="font-medium text-rose-700">"{{ data.diplomaTitle }}"</span>
+      <br />
+      Periodo:
+      <span class="font-medium text-rose-700">"{{ data.period }}"</span>
+    </p>
+  </div>
+
+  <div class="p-4">
+    <mat-form-field class="w-full">
+      <mat-label>Número de constancias expedidas</mat-label>
+      <input matInput type="number" [(ngModel)]="certificatesCount" min="1" />
+    </mat-form-field>
+
+    <div
+      class="flex items-center justify-center p-4 border-2 border-dashed rounded-lg"
+    >
+      <div *ngIf="!uploadedFile" class="text-center">
+        <input
+          type="file"
+          #fileInput
+          hidden
+          (change)="onFileSelected($event)"
+          accept=".pdf"
+        />
+        <button mat-icon-button (click)="fileInput.click()">
+          <mat-icon class="text-4xl hover-blue">cloud_upload</mat-icon>
+        </button>
+        <p class="mt-2">Haz clic para subir el certificado</p>
+      </div>
+
+      <div *ngIf="uploadedFile" class="text-center">
+        <button mat-icon-button (click)="viewFile()">
+          <mat-icon class="text-4xl hover-blue" matTooltip="Ver archivo"
+            >description</mat-icon
+          >
+        </button>
+        <button mat-icon-button (click)="removeFile()">
+          <mat-icon class="text-4xl hover-red" matTooltip="Eliminar archivo"
+            >delete</mat-icon
+          >
+        </button>
+        <p class="mt-2">{{ uploadedFile.name }}</p>
+      </div>
+    </div>
+  </div>
+
+  <mat-dialog-actions align="end">
+    <button mat-button (click)="close()">Cancelar</button>
+    <button
+      mat-raised-button
+      color="primary"
+      [disabled]="!isValid()"
+      (click)="submit()"
+    >
+      Guardar
+    </button>
+  </mat-dialog-actions>
+</div>

@@ -1815,6 +1815,25 @@ END$$
 DELIMITER ;
 
 DELIMITER $$
+CREATE PROCEDURE sp_get_all_messages()
+BEGIN
+    SELECT 
+        m.id,
+        m.name,
+        m.email,
+        m.subject,
+        m.message,
+        m.sent_at,
+        m.attended,
+        m.attended_at,
+        CONCAT(u.first_name, ' ', u.last_name) as attended_by_name
+    FROM messages m
+    LEFT JOIN users u ON m.attended_by = u.id
+    ORDER BY m.sent_at DESC;
+END$$
+DELIMITER ;
+
+DELIMITER $$
 CREATE PROCEDURE sp_insert_message(
     IN p_name VARCHAR(100),
     IN p_email VARCHAR(255),
@@ -1838,6 +1857,47 @@ BEGIN
         SET p_status_code = 1;
         SET p_response_message = 'Mensaje registrado exitosamente';
     COMMIT;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE PROCEDURE sp_update_message_status(
+    IN p_id INT,
+    IN p_attended BOOLEAN,
+    IN p_attended_by_username VARCHAR(50),
+    OUT p_status_code INT,
+    OUT p_response_message VARCHAR(255)
+)
+BEGIN
+    DECLARE v_user_id INT;
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        ROLLBACK;
+        SET p_status_code = -1;
+        SET p_response_message = 'Error al actualizar el mensaje';
+    END;
+
+    START TRANSACTION;
+        -- Obtener el ID del usuario por su username
+        SELECT id INTO v_user_id
+        FROM users
+        WHERE username = p_attended_by_username;
+
+        IF v_user_id IS NULL THEN
+            SET p_status_code = -1;
+            SET p_response_message = 'Usuario no encontrado';
+            ROLLBACK;
+        ELSE
+            UPDATE messages
+            SET attended = p_attended,
+                attended_by = CASE WHEN p_attended = 1 THEN v_user_id ELSE NULL END,
+                attended_at = CASE WHEN p_attended = 1 THEN CURRENT_TIMESTAMP ELSE NULL END
+            WHERE id = p_id;
+
+            SET p_status_code = 1;
+            SET p_response_message = 'Mensaje actualizado exitosamente';
+            COMMIT;
+        END IF;
 END$$
 DELIMITER ;
 

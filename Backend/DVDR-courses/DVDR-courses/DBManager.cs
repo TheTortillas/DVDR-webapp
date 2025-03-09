@@ -2100,5 +2100,86 @@ namespace DVDR_courses
                 return (-1, "Error al procesar el mensaje");
             }
         }
+
+        public List<MessageDTO> GetAllMessages()
+        {
+            var messages = new List<MessageDTO>();
+            try
+            {
+                using (var con = new MySqlConnection(_config.GetConnectionString("default")))
+                {
+                    using (var cmd = new MySqlCommand("sp_get_all_messages", con))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+                        con.Open();
+
+                        using (var reader = cmd.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                messages.Add(new MessageDTO
+                                {
+                                    Id = reader.GetInt32("id"),
+                                    Name = reader.GetString("name"),
+                                    Email = reader.GetString("email"),
+                                    Subject = reader.GetString("subject"),
+                                    Message = reader.GetString("message"),
+                                    SentAt = reader.GetDateTime("sent_at"),
+                                    Attended = reader.GetBoolean("attended"),
+                                    AttendedAt = reader.IsDBNull(reader.GetOrdinal("attended_at")) ? null : reader.GetDateTime("attended_at"),
+                                    AttendedByName = reader.IsDBNull(reader.GetOrdinal("attended_by_name")) ? null : reader.GetString("attended_by_name")
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+            }
+            return messages;
+        }
+
+        public (int statusCode, string message) UpdateMessageStatus(MessageUpdateDTO update)
+        {
+            try
+            {
+                using (var con = new MySqlConnection(_config.GetConnectionString("default")))
+                {
+                    using (var cmd = new MySqlCommand("sp_update_message_status", con))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+
+                        // Parámetros de entrada
+                        cmd.Parameters.AddWithValue("p_id", update.Id);
+                        cmd.Parameters.AddWithValue("p_attended", update.Attended);
+                        cmd.Parameters.AddWithValue("p_attended_by_username", update.AttendedBy);
+
+                        // Parámetros de salida
+                        var statusCodeParam = new MySqlParameter("p_status_code", MySqlDbType.Int32)
+                        { Direction = ParameterDirection.Output };
+                        var messageParam = new MySqlParameter("p_response_message", MySqlDbType.VarChar, 255)
+                        { Direction = ParameterDirection.Output };
+
+                        cmd.Parameters.Add(statusCodeParam);
+                        cmd.Parameters.Add(messageParam);
+
+                        con.Open();
+                        cmd.ExecuteNonQuery();
+
+                        return (
+                            Convert.ToInt32(statusCodeParam.Value),
+                            messageParam.Value?.ToString() ?? "Mensaje actualizado con éxito"
+                        );
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+                return (-1, "Error al actualizar el mensaje");
+            }
+        }
     }
 }

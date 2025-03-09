@@ -1,35 +1,34 @@
-import { Injectable } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
+import { Inject, Injectable, PLATFORM_ID } from '@angular/core';
 import { jwtDecode } from 'jwt-decode';
 
 @Injectable({
   providedIn: 'root',
 })
 export class StorageService {
-  private isBrowser(): boolean {
-    return typeof window !== 'undefined' && typeof localStorage !== 'undefined';
-  }
+  constructor(@Inject(PLATFORM_ID) private platformId: Object) {}
 
   getItem(key: string): string | null {
-    if (this.isBrowser()) {
+    if (isPlatformBrowser(this.platformId)) {
       return localStorage.getItem(key);
     }
     return null;
   }
 
   setItem(key: string, value: string): void {
-    if (this.isBrowser()) {
+    if (isPlatformBrowser(this.platformId)) {
       localStorage.setItem(key, value);
     }
   }
 
   removeItem(key: string): void {
-    if (this.isBrowser()) {
+    if (isPlatformBrowser(this.platformId)) {
       localStorage.removeItem(key);
     }
   }
 
   clear(): void {
-    if (this.isBrowser()) {
+    if (isPlatformBrowser(this.platformId)) {
       localStorage.clear();
     }
   }

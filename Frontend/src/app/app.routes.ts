@@ -30,6 +30,7 @@ import { AllDiplomasComponent } from './pages/management/all-diplomas/all-diplom
 import { RequestDiplomaCertificatesComponent } from './pages/profile/request-diploma-certificates/request-diploma-certificates.component';
 import { DiplomaCertificateRequestsComponent } from './pages/management/diploma-certificate-requests/diploma-certificate-requests.component';
 import { MessagesComponent } from './pages/management/messages/messages.component';
+import { UsersComponent } from './pages/management/users/users.component';
 
 export const routes: Routes = [
   {
@@ -117,6 +118,10 @@ export const routes: Routes = [
       {
         path: 'messages',
         component: MessagesComponent,
+      },
+      {
+        path: 'users',
+        component: UsersComponent,
       },
       {
         path: '',

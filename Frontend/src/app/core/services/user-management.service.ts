@@ -16,6 +16,29 @@ export interface UserSignIn {
   password: string;
 }
 
+export interface User {
+  id: number;
+  username: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  secondLastName?: string;
+  centerName?: string;
+  role: string;
+  createdAt: string;
+}
+
+export interface UserSignUp {
+  username: string;
+  email: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+  secondLastName?: string;
+  centerName?: string;
+  role: string;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -38,9 +61,7 @@ export class UserManagementService {
     );
   }
 
-  public signIn(
-    userData: UserSignIn
-  ): Observable<{
+  public signIn(userData: UserSignIn): Observable<{
     token: string;
     username: string;
     center: string;
@@ -53,6 +74,19 @@ export class UserManagementService {
       center: string;
       role: string;
     }>(url, userData, HttpOptions);
+  }
+
+  getAllUsers(): Observable<User[]> {
+    return this.httpClient.get<User[]>(
+      `${this.URLBase}/api/UserManagement/GetAllUsers`
+    );
+  }
+
+  createUser(user: UserSignUp): Observable<any> {
+    return this.httpClient.post(
+      `${this.URLBase}/api/UserManagement/SignUp`,
+      user
+    );
   }
 
   public refreshToken(): Observable<{ token: string }> {

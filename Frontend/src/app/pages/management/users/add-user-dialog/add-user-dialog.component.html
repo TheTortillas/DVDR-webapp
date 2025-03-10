@@ -1,0 +1,168 @@
+<h2 mat-dialog-title class="text-center text-xl font-bold">
+  Añadir Nuevo Usuario
+</h2>
+<form [formGroup]="userForm" (ngSubmit)="onSubmit()">
+  <div class="px-6">
+    <div class="form-field-container">
+      <label class="field-label">Nombre</label>
+      <mat-form-field class="w-full">
+        <input
+          matInput
+          formControlName="firstName"
+          placeholder="Ingrese el nombre(s)"
+          required
+        />
+        <mat-error *ngIf="userForm.get('firstName')?.hasError('required')">
+          El nombre es requerido
+        </mat-error>
+      </mat-form-field>
+    </div>
+
+    <div class="form-field-container">
+      <label class="field-label">Apellido Paterno</label>
+      <mat-form-field class="w-full">
+        <input
+          matInput
+          formControlName="lastName"
+          placeholder="Ingrese el primer apellido"
+          required
+        />
+        <mat-error *ngIf="userForm.get('lastName')?.hasError('required')">
+          El apellido paterno es requerido
+        </mat-error>
+      </mat-form-field>
+    </div>
+
+    <div class="form-field-container">
+      <label class="field-label">Apellido Materno</label>
+      <mat-form-field class="w-full">
+        <input
+          matInput
+          formControlName="secondLastName"
+          placeholder="Ingrese el segundo apellido"
+        />
+      </mat-form-field>
+    </div>
+
+    <div class="form-field-container">
+      <label class="field-label">Nombre de Usuario</label>
+      <mat-form-field class="w-full">
+        <input
+          matInput
+          formControlName="username"
+          placeholder="Ingrese el nombre de usuario"
+          required
+        />
+        <mat-error *ngIf="userForm.get('username')?.hasError('required')">
+          El nombre de usuario es requerido
+        </mat-error>
+        <mat-error *ngIf="userForm.get('username')?.hasError('pattern')">
+          El nombre de usuario no puede contener espacios
+        </mat-error>
+      </mat-form-field>
+    </div>
+
+    <div class="form-field-container">
+      <label class="field-label">Correo Electrónico</label>
+      <mat-form-field class="w-full">
+        <input
+          matInput
+          formControlName="email"
+          placeholder="Ingrese el correo electrónico"
+          required
+        />
+        <mat-error *ngIf="userForm.get('email')?.hasError('required')">
+          El correo electrónico es requerido
+        </mat-error>
+        <mat-error *ngIf="userForm.get('email')?.hasError('email')">
+          Ingrese un correo electrónico válido
+        </mat-error>
+      </mat-form-field>
+    </div>
+
+    <div class="form-field-container">
+      <label class="field-label">Contraseña</label>
+      <mat-form-field class="w-full">
+        <input
+          matInput
+          [type]="hidePassword ? 'password' : 'text'"
+          formControlName="password"
+          placeholder="Ingrese una contraseña segura"
+          required
+        />
+        <button
+          mat-icon-button
+          matSuffix
+          (click)="hidePassword = !hidePassword"
+          [attr.aria-label]="'Hide password'"
+          [attr.aria-pressed]="hidePassword"
+          type="button"
+        >
+          <mat-icon>{{
+            hidePassword ? "visibility_off" : "visibility"
+          }}</mat-icon>
+        </button>
+        <mat-error *ngIf="userForm.get('password')?.hasError('required')">
+          La contraseña es requerida
+        </mat-error>
+        <mat-error *ngIf="userForm.get('password')?.hasError('minlength')">
+          La contraseña debe tener al menos 8 caracteres
+        </mat-error>
+        <mat-error *ngIf="userForm.get('password')?.hasError('pattern')">
+          La contraseña debe contener al menos una mayúscula, una minúscula y un
+          número
+        </mat-error>
+      </mat-form-field>
+    </div>
+
+    <div class="form-field-container">
+      <label class="field-label">Rol</label>
+      <mat-form-field class="w-full">
+        <mat-select
+          formControlName="role"
+          placeholder="Seleccione el rol"
+          required
+        >
+          <mat-option value="user">Usuario</mat-option>
+          <mat-option value="root">Administrador</mat-option>
+        </mat-select>
+        <mat-error *ngIf="userForm.get('role')?.hasError('required')">
+          El rol es requerido
+        </mat-error>
+      </mat-form-field>
+    </div>
+
+    <div
+      class="form-field-container"
+      *ngIf="userForm.get('role')?.value === 'user'"
+    >
+      <label class="field-label">Centro</label>
+      <mat-form-field class="w-full">
+        <mat-select
+          formControlName="centerName"
+          placeholder="Seleccione el centro"
+          required
+        >
+          <mat-option *ngFor="let center of centers" [value]="center.name">
+            {{ center.name }}
+          </mat-option>
+        </mat-select>
+        <mat-error *ngIf="userForm.get('centerName')?.hasError('required')">
+          El centro es requerido
+        </mat-error>
+      </mat-form-field>
+    </div>
+  </div>
+
+  <div mat-dialog-actions class="flex justify-end gap-4 px-6 pb-6">
+    <button mat-button type="button" (click)="onCancel()">Cancelar</button>
+    <button
+      mat-raised-button
+      color="primary"
+      type="submit"
+      [disabled]="!userForm.valid"
+    >
+      Guardar
+    </button>
+  </div>
+</form>

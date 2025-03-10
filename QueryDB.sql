@@ -1931,6 +1931,128 @@ END$$
 DELIMITER ;
 
 DELIMITER $$
+CREATE PROCEDURE sp_manage_template(
+    IN p_action VARCHAR(10),      -- 'INSERT' o 'UPDATE'
+    IN p_template_id INT,         -- NULL para INSERT
+    IN p_type VARCHAR(20),        -- 'course', 'diploma', 'certificate'
+    IN p_name VARCHAR(255),
+    IN p_file_path VARCHAR(2083),
+    IN p_doc_type ENUM('file', 'url'),
+    IN p_required BOOLEAN,
+    IN p_modalities JSON,         -- Array de modalidades para courses
+    OUT p_status_code INT,
+    OUT p_message VARCHAR(255)
+)
+BEGIN
+    DECLARE v_template_id INT;
+    
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION 
+    BEGIN
+        ROLLBACK;
+        SET p_status_code = -1;
+        SET p_message = CONCAT('Error: ', SQLERRM);
+    END;
+
+    START TRANSACTION;
+
+    CASE p_action
+        WHEN 'INSERT' THEN
+            CASE p_type
+                WHEN 'course' THEN
+                    INSERT INTO documents_templates (name, filePath, type)
+                    VALUES (p_name, p_file_path, p_doc_type);
+                    
+                    SET v_template_id = LAST_INSERT_ID();
+                    
+                    IF p_modalities IS NOT NULL THEN
+                        INSERT INTO document_access (document_id, modality, required)
+                        SELECT 
+                            v_template_id,
+                            JSON_UNQUOTE(m.value),
+                            p_required
+                        FROM JSON_TABLE(
+                            p_modalities,
+                            '$[*]' COLUMNS (value VARCHAR(20) PATH '$')
+                        ) AS m;
+                    END IF;
+
+                WHEN 'diploma' THEN
+                    INSERT INTO documents_templates_diplomae 
+                        (name, filePath, type, required)
+                    VALUES 
+                        (p_name, p_file_path, p_doc_type, p_required);
+
+                WHEN 'certificate' THEN
+                    INSERT INTO certificate_documents_templates 
+                        (name, filePath, type, required)
+                    VALUES 
+                        (p_name, p_file_path, p_doc_type, p_required);
+            END CASE;
+
+        WHEN 'UPDATE' THEN
+            IF p_template_id IS NULL THEN
+                SIGNAL SQLSTATE '45000' 
+                SET MESSAGE_TEXT = 'Se requiere template_id para actualizar';
+            END IF;
+
+            CASE p_type
+                WHEN 'course' THEN
+                    UPDATE documents_templates 
+                    SET name = p_name,
+                        filePath = CASE WHEN p_file_path != '' 
+                                      THEN p_file_path 
+                                      ELSE filePath END,
+                        type = p_doc_type
+                    WHERE id = p_template_id;
+
+                    IF p_modalities IS NOT NULL THEN
+                        DELETE FROM document_access 
+                        WHERE document_id = p_template_id;
+
+                        INSERT INTO document_access (document_id, modality, required)
+                        SELECT 
+                            p_template_id,
+                            JSON_UNQUOTE(m.value),
+                            p_required
+                        FROM JSON_TABLE(
+                            p_modalities,
+                            '$[*]' COLUMNS (value VARCHAR(20) PATH '$')
+                        ) AS m;
+                    END IF;
+
+                WHEN 'diploma' THEN
+                    UPDATE documents_templates_diplomae 
+                    SET name = p_name,
+                        filePath = CASE WHEN p_file_path != '' 
+                                      THEN p_file_path 
+                                      ELSE filePath END,
+                        type = p_doc_type,
+                        required = p_required
+                    WHERE id = p_template_id;
+
+                WHEN 'certificate' THEN
+                    UPDATE certificate_documents_templates 
+                    SET name = p_name,
+                        filePath = CASE WHEN p_file_path != '' 
+                                      THEN p_file_path 
+                                      ELSE filePath END,
+                        type = p_doc_type,
+                        required = p_required
+                    WHERE id = p_template_id;
+            END CASE;
+    END CASE;
+
+    SET p_status_code = 1;
+    SET p_message = CASE p_action
+        WHEN 'INSERT' THEN 'Plantilla creada exitosamente'
+        ELSE 'Plantilla actualizada exitosamente'
+    END;
+
+    COMMIT;
+END$$
+DELIMITER ;
+
+DELIMITER $$
 CREATE PROCEDURE sp_update_message_status(
     IN p_id INT,
     IN p_attended BOOLEAN,
@@ -2051,6 +2173,7 @@ INSERT INTO documents_templates_diplomae (name, filePath, type, required) VALUES
 ('Currículum Vitae de Instructor y Aval', 'assets/diplomae_templates/formato-cv-instructor.docx', 'file', true),
 ('Carta Aval', 'assets/diplomae_templates/ejemplo-carta-aval.pdf', 'file', true),
 ('Lista inicial de participantes', 'assets/diplomae_templates/lista-inicial-de-participantes.doc', 'file', false);
+
 INSERT INTO documents_templates (name, filePath, type) VALUES
 ('Formato de registro de cursos de formación a lo largo de la vida', 'assets/templates/01 FS20H 2024-2.docx', 'file'),
 ('Lista de cotejo para formato de registro de cursos', 'assets/templates/01 LC20H 2024-2.xlsx', 'file'),

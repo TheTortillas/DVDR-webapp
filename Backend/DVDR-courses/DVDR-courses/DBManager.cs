@@ -2371,5 +2371,159 @@ namespace DVDR_courses
 
             return instructors;
         }
+
+        public (int statusCode, string message) ManageTemplate(
+            string action,
+            int? templateId,
+            string type,
+            string name,
+            string filePath,
+            string docType,
+            bool required,
+            List<string>? modalities)
+        {
+            try
+            {
+                using (var con = new MySqlConnection(_config.GetConnectionString("default")))
+                {
+                    using (var cmd = new MySqlCommand("sp_manage_template", con))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+
+                        cmd.Parameters.Add(new MySqlParameter("p_action", MySqlDbType.VarChar) { Value = action });
+                        cmd.Parameters.Add(new MySqlParameter("p_template_id", MySqlDbType.Int32) { Value = (object)templateId ?? DBNull.Value });
+                        cmd.Parameters.Add(new MySqlParameter("p_type", MySqlDbType.VarChar) { Value = type });
+                        cmd.Parameters.Add(new MySqlParameter("p_name", MySqlDbType.VarChar) { Value = name });
+                        cmd.Parameters.Add(new MySqlParameter("p_file_path", MySqlDbType.VarChar) { Value = filePath });
+                        cmd.Parameters.Add(new MySqlParameter("p_doc_type", MySqlDbType.VarChar) { Value = docType });
+                        cmd.Parameters.Add(new MySqlParameter("p_required", MySqlDbType.Bit) { Value = required });
+
+                        if (modalities != null)
+                        {
+                            var modalitiesJson = JsonConvert.SerializeObject(modalities);
+                            cmd.Parameters.Add(new MySqlParameter("p_modalities", MySqlDbType.JSON) { Value = modalitiesJson });
+                        }
+                        else
+                        {
+                            cmd.Parameters.Add(new MySqlParameter("p_modalities", MySqlDbType.JSON) { Value = DBNull.Value });
+                        }
+
+                        var statusCodeParam = new MySqlParameter("p_status_code", MySqlDbType.Int32)
+                        { Direction = ParameterDirection.Output };
+                        var messageParam = new MySqlParameter("p_message", MySqlDbType.VarChar, 255)
+                        { Direction = ParameterDirection.Output };
+
+                        cmd.Parameters.Add(statusCodeParam);
+                        cmd.Parameters.Add(messageParam);
+
+                        con.Open();
+                        cmd.ExecuteNonQuery();
+
+                        return (
+                            Convert.ToInt32(statusCodeParam.Value),
+                            messageParam.Value?.ToString() ?? "Operación completada exitosamente"
+                        );
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                return (-1, $"Error al gestionar plantilla: {ex.Message}");
+            }
+        }
+
+        public object GetAllTemplates()
+        {
+            try
+            {
+                using (var con = new MySqlConnection(_config.GetConnectionString("default")))
+                {
+                    con.Open();
+
+                    var result = new
+                    {
+                        CourseTemplates = new List<object>(),
+                        DiplomaTemplates = new List<object>(),
+                        CertificateTemplates = new List<object>()
+                    };
+
+                    // Obtener plantillas de cursos con sus modalidades y required
+                    using (var cmd = new MySqlCommand(@"
+                SELECT 
+                    t.id,
+                    t.name,
+                    t.filePath,
+                    t.type,
+                    GROUP_CONCAT(DISTINCT da.modality) as modalities,
+                    MIN(da.required) as required
+                FROM documents_templates t
+                LEFT JOIN document_access da ON t.id = da.document_id
+                GROUP BY t.id", con))
+                    {
+                        using (var reader = cmd.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                result.CourseTemplates.Add(new
+                                {
+                                    Id = reader.GetInt32("id"),
+                                    Name = reader.GetString("name"),
+                                    FilePath = reader.GetString("filePath"),
+                                    Type = reader.GetString("type"),
+                                    Required = reader.IsDBNull("required") ? false : reader.GetBoolean("required"),
+                                    Modalities = reader.IsDBNull("modalities") ? new List<string>()
+                                        : reader.GetString("modalities").Split(',').ToList()
+                                });
+                            }
+                        }
+                    }
+
+                    // Obtener plantillas de diplomados
+                    using (var cmd = new MySqlCommand("SELECT * FROM documents_templates_diplomae", con))
+                    {
+                        using (var reader = cmd.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                result.DiplomaTemplates.Add(new
+                                {
+                                    Id = reader.GetInt32("id"),
+                                    Name = reader.GetString("name"),
+                                    FilePath = reader.GetString("filePath"),
+                                    Type = reader.GetString("type"),
+                                    Required = reader.GetBoolean("required")
+                                });
+                            }
+                        }
+                    }
+
+                    // Obtener plantillas de certificados
+                    using (var cmd = new MySqlCommand("SELECT * FROM certificate_documents_templates", con))
+                    {
+                        using (var reader = cmd.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                result.CertificateTemplates.Add(new
+                                {
+                                    Id = reader.GetInt32("id"),
+                                    Name = reader.GetString("name"),
+                                    FilePath = reader.IsDBNull("filePath") ? null : reader.GetString("filePath"),
+                                    Type = reader.GetString("type"),
+                                    Required = reader.GetBoolean("required")
+                                });
+                            }
+                        }
+                    }
+
+                    return result;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+                throw;
+            }
+        }
     }
 }

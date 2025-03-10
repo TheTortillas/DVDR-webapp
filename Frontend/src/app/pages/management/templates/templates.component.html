@@ -1,0 +1,173 @@
+<div class="container mx-auto p-4">
+  <div class="bg-white border border-gray-400 rounded-lg p-8 shadow">
+    <div class="flex justify-between items-center mb-6">
+      <h2 class="text-2xl font-bold">Gestión de Plantillas</h2>
+    </div>
+
+    <!-- <div *ngIf="loading" class="text-center py-4">
+      <mat-spinner diameter="40" class="mx-auto"></mat-spinner>
+    </div> -->
+
+    <div *ngIf="error" class="text-center text-red-600 py-4">
+      Error al cargar las plantillas
+    </div>
+
+    <mat-tab-group *ngIf="!loading && !error">
+      <!-- Plantillas de Cursos -->
+      <mat-tab label="Cursos">
+        <div class="p-4">
+          <button
+            mat-raised-button
+            color="primary"
+            class="mb-4"
+            (click)="openManageDialog(undefined, 'course')"
+          >
+            <mat-icon>add</mat-icon>
+            Nueva Plantilla
+          </button>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <mat-card *ngFor="let template of templates?.courseTemplates">
+              <mat-card-header>
+                <mat-card-title>{{ template.name }}</mat-card-title>
+                <mat-card-subtitle>
+                  {{ template.type === "file" ? "Archivo" : "URL" }}
+                </mat-card-subtitle>
+              </mat-card-header>
+              <mat-card-content>
+                <p><strong>Modalidades:</strong></p>
+                <ul class="list-disc ml-4">
+                  <li *ngFor="let modality of template.modalities">
+                    {{ modality }}
+                  </li>
+                </ul>
+                <p class="mt-2">
+                  <strong>Requerido:</strong>
+                  {{ template.required ? "Sí" : "No" }}
+                </p>
+              </mat-card-content>
+              <mat-card-actions>
+                <a
+                  mat-button
+                  color="primary"
+                  [href]="createTemplateUrl(template.filePath)"
+                  target="_blank"
+                  *ngIf="template.filePath"
+                >
+                  <mat-icon>visibility</mat-icon> Ver plantilla
+                </a>
+                <button
+                  mat-button
+                  color="accent"
+                  (click)="openManageDialog(template.id, 'course')"
+                >
+                  <mat-icon>edit</mat-icon> Editar
+                </button>
+              </mat-card-actions>
+            </mat-card>
+          </div>
+        </div>
+      </mat-tab>
+
+      <!-- Plantillas de Diplomados -->
+      <mat-tab label="Diplomados">
+        <div class="p-4">
+          <button
+            mat-raised-button
+            color="primary"
+            class="mb-4"
+            (click)="openManageDialog(undefined, 'diploma')"
+          >
+            <mat-icon>add</mat-icon>
+            Nueva Plantilla
+          </button>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <mat-card *ngFor="let template of templates?.diplomaTemplates">
+              <mat-card-header>
+                <mat-card-title>{{ template.name }}</mat-card-title>
+                <mat-card-subtitle>
+                  {{ template.type === "file" ? "Archivo" : "URL" }}
+                </mat-card-subtitle>
+              </mat-card-header>
+              <mat-card-content>
+                <p>
+                  <strong>Requerido:</strong>
+                  {{ template.required ? "Sí" : "No" }}
+                </p>
+              </mat-card-content>
+              <mat-card-actions>
+                <a
+                  mat-button
+                  color="primary"
+                  [href]="createTemplateUrl(template.filePath)"
+                  target="_blank"
+                  *ngIf="template.filePath"
+                >
+                  <mat-icon>visibility</mat-icon> Ver plantilla </a
+                >>
+                <button
+                  mat-button
+                  color="accent"
+                  (click)="openManageDialog(template.id, 'diploma')"
+                >
+                  <mat-icon>edit</mat-icon> Editar
+                </button>
+              </mat-card-actions>
+            </mat-card>
+          </div>
+        </div>
+      </mat-tab>
+
+      <!-- Plantillas de Certificados -->
+      <mat-tab label="Certificados">
+        <div class="p-4">
+          <button
+            mat-raised-button
+            color="primary"
+            class="mb-4"
+            (click)="openManageDialog(undefined, 'certificate')"
+          >
+            <mat-icon>add</mat-icon>
+            Nueva Plantilla
+          </button>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <mat-card *ngFor="let template of templates?.certificateTemplates">
+              <mat-card-header>
+                <mat-card-title>{{ template.name }}</mat-card-title>
+                <mat-card-subtitle>
+                  {{ template.type === "file" ? "Archivo" : "URL" }}
+                </mat-card-subtitle>
+              </mat-card-header>
+              <mat-card-content>
+                <p>
+                  <strong>Requerido:</strong>
+                  {{ template.required ? "Sí" : "No" }}
+                </p>
+              </mat-card-content>
+              <mat-card-actions>
+                <a
+                  mat-button
+                  color="primary"
+                  [href]="createTemplateUrl(template.filePath)"
+                  target="_blank"
+                  *ngIf="template.filePath"
+                >
+                  <mat-icon>visibility</mat-icon> Ver plantilla
+                </a>
+                <button
+                  mat-button
+                  color="accent"
+                  (click)="openManageDialog(template.id, 'certificate')"
+                >
+                  <mat-icon>edit</mat-icon> Editar
+                </button>
+              </mat-card-actions>
+            </mat-card>
+          </div>
+        </div>
+      </mat-tab>
+    </mat-tab-group>
+  </div>
+</div>

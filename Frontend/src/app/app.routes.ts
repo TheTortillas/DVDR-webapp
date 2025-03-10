@@ -32,6 +32,7 @@ import { DiplomaCertificateRequestsComponent } from './pages/management/diploma-
 import { MessagesComponent } from './pages/management/messages/messages.component';
 import { UsersComponent } from './pages/management/users/users.component';
 import { InstructorsComponent } from './pages/management/instructors/instructors.component';
+import { TemplatesComponent } from './pages/management/templates/templates.component';
 
 export const routes: Routes = [
   {
@@ -127,6 +128,10 @@ export const routes: Routes = [
       {
         path: 'instructors',
         component: InstructorsComponent,
+      },
+      {
+        path: 'templates',
+        component: TemplatesComponent,
       },
       {
         path: '',

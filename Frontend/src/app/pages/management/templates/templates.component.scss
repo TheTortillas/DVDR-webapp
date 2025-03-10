@@ -1,0 +1,29 @@
+:host {
+  display: block;
+}
+
+.container {
+  max-width: 1200px;
+}
+
+mat-card {
+  margin-bottom: 1rem;
+}
+
+.mat-mdc-card-header {
+  padding: 16px;
+}
+
+.mat-mdc-card-content {
+  padding: 16px;
+}
+
+.mat-mdc-card-actions {
+  padding: 8px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.mat-spinner {
+  margin: 0 auto;
+}

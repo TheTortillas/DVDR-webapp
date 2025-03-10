@@ -1,0 +1,67 @@
+<h2 mat-dialog-title>{{ data.templateId ? "Editar" : "Nueva" }} Plantilla</h2>
+
+<mat-dialog-content class="mat-typography">
+  <form [formGroup]="form" class="flex flex-col gap-4 min-w-[400px] p-4">
+    <mat-form-field>
+      <mat-label>Nombre</mat-label>
+      <input matInput formControlName="name" required />
+    </mat-form-field>
+
+    <mat-form-field>
+      <mat-label>Tipo de documento</mat-label>
+      <mat-select
+        formControlName="docType"
+        (selectionChange)="isUrlType = $event.value === 'url'"
+      >
+        <mat-option value="file">Archivo</mat-option>
+        <mat-option value="url">URL</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <ng-container *ngIf="isUrlType">
+      <mat-form-field>
+        <mat-label>URL</mat-label>
+        <input matInput formControlName="filePath" required />
+      </mat-form-field>
+    </ng-container>
+
+    <ng-container *ngIf="!isUrlType">
+      <input
+        type="file"
+        #fileInput
+        style="display: none"
+        (change)="onFileSelected($event)"
+        accept=".doc,.docx,.pdf,.xlsx"
+      />
+      <button mat-stroked-button type="button" (click)="fileInput.click()">
+        <mat-icon>attach_file</mat-icon>
+        {{ selectedFile ? selectedFile.name : "Seleccionar archivo" }}
+      </button>
+    </ng-container>
+
+    <mat-checkbox formControlName="required">Requerido</mat-checkbox>
+
+    <ng-container *ngIf="data.type === 'course'">
+      <mat-form-field>
+        <mat-label>Modalidades</mat-label>
+        <mat-select formControlName="modalities" multiple>
+          <mat-option *ngFor="let modalidad of modalidades" [value]="modalidad">
+            {{ modalidad }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+    </ng-container>
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close>Cancelar</button>
+  <button
+    mat-raised-button
+    color="primary"
+    (click)="onSubmit()"
+    [disabled]="!form.valid"
+  >
+    {{ data.templateId ? "Actualizar" : "Crear" }}
+  </button>
+</mat-dialog-actions>

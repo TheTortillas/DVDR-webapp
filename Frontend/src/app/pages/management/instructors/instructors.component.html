@@ -1,0 +1,122 @@
+<div class="container mx-auto p-4">
+  <!-- <div *ngIf="loading" class="text-center">
+    <mat-spinner></mat-spinner>
+  </div> -->
+
+  <div *ngIf="error" class="text-center text-red-600">
+    Error al cargar la información de los instructores
+  </div>
+
+  <div class="bg-white border border-gray-400 rounded-lg p-8 shadow mb-6">
+    <!-- Filtros -->
+    <div class="flex gap-4 mb-6">
+      <!-- Buscador por nombre -->
+      <mat-form-field class="w-1/2">
+        <mat-label>Buscar instructor</mat-label>
+        <span matTextPrefix><mat-icon>search</mat-icon> &nbsp;</span>
+        <input
+          matInput
+          [(ngModel)]="searchText"
+          (keyup)="applyFilters()"
+          placeholder="Buscar por nombre"
+        />
+      </mat-form-field>
+
+      <!-- Filtro por centro -->
+      <mat-form-field class="w-1/2">
+        <mat-label>Filtrar por centro</mat-label>
+        <span matTextPrefix><mat-icon>location_city</mat-icon> &nbsp;</span>
+        <mat-select
+          [(ngModel)]="selectedCenter"
+          (selectionChange)="applyFilters()"
+        >
+          <mat-option value="">Todos</mat-option>
+          <mat-option *ngFor="let center of centers" [value]="center">
+            {{ center }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <!-- <div *ngIf="!loading && !error" class="grid gap-6"> -->
+    <div *ngIf="!error" class="grid gap-6">
+      <mat-card *ngFor="let instructor of filteredInstructors">
+        <!-- Información General -->
+        <mat-card-header>
+          <mat-card-title>
+            {{ instructor.firstName }} {{ instructor.lastName }}
+            {{ instructor.secondLastName }}
+          </mat-card-title>
+          <mat-card-subtitle>{{ instructor.centerName }}</mat-card-subtitle>
+        </mat-card-header>
+
+        <mat-card-content>
+          <mat-tab-group>
+            <!-- Pestaña de Información General -->
+            <mat-tab label="Información General">
+              <div class="p-4">
+                <p><strong>Email:</strong> {{ instructor.email }}</p>
+                <p>
+                  <strong>Área de Conocimiento:</strong>
+                  {{ instructor.knowledgeArea }}
+                </p>
+              </div>
+            </mat-tab>
+
+            <!-- Pestaña de Historial Académico -->
+            <mat-tab label="Historial Académico">
+              <div class="p-4">
+                <div
+                  *ngFor="let academic of instructor.academicHistories"
+                  class="mb-4"
+                >
+                  <p><strong>Nivel:</strong> {{ academic.educationLevel }}</p>
+                  <p><strong>Período:</strong> {{ academic.period }}</p>
+                  <p>
+                    <strong>Institución:</strong> {{ academic.institution }}
+                  </p>
+                  <p><strong>Grado:</strong> {{ academic.degreeAwarded }}</p>
+                  <a
+                    *ngIf="academic.evidencePath"
+                    [href]="academic.evidencePath"
+                    target="_blank"
+                    mat-button
+                    color="primary"
+                  >
+                    <mat-icon>attach_file</mat-icon> Ver evidencia
+                  </a>
+                  <mat-divider class="my-4"></mat-divider>
+                </div>
+              </div>
+            </mat-tab>
+
+            <!-- Pestaña de Experiencia Profesional -->
+            <mat-tab label="Experiencia Profesional">
+              <div class="p-4">
+                <div
+                  *ngFor="let exp of instructor.professionalExperiences"
+                  class="mb-4"
+                >
+                  <p><strong>Período:</strong> {{ exp.period }}</p>
+                  <p><strong>Organización:</strong> {{ exp.organization }}</p>
+                  <p><strong>Cargo:</strong> {{ exp.position }}</p>
+                  <p><strong>Actividad:</strong> {{ exp.activity }}</p>
+                  <a
+                    *ngIf="exp.evidencePath"
+                    [href]="exp.evidencePath"
+                    target="_blank"
+                    mat-button
+                    color="primary"
+                  >
+                    <mat-icon>attach_file</mat-icon> Ver evidencia
+                  </a>
+                  <mat-divider class="my-4"></mat-divider>
+                </div>
+              </div>
+            </mat-tab>
+          </mat-tab-group>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+</div>

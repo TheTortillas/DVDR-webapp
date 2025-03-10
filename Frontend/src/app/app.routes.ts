@@ -31,6 +31,7 @@ import { RequestDiplomaCertificatesComponent } from './pages/profile/request-dip
 import { DiplomaCertificateRequestsComponent } from './pages/management/diploma-certificate-requests/diploma-certificate-requests.component';
 import { MessagesComponent } from './pages/management/messages/messages.component';
 import { UsersComponent } from './pages/management/users/users.component';
+import { InstructorsComponent } from './pages/management/instructors/instructors.component';
 
 export const routes: Routes = [
   {
@@ -122,6 +123,10 @@ export const routes: Routes = [
       {
         path: 'users',
         component: UsersComponent,
+      },
+      {
+        path: 'instructors',
+        component: InstructorsComponent,
       },
       {
         path: '',

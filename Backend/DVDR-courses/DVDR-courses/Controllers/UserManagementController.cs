@@ -16,23 +16,13 @@ namespace DVDR_courses.Controllers
     public class UserManagementController : ControllerBase
     {
         IConfiguration _config;
+        private readonly DBManager _dbManager;
 
         public UserManagementController(IConfiguration conf)
         {
             _config = conf;
+            _dbManager = new DBManager(_config);
         }
-
-        //[HttpPost("SignUp", Name = "PostSignUp")]
-        //public JsonResult post([FromBody] UserSignUp usr)
-        //{
-        //    return new JsonResult(new DBManager(_config).sign_up(
-        //        usr.username,
-        //        usr.password,
-        //        usr.first_name,
-        //        usr.last_name,
-        //        usr.second_last_name,
-        //        usr.center));
-        //}
 
         [HttpPost("SignIn", Name = "PostSignIn")]
         public IActionResult SignIn([FromBody] LoginRequest usr)
@@ -44,6 +34,26 @@ namespace DVDR_courses.Controllers
 
             return Ok(result);
         }
+
+        [HttpGet("GetAllUsers")]
+        public IActionResult GetAllUsers()
+        {
+            var users = _dbManager.GetAllUsers();
+            return Ok(users);
+        }
+
+        [HttpPost("SignUp", Name = "PostSignUp")]
+        public IActionResult CreateUser([FromBody] RegistrationRequest user)
+        {
+            var result = _dbManager.CreateUser(user);
+            if (result.statusCode == 1)
+            {
+                return Ok(new { message = result.message });
+            }
+
+            return BadRequest(new { message = result.message });
+        }
+
         [HttpPost("RefreshToken", Name = "PostRefreshToken")]
         public IActionResult RefreshToken()
         {

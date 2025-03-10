@@ -2181,5 +2181,91 @@ namespace DVDR_courses
                 return (-1, "Error al actualizar el mensaje");
             }
         }
+
+        public List<UserDTO> GetAllUsers()
+        {
+            var users = new List<UserDTO>();
+            try
+            {
+                using (var con = new MySqlConnection(_config.GetConnectionString("default")))
+                {
+                    using (var cmd = new MySqlCommand(@"
+                SELECT u.id, u.username, u.email, u.first_name, u.last_name, u.second_last_name, 
+                       c.name as center_name, u.role, u.created_at
+                FROM users u
+                LEFT JOIN centers c ON u.center_id = c.id
+                ORDER BY u.created_at DESC", con))
+                    {
+                        con.Open();
+                        using (var reader = cmd.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                users.Add(new UserDTO
+                                {
+                                    Id = reader.GetInt32("id"),
+                                    Username = reader.GetString("username"),
+                                    Email = reader.GetString("email"),
+                                    FirstName = reader.GetString("first_name"),
+                                    LastName = reader.GetString("last_name"),
+                                    SecondLastName = reader.IsDBNull("second_last_name") ? null : reader.GetString("second_last_name"),
+                                    CenterName = reader.IsDBNull("center_name") ? null : reader.GetString("center_name"),
+                                    Role = reader.GetString("role"),
+                                    CreatedAt = reader.GetDateTime("created_at")
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+            }
+            return users;
+        }
+
+        public (int statusCode, string message) CreateUser(RegistrationRequest user)
+        {
+            try
+            {
+                using (var con = new MySqlConnection(_config.GetConnectionString("default")))
+                {
+                    using (var cmd = new MySqlCommand("sp_insert_user", con))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+
+                        cmd.Parameters.AddWithValue("p_username", user.Username);
+                        cmd.Parameters.AddWithValue("p_email", user.Email);
+                        cmd.Parameters.AddWithValue("p_password", user.Password);
+                        cmd.Parameters.AddWithValue("p_first_name", user.FirstName);
+                        cmd.Parameters.AddWithValue("p_last_name", user.LastName);
+                        cmd.Parameters.AddWithValue("p_second_last_name", (object?)user.SecondLastName ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("p_center", (object?)user.CenterName ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("p_role", user.Role);
+
+                        var statusCodeParam = new MySqlParameter("p_status_code", MySqlDbType.Int32)
+                        { Direction = ParameterDirection.Output };
+                        var messageParam = new MySqlParameter("p_message", MySqlDbType.VarChar, 255)
+                        { Direction = ParameterDirection.Output };
+
+                        cmd.Parameters.Add(statusCodeParam);
+                        cmd.Parameters.Add(messageParam);
+
+                        con.Open();
+                        cmd.ExecuteNonQuery();
+
+                        return (
+                            Convert.ToInt32(statusCodeParam.Value),
+                            messageParam.Value?.ToString() ?? "Usuario creado exitosamente"
+                        );
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                return (-1, $"Error al crear usuario: {ex.Message}");
+            }
+        }
     }
 }

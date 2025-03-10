@@ -77,5 +77,16 @@ namespace DVDR_courses.Controllers
                 return Unauthorized(new { message = "Token inválido o expirado." });
             }
         }
+
+        [HttpPost("UpdatePassword", Name = "PostUpdatePassword")]
+        public IActionResult UpdatePassword([FromBody] UpdatePasswordRequest request)
+        {
+            var result = _dbManager.UpdateUserPassword(request);
+            if (result.statusCode == 1)
+            {
+                return Ok(new { message = result.message });
+            }
+            return BadRequest(new { message = result.message });
+        }
     }
 }

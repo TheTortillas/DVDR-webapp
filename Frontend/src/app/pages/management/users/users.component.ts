@@ -15,6 +15,7 @@ import {
   UserManagementService,
 } from '../../../core/services/user-management.service';
 import { AddUserDialogComponent } from './add-user-dialog/add-user-dialog.component';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-users',
@@ -43,6 +44,7 @@ export class UsersComponent implements OnInit {
     'centerName',
     'role',
     'createdAt',
+    'actions',
   ];
   dataSource: MatTableDataSource<User>;
   selectedRole: string = '';
@@ -102,5 +104,103 @@ export class UsersComponent implements OnInit {
         this.loadUsers();
       }
     });
+  }
+
+  async changePassword(user: User) {
+    const { value: password } = await Swal.fire({
+      title: 'Nueva contraseña',
+      html: `
+      <div style="width: 100%;">
+        <input
+          id="passwordField"
+          type="password"
+          class="swal2-input"
+          placeholder="Ingresa la nueva contraseña"
+        />
+        <button
+          id="togglePassword"
+          style="
+            margin-top: 8px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            padding: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            color: #666;
+            width: 100%;
+          "
+        >
+          <span class="material-icons">visibility</span>
+          <span id="toggleText">Mostrar contraseña</span>
+        </button>
+      </div>
+    `,
+      focusConfirm: false,
+      showCancelButton: true,
+      confirmButtonText: 'Actualizar',
+      cancelButtonText: 'Cancelar',
+      didOpen: () => {
+        const toggleBtn = document.getElementById('togglePassword');
+        const toggleIcon = toggleBtn?.querySelector('.material-icons');
+        const toggleText = document.getElementById('toggleText');
+        const passField = document.getElementById(
+          'passwordField'
+        ) as HTMLInputElement;
+
+        if (toggleBtn && passField && toggleIcon && toggleText) {
+          toggleBtn.addEventListener('click', (event) => {
+            event.preventDefault();
+            if (passField.type === 'password') {
+              passField.type = 'text';
+              toggleIcon.textContent = 'visibility_off';
+              toggleText.textContent = 'Ocultar';
+            } else {
+              passField.type = 'password';
+              toggleIcon.textContent = 'visibility';
+              toggleText.textContent = 'Mostrar';
+            }
+          });
+        }
+      },
+      preConfirm: () => {
+        const passField = document.getElementById(
+          'passwordField'
+        ) as HTMLInputElement;
+        if (!passField.value) {
+          Swal.showValidationMessage('Debes ingresar una contraseña');
+          return null;
+        }
+        if (passField.value.length < 6) {
+          Swal.showValidationMessage(
+            'La contraseña debe tener al menos 6 caracteres'
+          );
+          return null;
+        }
+        return passField.value;
+      },
+    });
+
+    if (password) {
+      this.usersService.updatePassword(user.username, password).subscribe({
+        next: (res) => {
+          Swal.fire({
+            icon: 'success',
+            title: '¡Éxito!',
+            text: res.message || 'Contraseña actualizada correctamente',
+            timer: 1500,
+          });
+        },
+        error: (error) => {
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: error.error?.message || 'Error al actualizar la contraseña',
+          });
+        },
+      });
+    }
   }
 }

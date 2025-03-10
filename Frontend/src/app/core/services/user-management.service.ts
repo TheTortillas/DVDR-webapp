@@ -89,6 +89,14 @@ export class UserManagementService {
     );
   }
 
+  updatePassword(username: string, newPassword: string): Observable<any> {
+    return this.httpClient.post(
+      `${this.URLBase}/api/UserManagement/UpdatePassword`,
+      { username, newPassword },
+      HttpOptions
+    );
+  }
+
   public refreshToken(): Observable<{ token: string }> {
     const url = this.URLBase + '/api/UserManagement/RefreshToken';
     const token = localStorage.getItem('token');

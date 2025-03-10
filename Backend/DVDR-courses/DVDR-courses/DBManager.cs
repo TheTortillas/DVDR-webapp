@@ -2525,5 +2525,44 @@ namespace DVDR_courses
                 throw;
             }
         }
+
+        public (int statusCode, string message) UpdateUserPassword(UpdatePasswordRequest request)
+        {
+            try
+            {
+                using (var con = new MySqlConnection(_config.GetConnectionString("default")))
+                using (var cmd = new MySqlCommand("sp_update_user_password", con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+
+                    cmd.Parameters.AddWithValue("p_username", request.Username);
+                    cmd.Parameters.AddWithValue("p_new_password", request.NewPassword);
+
+                    var statusParam = new MySqlParameter("p_status_code", MySqlDbType.Int32)
+                    {
+                        Direction = ParameterDirection.Output
+                    };
+                    var messageParam = new MySqlParameter("p_message", MySqlDbType.VarChar, 255)
+                    {
+                        Direction = ParameterDirection.Output
+                    };
+
+                    cmd.Parameters.Add(statusParam);
+                    cmd.Parameters.Add(messageParam);
+
+                    con.Open();
+                    cmd.ExecuteNonQuery();
+
+                    return (
+                        Convert.ToInt32(statusParam.Value),
+                        messageParam.Value?.ToString() ?? ""
+                    );
+                }
+            }
+            catch (Exception ex)
+            {
+                return (-1, $"Error al actualizar contraseña: {ex.Message}");
+            }
+        }
     }
 }

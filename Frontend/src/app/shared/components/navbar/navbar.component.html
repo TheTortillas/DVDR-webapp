@@ -37,13 +37,15 @@
                   <mat-icon>person_add</mat-icon>
                   <span>Registrar Instructor</span>
                 </button>
-                <button
+                <a
                   mat-menu-item
-                  routerLink="../profile/instructors-catalog"
+                  href="https://view.genially.com/67b4b85dc320d1d4c51b224e/guide-cursos-vigentes"
+                  target="_blank"
+                  rel="noopener"
                 >
-                  <mat-icon>people</mat-icon>
-                  <span>Ver catálogo de instructores</span>
-                </button>
+                  <mat-icon>book</mat-icon>
+                  <span>Ver catálogo de cursos vigentes</span>
+                </a>
                 <button mat-menu-item (click)="logout()" class="logout-button">
                   <mat-icon>exit_to_app</mat-icon>
                   <span>Cerrar sesión</span>

@@ -2165,9 +2165,9 @@ INSERT INTO centers (name, type, identifier) VALUES
 ('Centro de Vinculación y Desarrollo Regional Unidad Tampico', 'CVDR', 10);
 
 INSERT INTO documents_templates_diplomae (name, filePath, type, required) VALUES
-('Formato de oficio de solicitud', 'assets/diplomae_templates/oficio-de-solicitud.doc', 'file', true),							-- NO HAY PLANTILLA
+('Formato de oficio de solicitud', 'assets/diplomae_templates/oficio-de-solicitud.doc', 'file', true),							
 ('Formato de solicitud de dictamen académico', 'assets/diplomae_templates/solicitud-de-registro-22.doc', 'file', true),
-('Formato de potesta de autoría', 'assets/diplomae_templates/protesta-de-autoría.docx', 'file', true),							-- NO HAY PLANTILLA
+('Formato de potesta de autoría', 'assets/diplomae_templates/protesta-de-autoría.docx', 'file', true),							
 ('Síntesis del programa del diplomado', 'assets/diplomae_templates/síntesis-del-programa-del-diplomado.doc', 'file', true),
 ('Cronograma de actividades', 'assets/diplomae_templates/cronograma-de-actividades.doc', 'file', true),
 ('Currículum Vitae de Instructor y Aval', 'assets/diplomae_templates/formato-cv-instructor.docx', 'file', true),

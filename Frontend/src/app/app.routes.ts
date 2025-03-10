@@ -13,7 +13,7 @@ import { MyCoursesComponent } from './pages/profile/my-courses/my-courses.compon
 import { ApertureInfoComponent } from './pages/profile/aperture-info/aperture-info.component';
 import { DashboardComponent } from './pages/profile/dashboard/dashboard.component';
 import { AuthGuard } from './core/guards/auth.guard';
-import { InstructorsCatalogComponent } from './pages/profile/instructors-catalog/instructors-catalog.component';
+import { HelpComponent } from './pages/landing/help/help.component';
 import { PruebasFicherosComponent } from './pages/pruebas-ficheros/pruebas-ficheros.component';
 import { RequestCertificatesComponent } from './pages/profile/request-certificates/request-certificates.component';
 import { ManagementComponent } from './pages/management/management.component';
@@ -44,7 +44,10 @@ export const routes: Routes = [
     path: 'contact-us',
     component: ContactUsPageComponent,
   },
-
+  {
+    path: 'help',
+    component: HelpComponent,
+  },
   {
     path: 'pruebas',
     component: PruebasComponentesComponent,
@@ -154,10 +157,6 @@ export const routes: Routes = [
       {
         path: 'dashboard',
         component: DashboardComponent,
-      },
-      {
-        path: 'instructors-catalog',
-        component: InstructorsCatalogComponent,
       },
       {
         path: 'instructor-register',

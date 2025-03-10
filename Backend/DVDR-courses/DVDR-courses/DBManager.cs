@@ -1,5 +1,6 @@
 ﻿using DVDR_courses.DTOs;
 using DVDR_courses.DTOs.Auth;
+using DVDR_courses.DTOs.Instructor;
 using DVDR_courses.DTOs.Messages;
 using DVDR_courses.Services;
 using MySql.Data.MySqlClient;
@@ -2266,6 +2267,109 @@ namespace DVDR_courses
             {
                 return (-1, $"Error al crear usuario: {ex.Message}");
             }
+        }
+
+        public List<InstructorFullDataDTO> GetAllInstructors()
+        {
+            var instructors = new List<InstructorFullDataDTO>();
+            var academicHistories = new Dictionary<int, List<AcademicHistoryDTO>>();
+            var professionalExperiences = new Dictionary<int, List<ProfessionalExperienceDTO>>();
+
+            try
+            {
+                using (var con = new MySqlConnection(_config.GetConnectionString("default")))
+                {
+                    using (var cmd = new MySqlCommand("sp_get_all_instructors", con))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+                        con.Open();
+
+                        using (var reader = cmd.ExecuteReader())
+                        {
+                            // Leer datos generales
+                            while (reader.Read())
+                            {
+                                var instructor = new InstructorFullDataDTO
+                                {
+                                    Id = reader.GetInt32("id"),
+                                    FirstName = reader.GetString("first_name"),
+                                    LastName = reader.GetString("last_name"),
+                                    SecondLastName = reader.IsDBNull("second_last_name") ? null : reader.GetString("second_last_name"),
+                                    Email = reader.GetString("email"),
+                                    KnowledgeArea = reader.GetString("knowledge_area"),
+                                    CenterName = reader.GetString("center_name")
+                                };
+                                instructors.Add(instructor);
+                            }
+
+                            // Leer historial académico
+                            if (reader.NextResult())
+                            {
+                                while (reader.Read())
+                                {
+                                    var academicHistory = new AcademicHistoryDTO
+                                    {
+                                        EducationLevel = reader.GetString("education_level"),
+                                        Period = reader.GetString("period"),
+                                        Institution = reader.GetString("institution"),
+                                        DegreeAwarded = reader.GetString("degree_awarded"),
+                                        EvidencePath = reader.GetString("evidence_path")
+                                    };
+
+                                    var actorId = reader.GetInt32("actor_id");
+                                    if (!academicHistories.ContainsKey(actorId))
+                                    {
+                                        academicHistories[actorId] = new List<AcademicHistoryDTO>();
+                                    }
+                                    academicHistories[actorId].Add(academicHistory);
+                                }
+                            }
+
+                            // Leer experiencia profesional
+                            if (reader.NextResult())
+                            {
+                                while (reader.Read())
+                                {
+                                    var professionalExperience = new ProfessionalExperienceDTO
+                                    {
+                                        Period = reader.GetString("period"),
+                                        Organization = reader.GetString("organization"),
+                                        Position = reader.GetString("position"),
+                                        Activity = reader.GetString("activity"),
+                                        EvidencePath = reader.GetString("evidence_path")
+                                    };
+
+                                    var actorId = reader.GetInt32("actor_id");
+                                    if (!professionalExperiences.ContainsKey(actorId))
+                                    {
+                                        professionalExperiences[actorId] = new List<ProfessionalExperienceDTO>();
+                                    }
+                                    professionalExperiences[actorId].Add(professionalExperience);
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Asignar historial académico y experiencia profesional a cada instructor
+                foreach (var instructor in instructors)
+                {
+                    if (academicHistories.ContainsKey(instructor.Id))
+                    {
+                        instructor.AcademicHistories = academicHistories[instructor.Id];
+                    }
+                    if (professionalExperiences.ContainsKey(instructor.Id))
+                    {
+                        instructor.ProfessionalExperiences = professionalExperiences[instructor.Id];
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+            }
+
+            return instructors;
         }
     }
 }

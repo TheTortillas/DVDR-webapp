@@ -12,10 +12,13 @@ namespace DVDR_courses.Controllers
     public class InstructorController : ControllerBase
     {
         IConfiguration _config;
+        DBManager _dbManager;
 
         public InstructorController(IConfiguration conf)
         {
             _config = conf;
+            _dbManager = new DBManager(_config);
+
         }
 
         [HttpPost("RegisterInstructor", Name = "PostRegisterInstructor")]
@@ -211,7 +214,12 @@ namespace DVDR_courses.Controllers
                 return StatusCode(500, new { message = "Error al obtener los centros.", error = ex.Message });
             }
         }
-
+        [HttpGet("GetAllInstructors")]
+        public IActionResult GetAllInstructors()
+        {
+            var instructors = _dbManager.GetAllInstructors();
+            return Ok(instructors);
+        }
     }
 }
 

@@ -338,7 +338,7 @@ BEGIN
 
     START TRANSACTION;
 
-    -- Verificar si el usuario ya existe
+    -- Verificar si el usuario o el correo ya existen
     SELECT COUNT(*) INTO v_user_exists
     FROM users
     WHERE username = p_username OR email = p_email;
@@ -349,14 +349,51 @@ BEGIN
         ROLLBACK;
     END IF;
 
-    -- Resto del SP igual, solo añadir email en el INSERT
-    INSERT INTO users (username, email, password, first_name, last_name, second_last_name, center_id, role)
-    VALUES (p_username, p_email, hashed_password, p_first_name, p_last_name, p_second_last_name, v_center_id, p_role);
+    -- Determinar el valor de center_id
+    IF p_role = 'root' THEN
+        SET v_center_id = NULL;
+    ELSE
+        SELECT id INTO v_center_id
+        FROM centers
+        WHERE name = p_center
+        LIMIT 1;
+
+        IF v_center_id IS NULL THEN
+            SET p_status_code = -1;
+            SET p_message = 'Error: El centro especificado no existe.';
+            ROLLBACK;
+        END IF;
+    END IF;
+
+    -- Hashear la contraseña
+    SET hashed_password = SHA2(p_password, 256);
+
+    -- Insertar el nuevo usuario
+    INSERT INTO users (
+      username, 
+      email, 
+      password, 
+      first_name, 
+      last_name, 
+      second_last_name, 
+      center_id, 
+      role
+    )
+    VALUES (
+      p_username, 
+      p_email, 
+      hashed_password, 
+      p_first_name, 
+      p_last_name, 
+      p_second_last_name, 
+      v_center_id, 
+      p_role
+    );
+
+    COMMIT;
 
     SET p_status_code = 1;
     SET p_message = 'Usuario insertado correctamente';
-    
-    COMMIT;
 END$$
 DELIMITER ;
 
@@ -1854,6 +1891,46 @@ END$$
 DELIMITER ;
 
 DELIMITER $$
+CREATE PROCEDURE sp_get_all_instructors()
+BEGIN
+    -- Datos generales del instructor
+    SELECT 
+        agi.id, 
+        agi.first_name, 
+        agi.last_name, 
+        agi.second_last_name, 
+        agi.email, 
+        agi.knowledge_area, 
+        c.name AS center_name
+    FROM 
+        actors_general_information agi
+        JOIN centers c ON c.type = agi.center_type AND c.identifier = agi.center_identifier;
+
+    -- Historial académico
+    SELECT 
+        ah.actor_id, 
+        ah.education_level, 
+        ah.period, 
+        ah.institution, 
+        ah.degree_awarded, 
+        ah.evidence_path
+    FROM 
+        academic_history ah;
+
+    -- Experiencia profesional
+    SELECT 
+        pe.actor_id, 
+        pe.period, 
+        pe.organization, 
+        pe.position, 
+        pe.activity, 
+        pe.evidence_path
+    FROM 
+        professional_experience pe;
+END$$
+DELIMITER ;
+
+DELIMITER $$
 CREATE PROCEDURE sp_update_message_status(
     IN p_id INT,
     IN p_attended BOOLEAN,
@@ -2021,7 +2098,7 @@ CALL sp_insert_user('director_tijuana', 'pass_tijuana', 'Gabriela', 'Flores', 'R
 CALL sp_insert_user('director_tampico', 'pass_tampico', 'Eduardo', 'Rojas', 'Peña', 'Centro de Vinculación y Desarrollo Regional Unidad Tampico', 'user');
 
 CALL sp_insert_user('admin', 'pass_admin', 'Luis', 'Fernández', 'Gómez', NULL, 'root');
-
+select * from users;
 -- SELECT COUNT(*) FROM courses WHERE YEAR(created_at) = 2025;
 -- CALL sp_check_username('admin', @user_exists);
 -- SELECT @user_exists;

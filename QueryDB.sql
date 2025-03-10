@@ -14,6 +14,7 @@ CREATE TABLE centers (
 CREATE TABLE users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(50) UNIQUE NOT NULL,
+    email VARCHAR(255) NOT NULL,
     password VARCHAR(255) NOT NULL,
     first_name VARCHAR(100) NOT NULL,
     last_name VARCHAR(100) NOT NULL,
@@ -312,58 +313,50 @@ CREATE TABLE messages (
 DELIMITER $$
 CREATE PROCEDURE sp_insert_user(
     IN p_username VARCHAR(255),
+    IN p_email VARCHAR(255),
     IN p_password VARCHAR(255),
     IN p_first_name VARCHAR(100),
     IN p_last_name VARCHAR(100),
     IN p_second_last_name VARCHAR(100),
     IN p_center VARCHAR(255),
-    IN p_role VARCHAR(10)  -- Se espera 'root' o 'user'
+    IN p_role VARCHAR(10),
+    OUT p_status_code INT,
+    OUT p_message VARCHAR(255)
 )
 BEGIN
     DECLARE hashed_password VARCHAR(255);
     DECLARE v_center_id INT;
+    DECLARE v_user_exists INT;
 
     -- Manejo de errores
     DECLARE EXIT HANDLER FOR SQLEXCEPTION 
     BEGIN
         ROLLBACK;
-        SELECT -1 AS status_code, 'Error: No se pudo insertar el usuario. Verifique los datos.' AS mensaje;
-    END;
-
-    DECLARE EXIT HANDLER FOR SQLWARNING 
-    BEGIN
-        ROLLBACK;
-        SELECT -1 AS status_code, 'Advertencia: Hubo un problema en la base de datos.' AS mensaje;
+        SET p_status_code = -1;
+        SET p_message = 'Error: No se pudo insertar el usuario. Verifique los datos.';
     END;
 
     START TRANSACTION;
 
-    -- Si el rol es 'root', no se asigna centro (administradores no pertenecen a ningún centro)
-    IF p_role = 'root' THEN
-        SET v_center_id = NULL;
-    ELSE
-        -- Para rol 'user' se obtiene el id del centro a partir del nombre
-        SELECT id INTO v_center_id 
-        FROM centers 
-        WHERE name = p_center 
-        LIMIT 1;
+    -- Verificar si el usuario ya existe
+    SELECT COUNT(*) INTO v_user_exists
+    FROM users
+    WHERE username = p_username OR email = p_email;
 
-        IF v_center_id IS NULL THEN
-            SIGNAL SQLSTATE '45000' 
-                SET MESSAGE_TEXT = 'Error: El centro especificado no existe.';
-        END IF;
+    IF v_user_exists > 0 THEN
+        SET p_status_code = -1;
+        SET p_message = 'Error: El nombre de usuario o correo electrónico ya existe.';
+        ROLLBACK;
     END IF;
 
-    -- Hash de la contraseña
-    SET hashed_password = SHA2(p_password, 256);
+    -- Resto del SP igual, solo añadir email en el INSERT
+    INSERT INTO users (username, email, password, first_name, last_name, second_last_name, center_id, role)
+    VALUES (p_username, p_email, hashed_password, p_first_name, p_last_name, p_second_last_name, v_center_id, p_role);
 
-    -- Insertar el nuevo usuario con el rol especificado
-    INSERT INTO users (username, password, first_name, last_name, second_last_name, center_id, role)
-    VALUES (p_username, hashed_password, p_first_name, p_last_name, p_second_last_name, v_center_id, p_role);
-
+    SET p_status_code = 1;
+    SET p_message = 'Usuario insertado correctamente';
+    
     COMMIT;
-
-    SELECT 1 AS status_code, 'Éxito: Usuario insertado correctamente.' AS mensaje;
 END$$
 DELIMITER ;
 
@@ -2338,5 +2331,5 @@ call sp_get_all_courses();
 CALL sp_update_user_password('admin', 'pass_admin', @p_status_code, @p_message);
 SELECT @p_status_code, @p_message; 
 SELECT * FROM diplomas;
-
+select * from users;
 -- DROP DATABASE dvdr_cursos;

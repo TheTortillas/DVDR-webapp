@@ -17,6 +17,15 @@ export interface Center {
   identifier: number;
 }
 
+export interface TutorialVideo {
+  id: number;
+  title: string;
+  description: string;
+  videoUrl: string;
+  thumbnailUrl: string;
+  createdAt: Date;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -79,4 +88,9 @@ export class DataService {
     const url = this.URLBase + '/api/Data/AllCenters';
     return this.httpClient.get<Center[]>(url, HttpOptions);
   };
+
+  public getTutorialVideos(): Observable<TutorialVideo[]> {
+    const url = this.URLBase + '/api/Data/TutorialVideos';
+    return this.httpClient.get<TutorialVideo[]>(url, HttpOptions);
+  }
 }

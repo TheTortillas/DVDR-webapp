@@ -86,5 +86,19 @@ namespace DVDR_courses.Controllers
             var centers = new DBManager(_config).GetAllCenters();
             return new JsonResult(centers);
         }
+
+        [HttpGet("TutorialVideos", Name = "GetTutorialVideos")]
+        public IActionResult GetTutorialVideos()
+        {
+            try
+            {
+                var videos = new DBManager(_config).GetTutorialVideos();
+                return Ok(videos);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = $"Error: {ex.Message}" });
+            }
+        }
     }
 }

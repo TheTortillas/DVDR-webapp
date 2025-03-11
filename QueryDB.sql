@@ -308,6 +308,15 @@ CREATE TABLE messages (
     FOREIGN KEY (attended_by) REFERENCES users(id)
 );
 
+CREATE TABLE tutorial_videos (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    title VARCHAR(255) NOT NULL,
+    description TEXT NOT NULL,
+    video_url VARCHAR(2083) NOT NULL,
+    thumbnail_url VARCHAR(2083) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ PROCEDMIENTOS ALMACENADOS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 -- Procedimiento para dar de alta un usuario
 DELIMITER $$
@@ -2053,6 +2062,59 @@ END$$
 DELIMITER ;
 
 DELIMITER $$
+CREATE PROCEDURE sp_insert_tutorial_video(
+    IN p_title VARCHAR(255),
+    IN p_description TEXT,
+    IN p_video_url VARCHAR(2083),
+    IN p_thumbnail_url VARCHAR(2083),
+    OUT p_status_code INT,
+    OUT p_message VARCHAR(255)
+)
+BEGIN
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION 
+    BEGIN
+        SET p_status_code = -1;
+        SET p_message = 'Error al insertar el video tutorial';
+        ROLLBACK;
+    END;
+
+    START TRANSACTION;
+    
+    INSERT INTO tutorial_videos (
+        title,
+        description,
+        video_url,
+        thumbnail_url
+    ) VALUES (
+        p_title,
+        p_description,
+        p_video_url,
+        p_thumbnail_url
+    );
+
+    SET p_status_code = 1;
+    SET p_message = 'Video tutorial insertado correctamente';
+    
+    COMMIT;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE PROCEDURE sp_get_tutorial_videos()
+BEGIN
+    SELECT 
+        id,
+        title,
+        description,
+        video_url as videoUrl,
+        thumbnail_url as thumbnailUrl,
+        created_at as createdAt
+    FROM tutorial_videos
+    ORDER BY created_at DESC;
+END$$
+DELIMITER ;
+
+DELIMITER $$
 CREATE PROCEDURE sp_update_message_status(
     IN p_id INT,
     IN p_attended BOOLEAN,
@@ -2222,6 +2284,14 @@ CALL sp_insert_user('director_tampico', 'pass_tampico', 'Eduardo', 'Rojas', 'Pe�
 
 CALL sp_insert_user('admin', 'pass_admin', 'Luis', 'Fernández', 'Gómez', NULL, 'root');
 select * from users;
+
+INSERT INTO tutorial_videos (title, description, video_url, thumbnail_url) VALUES 
+(
+    'Cómo registrar un nuevo curso',
+    'En este tutorial aprenderás el proceso completo de registro de un nuevo curso en la plataforma, desde la información básica hasta la documentación requerida.',
+    'https://www.youtube.com/embed/Qu0dIn3_2Zc',
+    'https://img.youtube.com/vi/Qu0dIn3_2Zc/maxresdefault.jpg'
+);
 -- SELECT COUNT(*) FROM courses WHERE YEAR(created_at) = 2025;
 -- CALL sp_check_username('admin', @user_exists);
 -- SELECT @user_exists;

@@ -66,3 +66,6 @@ Thumbs.db
 !/Frontend/public/assets/files/request-certificates-documentation/.gitkeep
 !/Frontend/public/assets/files/certificate-official-letters/.gitkeep
 !/Frontend/public/assets/files/diploma-documentation/.gitkeep
+
+/Frontend/dist/**/*
+!/Frontend/dist/.gitkeep

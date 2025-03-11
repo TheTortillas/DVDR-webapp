@@ -1,5 +1,6 @@
 ﻿using DVDR_courses.DTOs;
 using DVDR_courses.DTOs.Auth;
+using DVDR_courses.DTOs.Data;
 using DVDR_courses.DTOs.Instructor;
 using DVDR_courses.DTOs.Messages;
 using DVDR_courses.Services;
@@ -2563,6 +2564,46 @@ namespace DVDR_courses
             {
                 return (-1, $"Error al actualizar contraseña: {ex.Message}");
             }
+        }
+
+        public List<TutorialVideoDTO> GetTutorialVideos()
+        {
+            var videos = new List<TutorialVideoDTO>();
+
+            try
+            {
+                using (var con = new MySqlConnection(_config.GetConnectionString("default")))
+                {
+                    using (var cmd = new MySqlCommand("sp_get_tutorial_videos", con))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+                        con.Open();
+
+                        using (var reader = cmd.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                videos.Add(new TutorialVideoDTO
+                                {
+                                    Id = reader.GetInt32("id"),
+                                    Title = reader.GetString("title"),
+                                    Description = reader.GetString("description"),
+                                    VideoUrl = reader.GetString("videoUrl"),
+                                    ThumbnailUrl = reader.GetString("thumbnailUrl"),
+                                    CreatedAt = reader.GetDateTime("createdAt")
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error getting tutorial videos: {ex.Message}");
+                throw;
+            }
+
+            return videos;
         }
     }
 }

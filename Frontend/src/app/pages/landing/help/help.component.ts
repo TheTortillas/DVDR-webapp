@@ -1,65 +1,58 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
-
-interface TutorialVideo {
-  id: number;
-  title: string;
-  description: string;
-  videoUrl: string;
-  thumbnail?: string;
-}
+import {
+  DataService,
+  TutorialVideo,
+} from '../../../core/services/data.service';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 @Component({
   selector: 'app-help',
   standalone: true,
-  imports: [CommonModule, MatCardModule, MatButtonModule, MatIconModule],
+  imports: [
+    CommonModule,
+    MatCardModule,
+    MatButtonModule,
+    MatIconModule,
+    MatProgressSpinnerModule,
+  ],
   templateUrl: './help.component.html',
-  styleUrl: './help.component.scss',
+  styleUrls: ['./help.component.scss'],
 })
-export class HelpComponent {
-  videos: TutorialVideo[] = [
-    {
-      id: 1,
-      title: 'Cómo registrar un nuevo curso',
-      description:
-        'En este tutorial aprenderás el proceso completo de registro de un nuevo curso en la plataforma, desde la información básica hasta la documentación requerida.',
-      videoUrl: 'https://www.youtube.com/embed/Qu0dIn3_2Zc',
-      thumbnail: 'https://img.youtube.com/vi/Qu0dIn3_2Zc/maxresdefault.jpg',
-    },
-    {
-      id: 2,
-      title: 'Gestión de diplomados',
-      description:
-        'Aprende a crear, editar y dar seguimiento a los diplomados registrados en el sistema.',
-      videoUrl: 'https://youtu.be/Qu0dIn3_2Zc?si=Qu0dIn3_2Zc',
-      thumbnail: 'https://img.youtube.com/vi/Qu0dIn3_2Zc/maxresdefault.jpg',
-    },
-    {
-      id: 3,
-      title: 'Administración de usuarios',
-      description:
-        'Tutorial sobre cómo gestionar usuarios, asignar roles y permisos en la plataforma.',
-      videoUrl: 'https://www.youtube.com/embed/Qu0dIn3_2Zc',
-      thumbnail: 'https://img.youtube.com/vi/Qu0dIn3_2Zc/maxresdefault.jpg',
-    },
-    {
-      id: 4,
-      title: 'Manejo de plantillas',
-      description:
-        'Aprende a subir, actualizar y usar las diferentes plantillas para documentos en la plataforma.',
-      videoUrl: 'https://www.youtube.com/embed/Qu0dIn3_2Zc',
-      thumbnail: 'https://img.youtube.com/vi/Qu0dIn3_2Zc/maxresdefault.jpg',
-    },
-  ];
-
+export class HelpComponent implements OnInit {
+  videos: TutorialVideo[] = [];
   activeVideo: TutorialVideo | null = null;
   safeVideoUrl: SafeResourceUrl | null = null;
+  loading = true;
+  error = false;
 
-  constructor(private sanitizer: DomSanitizer) {}
+  constructor(
+    private dataService: DataService,
+    private sanitizer: DomSanitizer
+  ) {}
+
+  ngOnInit() {
+    this.loadVideos();
+  }
+
+  loadVideos() {
+    //this.loading = true;
+    this.dataService.getTutorialVideos().subscribe({
+      next: (videos) => {
+        this.videos = videos;
+        //this.loading = false;
+      },
+      error: (error) => {
+        //console.error('Error loading videos:', error);
+        //this.error = true;
+        //this.loading = false;
+      },
+    });
+  }
 
   getSafeUrl(url: string): SafeResourceUrl {
     return this.sanitizer.bypassSecurityTrustResourceUrl(url);

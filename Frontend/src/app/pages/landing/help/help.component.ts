@@ -27,7 +27,7 @@ export class HelpComponent implements OnInit {
   videos: TutorialVideo[] = [];
   activeVideo: TutorialVideo | null = null;
   safeVideoUrl: SafeResourceUrl | null = null;
-  loading = true;
+  loading = false;
   error = false;
 
   constructor(

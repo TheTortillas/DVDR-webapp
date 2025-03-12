@@ -184,6 +184,7 @@ namespace DVDR_courses.Controllers
             // Generar carpeta aleatoria
             var folderName = Guid.NewGuid().ToString();
             request.FolderName = folderName;
+            //var basePath = Path.Combine(_config.GetSection("FileStorage").GetValue<string>("BaseFolderPath"), "files", "request-diploma-certificates-documentation", folderName);
             var basePath = Path.Combine("..", "..", "..", "Frontend", "public", "assets", "files", "request-diploma-certificates-documentation", folderName);
 
             try

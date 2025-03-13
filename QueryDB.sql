@@ -77,6 +77,7 @@ CREATE TABLE diplomas (
   approval_status ENUM('pending', 'approved', 'rejected') DEFAULT 'pending' NOT NULL,
   cost DECIMAL(10, 2) DEFAULT 0,
   participants INT DEFAULT 0,
+  number_of_certificates INT DEFAULT 0,
   start_date DATE,
   end_date DATE,
   expiration_date DATE,
@@ -1735,7 +1736,7 @@ BEGIN
     SET p_message = 'Solicitud de certificados registrada exitosamente';
 END$$
 DELIMITER ;
-select * from diploma_certificates_request_documentation;
+
 DELIMITER $$
 CREATE PROCEDURE sp_upload_diploma_document(
     IN p_diploma_id INT,
@@ -1825,6 +1826,140 @@ BEGIN
     AND d.certificates_delivered = 0;
 END$$
 DELIMITER ;
+
+DELIMITER $$
+CREATE PROCEDURE sp_upload_diploma_official_letter(
+    IN p_diploma_id INT,
+    IN p_file_path VARCHAR(255),
+    IN p_number_of_certificates INT,
+    OUT p_status_code INT,
+    OUT p_message VARCHAR(255)
+)
+BEGIN
+    DECLARE v_exists INT;
+    
+    -- Verificar si existe el diplomado y ya solicitó certificados
+    SELECT COUNT(*) INTO v_exists
+    FROM diplomas
+    WHERE id = p_diploma_id 
+      AND certificates_requested = 1
+      AND certificates_delivered = 0;
+      
+    IF v_exists = 0 THEN
+        SET p_status_code = 404;
+        SET p_message = 'El diplomado no existe, no ha solicitado certificados o ya fueron entregados';
+    END IF;
+    
+    -- Iniciar la transacción
+    START TRANSACTION;
+    
+    -- Insertar el oficio en la tabla diploma_official_letter
+    INSERT INTO diploma_official_letter (diploma_id, filePath)
+    VALUES (p_diploma_id, p_file_path);
+    
+    -- Actualizar los participantes con el número de certificados y marcar como entregados
+    UPDATE diplomas
+    SET participants = p_number_of_certificates,  -- Usar el campo participants para almacenar el número de certificados entregados
+        certificates_delivered = 1                -- Marcar como entregados
+    WHERE id = p_diploma_id;
+    
+    COMMIT;
+    
+    SET p_status_code = 1;
+    SET p_message = 'Oficio registrado y certificados marcados como entregados';
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE PROCEDURE sp_get_current_vigent_courses()
+BEGIN
+    SELECT 
+        ROW_NUMBER() OVER (ORDER BY c.expiration_date ASC) AS 'ID',
+        c.course_name AS 'Nombre del curso',
+        DATE_FORMAT(c.created_at, '%d/%m/%Y') AS 'Fecha de registro',
+        c.total_duration AS 'Horas',
+        c.modality AS 'Modalidad',
+        ctr.name AS 'Centro',
+        DATE_FORMAT(c.expiration_date, '%d/%m/%Y') AS 'Fecha expiración'
+    FROM courses c
+    JOIN users u ON c.user_id = u.id
+    LEFT JOIN centers ctr ON u.center_id = ctr.id
+    WHERE c.expiration_date >= CURRENT_DATE()
+      AND c.approval_status = 'approved'
+    ORDER BY c.expiration_date ASC;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE PROCEDURE sp_get_current_vigent_diplomas()
+BEGIN
+    SELECT 
+        ROW_NUMBER() OVER (ORDER BY d.expiration_date ASC) AS 'ID',
+        d.name AS 'Nombre del diplomado',
+        DATE_FORMAT(d.created_at, '%d/%m/%Y') AS 'Fecha de registro',  
+        d.total_duration AS 'Horas',
+        d.modality AS 'Modalidad',
+        d.center AS 'Centro',
+        DATE_FORMAT(d.expiration_date, '%d/%m/%Y') AS 'Fecha expiración'
+    FROM diplomas d
+    WHERE d.expiration_date >= CURRENT_DATE()
+      AND d.approval_status = 'approved'
+    ORDER BY d.expiration_date ASC;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE PROCEDURE sp_get_certificates_delivered_sessions()
+BEGIN
+    SELECT 
+        ROW_NUMBER() OVER (ORDER BY cs.created_at DESC) AS 'ID',
+        c.course_key AS 'Clave del curso',
+        c.course_name AS 'Nombre del curso', 
+        cs.period AS 'Periodo',
+        cs.number_of_participants AS 'Participantes registrados',
+        cs.number_of_certificates AS 'Constancias entregadas',
+        cs.cost AS 'Costo',
+        DATE_FORMAT(cs.created_at, '%d/%m/%Y') AS 'Fecha de registro',
+        ctr.name AS 'Centro',
+        IFNULL(scol.filePath, '') AS 'Ruta del oficio'
+    FROM course_sessions cs
+    JOIN courses c ON cs.course_id = c.id
+    JOIN users u ON c.user_id = u.id
+    JOIN centers ctr ON u.center_id = ctr.id
+    LEFT JOIN session_certificate_official_letter scol ON cs.id = scol.session_id
+    WHERE cs.certificates_delivered = 1
+    ORDER BY cs.created_at DESC;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE PROCEDURE sp_get_certificates_delivered_diplomas()
+BEGIN
+    SELECT 
+        ROW_NUMBER() OVER (ORDER BY d.created_at DESC) AS 'ID',
+        d.name AS 'Nombre del diplomado',
+        d.diploma_key AS 'Clave',
+        d.total_duration AS 'Horas',
+        d.modality AS 'Modalidad',
+        DATE_FORMAT(d.start_date, '%d/%m/%Y') AS 'Fecha inicio',
+        DATE_FORMAT(d.end_date, '%d/%m/%Y') AS 'Fecha fin',
+        d.participants AS 'Participantes registrados',
+        d.number_of_certificates AS 'Constancias emitidas',
+        d.center AS 'Centro',
+        IFNULL(dol.filePath, '') AS 'Ruta del oficio'
+    FROM diplomas d
+    LEFT JOIN diploma_official_letter dol ON d.id = dol.diploma_id
+    WHERE d.certificates_delivered = 1
+      AND d.status = 'finished'
+      AND d.approval_status = 'approved'
+    ORDER BY d.created_at DESC;
+END$$
+DELIMITER ;
+
+CALL sp_get_current_year_courses();
+CALL sp_get_current_year_diplomas(); 
+CALL sp_get_certificates_delivered_sessions();
+CALL sp_get_certificates_delivered_diplomas();
 
 DELIMITER $$
 CREATE PROCEDURE sp_insert_message(
@@ -2589,10 +2724,10 @@ SET approval_status = 'approved'
 WHERE id = 1;
 select *from diploma_actor_roles;
 */
-select * from courses;
+select * from diplomas;
 /*
 UPDATE diplomas 
-SET certificates_requested = 0 
+SET certificates_requested = 1
 WHERE id = 1;
 select *from diploma_actor_roles;
 */

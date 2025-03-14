@@ -33,6 +33,7 @@ import { MessagesComponent } from './pages/management/messages/messages.componen
 import { UsersComponent } from './pages/management/users/users.component';
 import { InstructorsComponent } from './pages/management/instructors/instructors.component';
 import { TemplatesComponent } from './pages/management/templates/templates.component';
+import { CourseAperturesComponent } from './pages/management/course-apertures/course-apertures.component';
 
 export const routes: Routes = [
   {
@@ -135,6 +136,10 @@ export const routes: Routes = [
       {
         path: 'templates',
         component: TemplatesComponent,
+      },
+      {
+        path: 'course-apertures',
+        component: CourseAperturesComponent,
       },
       {
         path: '',

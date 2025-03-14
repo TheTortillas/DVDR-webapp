@@ -116,7 +116,7 @@ namespace DVDR_courses.Controllers
 
             return Ok(courses);
         }
-      
+
         [HttpPost("RegisterCourseSession", Name = "PostRegisterCourseSession")]
         public IActionResult RegisterCourseSession([FromBody] CourseSessionRequest request)
         {
@@ -130,10 +130,62 @@ namespace DVDR_courses.Controllers
             return BadRequest(new { message = result.message });
         }
 
+        [HttpPost("ApproveOrRejectSession")]
+        public async Task<IActionResult> ApproveOrRejectSession([FromForm] SessionApprovalRequest request)
+        {
+            if (request == null)
+                return BadRequest(new { message = "Datos inválidos" });
+
+            if (request.ApprovalStatus == "approved" && (request.OfficialLetter == null || request.OfficialLetter.Length == 0))
+                return BadRequest(new { message = "El oficio es requerido para aprobar la sesión" });
+
+            var dbManager = new DBManager(_config);
+            var result = await dbManager.ApproveOrRejectSession(request);
+
+            if (result.statusCode == 200)
+                return Ok(new { message = result.message });
+
+            return StatusCode(result.statusCode, new { message = result.message });
+        }
+
+        [HttpGet("GetSessionOfficialLetter/{sessionId}")]
+        public IActionResult GetSessionOfficialLetter(int sessionId)
+        {
+            var dbManager = new DBManager(_config);
+            var result = dbManager.GetSessionOfficialLetter(sessionId);
+
+            if (result == null)
+                return NotFound(new { message = "No se encontró el oficio de la sesión" });
+
+            return Ok(result);
+        }
+
+        [HttpGet("GetPendingApertures")]
+        public IActionResult GetPendingApertures()
+        {
+            try
+            {
+                var dbManager = new DBManager(_config);
+                var pendingApertures = dbManager.GetPendingApertures();
+
+                if (pendingApertures == null)
+                    return StatusCode(500, new { message = "Error al obtener las aperturas pendientes" });
+
+                if (!pendingApertures.Any())
+                    return Ok(new { message = "No hay aperturas pendientes", data = pendingApertures });
+
+                return Ok(pendingApertures);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Error interno del servidor", error = ex.Message });
+            }
+        }
+
         [HttpGet("UserCoursesWithSessions", Name = "GetUserCoursesWithSessions")]
         public IActionResult GetUserCoursesWithSessions([FromQuery] string username)
         {
-   
+
             var dbManager = new DBManager(_config);
             var courses = dbManager.GetCoursesWithSessions(username);
 

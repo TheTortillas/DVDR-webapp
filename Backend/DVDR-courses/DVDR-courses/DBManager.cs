@@ -852,6 +852,216 @@ namespace DVDR_courses
             }
         }
 
+        public async Task<(int statusCode, string message)> ApproveOrRejectSession(SessionApprovalRequest request)
+        {
+            try
+            {
+                using (var con = new MySqlConnection(_config.GetConnectionString("default")))
+                {
+                    con.Open();
+
+                    if (request.ApprovalStatus == "approved")
+                    {
+                        // Crear carpeta para el oficio
+                        var folder = Guid.NewGuid().ToString();
+                        var basePath = Path.Combine("assets", "files", "session-approvals", folder);
+                        var physicalPath = Path.Combine("..", "..", "..", "Frontend", "public", basePath);
+                        Directory.CreateDirectory(physicalPath);
+
+                        var fileName = request.OfficialLetter.FileName;
+                        var finalPath = Path.Combine(physicalPath, fileName);
+                        using (var stream = new FileStream(finalPath, FileMode.Create))
+                        {
+                            await request.OfficialLetter.CopyToAsync(stream);
+                        }
+
+                        var savedPath = Path.Combine(basePath, fileName);
+
+                        using (var cmd = new MySqlCommand("sp_approve_course_session", con))
+                        {
+                            cmd.CommandType = CommandType.StoredProcedure;
+                            cmd.Parameters.AddWithValue("p_session_id", request.SessionId);
+                            cmd.Parameters.AddWithValue("p_file_path", savedPath);
+                            cmd.Parameters.AddWithValue("p_folder_name", folder);
+
+                            var statusCodeParam = new MySqlParameter("p_status_code", MySqlDbType.Int32)
+                            { Direction = ParameterDirection.Output };
+                            var messageParam = new MySqlParameter("p_message", MySqlDbType.VarChar, 255)
+                            { Direction = ParameterDirection.Output };
+
+                            cmd.Parameters.Add(statusCodeParam);
+                            cmd.Parameters.Add(messageParam);
+
+                            cmd.ExecuteNonQuery();
+
+                            return (Convert.ToInt32(statusCodeParam.Value), messageParam.Value.ToString());
+                        }
+                    }
+                    else
+                    {
+                        using (var cmd = new MySqlCommand("sp_reject_course_session", con))
+                        {
+                            cmd.CommandType = CommandType.StoredProcedure;
+                            cmd.Parameters.AddWithValue("p_session_id", request.SessionId);
+
+                            var statusCodeParam = new MySqlParameter("p_status_code", MySqlDbType.Int32)
+                            { Direction = ParameterDirection.Output };
+                            var messageParam = new MySqlParameter("p_message", MySqlDbType.VarChar, 255)
+                            { Direction = ParameterDirection.Output };
+
+                            cmd.Parameters.Add(statusCodeParam);
+                            cmd.Parameters.Add(messageParam);
+
+                            cmd.ExecuteNonQuery();
+
+                            return (Convert.ToInt32(statusCodeParam.Value), messageParam.Value.ToString());
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+                return (500, "Error interno del servidor.");
+            }
+        }
+
+        public List<PendingApertureDTO> GetPendingApertures()
+        {
+            try
+            {
+                var sessions = new List<PendingApertureDTO>();
+
+                using (var con = new MySqlConnection(_config.GetConnectionString("default")))
+                {
+                    con.Open();
+
+                    using (var cmd = new MySqlCommand("sp_get_pending_apertures", con))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+
+                        using (var reader = cmd.ExecuteReader())
+                        {
+                            // Primer resultset: Información principal
+                            while (reader.Read())
+                            {
+                                try
+                                {
+                                    var session = new PendingApertureDTO
+                                    {
+                                        SessionId = reader.GetInt32("session_id"),
+                                        CourseKey = reader.IsDBNull("course_key") ? string.Empty : reader.GetString("course_key"),
+                                        CourseName = reader.IsDBNull("course_name") ? string.Empty : reader.GetString("course_name"),
+                                        Period = reader.IsDBNull("period") ? string.Empty : reader.GetString("period"),
+                                        NumberOfParticipants = reader.IsDBNull("number_of_participants") ? 0 : reader.GetInt32("number_of_participants"),
+                                        NumberOfCertificates = reader.IsDBNull("number_of_certificates") ? 0 : reader.GetInt32("number_of_certificates"),
+                                        Cost = reader.IsDBNull("cost") ? 0 : reader.GetDecimal("cost"),
+                                        CenterName = reader.IsDBNull("center_name") ? string.Empty : reader.GetString("center_name"),
+                                        // Nuevos campos
+                                        DirectorName = reader.IsDBNull("director_name") ? string.Empty : reader.GetString("director_name"),
+                                        DirectorTitle = reader.IsDBNull("director_title") ? string.Empty : reader.GetString("director_title"),
+                                        DirectorGender = reader.IsDBNull("director_gender") ? string.Empty : reader.GetString("director_gender"),
+                                        // Resto de campos
+                                        Modality = reader.IsDBNull("modality") ? string.Empty : reader.GetString("modality"),
+                                        TotalDuration = reader.IsDBNull("total_duration") ? 0 : reader.GetInt32("total_duration"),
+                                        StartDate = reader.IsDBNull("start_date") ? DateTime.MinValue : reader.GetDateTime("start_date"),
+                                        EndDate = reader.IsDBNull("end_date") ? DateTime.MinValue : reader.GetDateTime("end_date"),
+                                        TotalDays = reader.IsDBNull("total_days") ? 0 : reader.GetInt32("total_days"),
+                                        Instructors = reader.IsDBNull("instructors") ? string.Empty : reader.GetString("instructors"),
+                                        Schedule = new List<ScheduleEntryDTO>()
+                                    };
+                                    sessions.Add(session);
+                                }
+                                catch (Exception ex)
+                                {
+                                    Console.WriteLine($"Error leyendo sesión: {ex.Message}");
+                                    // Continuar con la siguiente sesión
+                                }
+                            }
+
+                            // Segundo resultset: Cronograma
+                            if (reader.NextResult())
+                            {
+                                while (reader.Read())
+                                {
+                                    try
+                                    {
+                                        int sessionId = reader.GetInt32("session_id");
+                                        var session = sessions.FirstOrDefault(s => s.SessionId == sessionId);
+
+                                        if (session != null)
+                                        {
+                                            session.Schedule.Add(new ScheduleEntryDTO
+                                            {
+                                                Date = reader.GetDateTime("date").ToString("yyyy-MM-dd"),
+                                                Start = reader.GetTimeSpan("start_time").ToString(@"hh\:mm"),
+                                                End = reader.GetTimeSpan("end_time").ToString(@"hh\:mm")
+                                            });
+                                        }
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        Console.WriteLine($"Error leyendo cronograma: {ex.Message}");
+                                        // Continuar con el siguiente registro
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                return sessions;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error en GetPendingApertures: {ex.Message}");
+                Console.WriteLine($"StackTrace: {ex.StackTrace}");
+                return new List<PendingApertureDTO>(); // Devolver lista vacía en lugar de null
+            }
+        }
+
+        public object GetSessionOfficialLetter(int sessionId)
+        {
+            try
+            {
+                using (var con = new MySqlConnection(_config.GetConnectionString("default")))
+                {
+                    con.Open();
+                    var query = @"
+                SELECT 
+                    cs.id as session_id,
+                    cs.official_letter_path as file_path,
+                    cs.documentation_folder as folder
+                FROM course_sessions cs
+                WHERE cs.id = @sessionId 
+                AND cs.approval_status = 'approved'";
+
+                    using (var cmd = new MySqlCommand(query, con))
+                    {
+                        cmd.Parameters.AddWithValue("@sessionId", sessionId);
+                        using (var reader = cmd.ExecuteReader())
+                        {
+                            if (reader.Read())
+                            {
+                                return new
+                                {
+                                    SessionId = reader.GetInt32("session_id"),
+                                    FilePath = reader.GetString("file_path"),
+                                    Folder = reader.GetString("folder")
+                                };
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+                return null;
+            }
+            return null;
+        }
+
         public List<CourseWithSessionsResponse> GetCoursesWithSessions(string username)
         {
             List<CourseWithSessionsResponse> courses = new List<CourseWithSessionsResponse>();

@@ -13,6 +13,7 @@ import { MatBadgeModule } from '@angular/material/badge';
 import { RouterLink } from '@angular/router';
 import { StorageService } from '../../../core/services/storage.service';
 import { DiplomasService } from '../../../core/services/diplomas.service';
+import { ApertureCoursesSessionsService } from '../../../core/services/apertute-courses-sessions.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -37,12 +38,14 @@ export class ManagementDashboardComponent implements OnInit {
   pendingCertificatesCount = 0;
   pendingDiplomasCount = 0;
   pendingDiplomaCertificatesCount: number = 0;
+  pendingAperturesCount = 0;
 
   constructor(
     private router: Router,
     private coursesService: CoursesService,
     private storageService: StorageService,
-    private diplomasService: DiplomasService
+    private diplomasService: DiplomasService,
+    private apertureService: ApertureCoursesSessionsService
   ) {}
 
   ngOnInit(): void {
@@ -62,6 +65,7 @@ export class ManagementDashboardComponent implements OnInit {
     this.loadPendingCoursesCount();
     this.loadPendingCertificatesCount();
     this.loadPendingDiplomasCount();
+    this.loadPendingAperturesCount();
   }
 
   loadPendingCoursesCount(): void {
@@ -111,6 +115,17 @@ export class ManagementDashboardComponent implements OnInit {
       },
       error: (err) => {
         console.error('Error al obtener solicitudes de constancias:', err);
+      },
+    });
+  }
+
+  loadPendingAperturesCount(): void {
+    this.apertureService.getPendingAperturesCount().subscribe({
+      next: (count) => {
+        this.pendingAperturesCount = count;
+      },
+      error: (err) => {
+        console.error('Error al obtener conteo de aperturas:', err);
       },
     });
   }

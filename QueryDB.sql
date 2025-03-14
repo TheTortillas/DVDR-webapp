@@ -8,7 +8,10 @@ CREATE TABLE centers (
     name VARCHAR(255) NOT NULL,
     type ENUM('CITTA', 'CVDR', 'UA') NOT NULL,
     identifier INT NOT NULL,
-    UNIQUE KEY (type, identifier)
+    UNIQUE KEY (type, identifier),
+    director_full_name VARCHAR(50),
+    academic_title VARCHAR(50),
+    gender  ENUM('H', 'M') NOT NULL NOT NULL -- Hombre o Mujer
 );
 
 CREATE TABLE users (
@@ -221,6 +224,9 @@ CREATE TABLE course_sessions (
     number_of_certificates INT NOT NULL, -- Constancias entregadas
     cost DECIMAL(10,2) NOT NULL DEFAULT 0,  -- Costo unitario del curso
     status ENUM('pending', 'opened', 'completed') NOT NULL DEFAULT 'opened', -- Estatus del curso (Aperturado, Concluido, En espera)
+    approval_status ENUM('pending', 'approved', 'rejected') DEFAULT 'pending' NOT NULL,
+    documentation_folder VARCHAR(255) DEFAULT NULL,
+    official_letter_path VARCHAR(255) DEFAULT NULL,
     certificates_requested TINYINT(1) DEFAULT 0,
     certificates_delivered TINYINT(1) DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -916,20 +922,24 @@ BEGIN
 
     START TRANSACTION;
 
-    -- Insertar sesión del curso (status = 'pending' por defecto)
+    -- Insertar sesión del curso con status = 'pending' y approval_status = 'pending'
     INSERT INTO course_sessions (
         course_id, 
         period, 
         number_of_participants, 
         number_of_certificates,
-        cost               -- Nuevo campo
+        cost,
+        status,
+        approval_status
     )
     VALUES (
         p_course_id, 
         p_period, 
         p_number_of_participants, 
         p_number_of_certificates,
-        p_cost            -- Nuevo valor
+        p_cost,
+        'pending',
+        'pending'
     );
 
     -- Obtener el ID de la sesión recién insertada
@@ -953,6 +963,140 @@ BEGIN
     -- Confirmación de éxito
     SET p_status_code = 1;
     SET p_message = 'Sesión de curso y cronograma guardados exitosamente.';
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE PROCEDURE sp_approve_course_session(
+    IN p_session_id INT,
+    IN p_file_path VARCHAR(255),
+    IN p_folder_name VARCHAR(255),
+    OUT p_status_code INT,
+    OUT p_message VARCHAR(255)
+)
+BEGIN
+    DECLARE v_exists INT;
+    
+    -- Verificar que la sesión existe y está pendiente
+    SELECT COUNT(*) INTO v_exists
+    FROM course_sessions
+    WHERE id = p_session_id 
+    AND approval_status = 'pending';
+    
+    IF v_exists = 0 THEN
+        SET p_status_code = 404;
+        SET p_message = 'La sesión no existe o no está pendiente de aprobación';
+    END IF;
+    
+    START TRANSACTION;
+    
+    -- Actualizar la sesión
+    UPDATE course_sessions
+    SET 
+        approval_status = 'approved',
+        official_letter_path = p_file_path,
+        documentation_folder = p_folder_name,
+        status = 'opened'  -- Cambiamos el status a opened ya que fue aprobada
+    WHERE id = p_session_id;
+    
+    COMMIT;
+    
+    SET p_status_code = 200;
+    SET p_message = 'Sesión aprobada exitosamente';
+END$$
+select * from users;
+CREATE PROCEDURE sp_reject_course_session(
+    IN p_session_id INT,
+    OUT p_status_code INT,
+    OUT p_message VARCHAR(255)
+)
+BEGIN
+    DECLARE v_exists INT;
+    
+    -- Verificar que la sesión existe y está pendiente
+    SELECT COUNT(*) INTO v_exists
+    FROM course_sessions
+    WHERE id = p_session_id 
+    AND approval_status = 'pending';
+    
+    IF v_exists = 0 THEN
+        SET p_status_code = 404;
+        SET p_message = 'La sesión no existe o no está pendiente de aprobación';
+    END IF;
+    
+    START TRANSACTION;
+    
+    -- Eliminar los registros del cronograma primero
+    DELETE FROM course_schedules 
+    WHERE session_id = p_session_id;
+    
+    -- Eliminar la sesión
+    DELETE FROM course_sessions 
+    WHERE id = p_session_id;
+    
+    COMMIT;
+    
+    SET p_status_code = 200;
+    SET p_message = 'Sesión rechazada y eliminada exitosamente';
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE PROCEDURE sp_get_pending_apertures()
+BEGIN
+    -- Primer resultset: Información principal
+    SELECT 
+        cs.id as session_id,
+        c.course_key,
+        c.course_name,
+        cs.period,
+        cs.number_of_participants,
+        cs.number_of_certificates,
+        cs.cost,
+        -- Información del centro y director
+        ctr.name AS center_name,
+        ctr.director_full_name AS director_name,
+        ctr.academic_title AS director_title,
+        ctr.gender AS director_gender,
+        -- Resto de información del curso
+        c.modality,
+        c.total_duration,
+        MIN(csch.date) as start_date,
+        MAX(csch.date) as end_date,
+        COUNT(DISTINCT csch.date) as total_days,
+        GROUP_CONCAT(
+            DISTINCT CONCAT(
+                agi.first_name, ' ', 
+                agi.last_name, ' ', 
+                COALESCE(agi.second_last_name, ''),
+                ' (', car.role, ')'
+            ) 
+            SEPARATOR '; '
+        ) as instructors
+    FROM course_sessions cs
+    JOIN courses c ON cs.course_id = c.id
+    JOIN users u ON c.user_id = u.id
+    JOIN centers ctr ON u.center_id = ctr.id
+    LEFT JOIN course_schedules csch ON cs.id = csch.session_id
+    LEFT JOIN course_actor_roles car ON c.id = car.course_id
+    LEFT JOIN actors_general_information agi ON car.actor_id = agi.id
+    WHERE cs.approval_status = 'pending'
+    GROUP BY 
+        cs.id, c.course_key, c.course_name, cs.period,
+        cs.number_of_participants, cs.number_of_certificates,
+        cs.cost, ctr.name, c.modality, c.total_duration,
+        ctr.director_full_name, ctr.academic_title, ctr.gender;
+
+    -- Segundo resultset: Cronograma (sin cambios)
+    SELECT 
+        cs.id as session_id,
+        csch.date,
+        csch.start_time,
+        csch.end_time
+    FROM course_sessions cs
+    JOIN course_schedules csch ON cs.id = csch.session_id
+    WHERE cs.approval_status = 'pending'
+    ORDER BY cs.id, csch.date, csch.start_time;
 END$$
 DELIMITER ;
 
@@ -1956,8 +2100,8 @@ BEGIN
 END$$
 DELIMITER ;
 
-CALL sp_get_current_year_courses();
-CALL sp_get_current_year_diplomas(); 
+CALL sp_get_current_vigent_courses();
+CALL sp_get_current_vigent_diplomas(); 
 CALL sp_get_certificates_delivered_sessions();
 CALL sp_get_certificates_delivered_diplomas();
 

@@ -29,4 +29,13 @@
         public string Start { get; set; }
         public string End { get; set; }
     }
+
+
+    public class SessionApprovalRequest
+    {
+        public int SessionId { get; set; }
+        public string ApprovalStatus { get; set; } // "approved" o "rejected"
+        public IFormFile? OfficialLetter { get; set; } // Solo requerido si es "approved"
+    }
+
 }

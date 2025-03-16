@@ -1,4 +1,3 @@
-// aperture-info.component.ts
 import { Component, inject } from '@angular/core';
 import { ScheduleDialogComponent } from '../../../shared/components/schedule-dialog/schedule-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
@@ -20,7 +19,8 @@ import {
 import { Router } from '@angular/router';
 import Swal from 'sweetalert2';
 import { ApertureStateService } from '../../../core/services/aperture-state.service';
-import { ApertureCoursesSessionsService } from '../../../core/services/aperture-courses-sessions.service';
+import { ApertureCoursesSessionsService } from '../../../core/services/apertute-courses-sessions.service';
+
 import { ViewScheduleDialogComponent } from './view-schedule-dialog/view-schedule-dialog.component';
 
 interface ScheduleEntry {
@@ -67,8 +67,8 @@ export class ApertureInfoComponent {
     private route: ActivatedRoute,
     private fb: FormBuilder,
     private apertureState: ApertureStateService,
-    private apertureCoursesService: ApertureCoursesSessionsService,
-    private router: Router
+    private router: Router,
+    private apertureCoursesService: ApertureCoursesSessionsService
   ) {
     this.route.queryParams.subscribe((params) => {
       this.title = params['title'] || '';

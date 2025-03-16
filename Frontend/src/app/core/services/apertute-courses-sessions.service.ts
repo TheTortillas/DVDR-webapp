@@ -12,7 +12,6 @@ export interface PendingAperture {
   numberOfCertificates: number;
   cost: number;
   centerName: string;
-  // Nuevos campos del director
   directorName: string;
   directorTitle: string;
   directorGender: string;
@@ -23,12 +22,9 @@ export interface PendingAperture {
   totalDays: number;
   instructors: string;
   schedule: ScheduleEntry[];
-}
-
-export interface ScheduleEntry {
-  date: string;
-  start: string; // Cambiamos de startTime a start para que coincida con el DTO
-  end: string; // Cambiamos de endTime a end para que coincida con el DTO
+  signed: boolean;
+  approvalStatus: string;
+  signedRequestLetterPath: string | null;
 }
 
 export interface SessionApprovalRequest {
@@ -41,6 +37,21 @@ export interface SessionOfficialLetter {
   sessionId: number;
   filePath: string;
   documentationFolder: string;
+}
+
+interface ScheduleEntry {
+  date: string;
+  start: string;
+  end: string;
+}
+
+interface CourseSessionRequest {
+  courseKey: string; // 🔍Enviamos la clave del curso
+  period: string;
+  numberOfParticipants: number;
+  numberOfCertificates: number;
+  cost: number;
+  schedule: ScheduleEntry[];
 }
 
 @Injectable({
@@ -61,9 +72,6 @@ export class ApertureCoursesSessionsService {
     const formData = new FormData();
     formData.append('sessionId', data.sessionId.toString());
     formData.append('approvalStatus', data.approvalStatus);
-    if (data.officialLetter) {
-      formData.append('officialLetter', data.officialLetter);
-    }
 
     return this.httpClient.post(
       `${this.URLBase}/api/Course/ApproveOrRejectSession`,
@@ -83,5 +91,28 @@ export class ApertureCoursesSessionsService {
     return this.httpClient.get<SessionOfficialLetter>(
       `${this.URLBase}/api/Course/GetSessionOfficialLetter/${sessionId}`
     );
+  }
+
+  getUserPendingApertures(username: string): Observable<PendingAperture[]> {
+    return this.httpClient.get<PendingAperture[]>(
+      `${this.URLBase}/api/Course/GetUserPendingApertures?username=${username}`
+    );
+  }
+
+  // Método para subir la carta firmada por el usuario
+  uploadSignedRequestLetter(sessionId: number, file: File): Observable<any> {
+    const formData = new FormData();
+    formData.append('sessionId', sessionId.toString());
+    formData.append('file', file);
+
+    return this.httpClient.post(
+      `${this.URLBase}/api/Course/UploadSignedRequestLetter`,
+      formData
+    );
+  }
+
+  registerCourseSession(sessionData: CourseSessionRequest): Observable<any> {
+    const url = this.URLBase + '/api/Course/RegisterCourseSession';
+    return this.httpClient.post(url, sessionData);
   }
 }

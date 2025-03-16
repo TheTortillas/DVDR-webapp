@@ -226,7 +226,7 @@ CREATE TABLE course_sessions (
     status ENUM('pending', 'opened', 'completed') NOT NULL DEFAULT 'opened', -- Estatus del curso (Aperturado, Concluido, En espera)
     approval_status ENUM('pending', 'approved', 'rejected') DEFAULT 'pending' NOT NULL,
     documentation_folder VARCHAR(255) DEFAULT NULL,
-    official_letter_path VARCHAR(255) DEFAULT NULL,
+    signed_request_letter_path VARCHAR(255) DEFAULT NULL,
     certificates_requested TINYINT(1) DEFAULT 0,
     certificates_delivered TINYINT(1) DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -902,10 +902,11 @@ DELIMITER $$
 CREATE PROCEDURE sp_register_course_session(
     IN p_course_id INT,
     IN p_period VARCHAR(255),
-    IN p_number_of_participants INT,
-    IN p_number_of_certificates INT,
+    IN p_num_participants INT,
+    IN p_num_certificates INT,
     IN p_cost DECIMAL(10,2),    
     IN p_schedule_json JSON,
+    IN p_documentation_folder VARCHAR(255),
     OUT p_status_code INT,
     OUT p_message VARCHAR(255)
 )
@@ -922,7 +923,7 @@ BEGIN
 
     START TRANSACTION;
 
-    -- Insertar sesión del curso con status = 'pending' y approval_status = 'pending'
+    -- Insertar sesión del curso con el nuevo campo documentation_folder
     INSERT INTO course_sessions (
         course_id, 
         period, 
@@ -930,22 +931,23 @@ BEGIN
         number_of_certificates,
         cost,
         status,
-        approval_status
+        approval_status,
+        documentation_folder
     )
     VALUES (
         p_course_id, 
         p_period, 
-        p_number_of_participants, 
-        p_number_of_certificates,
+        p_num_participants, 
+        p_num_certificates,
         p_cost,
+        'opened',
         'pending',
-        'pending'
+        p_documentation_folder
     );
 
-    -- Obtener el ID de la sesión recién insertada
     SET v_session_id = LAST_INSERT_ID();
 
-    -- Insertar cronograma usando JSON_TABLE
+    -- Insertar cronograma
     INSERT INTO course_schedules (session_id, date, start_time, end_time)
     SELECT v_session_id, t.date, t.start_time, t.end_time
     FROM JSON_TABLE(
@@ -959,18 +961,48 @@ BEGIN
     ) AS t;
 
     COMMIT;
-
-    -- Confirmación de éxito
     SET p_status_code = 1;
     SET p_message = 'Sesión de curso y cronograma guardados exitosamente.';
 END$$
 DELIMITER ;
 
 DELIMITER $$
-CREATE PROCEDURE sp_approve_course_session(
+CREATE PROCEDURE sp_upload_signed_request_letter(
     IN p_session_id INT,
     IN p_file_path VARCHAR(255),
-    IN p_folder_name VARCHAR(255),
+    OUT p_status_code INT,
+    OUT p_message VARCHAR(255)
+)
+BEGIN
+    DECLARE v_exists INT;
+    
+    -- Verificar que la sesión existe
+    SELECT COUNT(*) INTO v_exists
+    FROM course_sessions
+    WHERE id = p_session_id;
+    
+    IF v_exists = 0 THEN
+        SET p_status_code = 404;
+        SET p_message = 'La sesión no existe';
+    END IF;
+    
+    START TRANSACTION;
+    
+    -- Actualizar la ruta del PDF firmado
+    UPDATE course_sessions
+    SET signed_request_letter_path = p_file_path
+    WHERE id = p_session_id;
+    
+    COMMIT;
+    
+    SET p_status_code = 200;
+    SET p_message = 'PDF firmado subido exitosamente';
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE PROCEDURE sp_approve_course_session(
+    IN p_session_id INT,
     OUT p_status_code INT,
     OUT p_message VARCHAR(255)
 )
@@ -980,31 +1012,30 @@ BEGIN
     -- Verificar que la sesión existe y está pendiente
     SELECT COUNT(*) INTO v_exists
     FROM course_sessions
-    WHERE id = p_session_id 
-    AND approval_status = 'pending';
+    WHERE id = p_session_id AND approval_status = 'pending';
     
     IF v_exists = 0 THEN
         SET p_status_code = 404;
-        SET p_message = 'La sesión no existe o no está pendiente de aprobación';
+        SET p_message = 'La sesión no existe o no está pendiente';
     END IF;
     
-    START TRANSACTION;
+    START TRANSACTION; -- También faltaba iniciar una transacción
     
-    -- Actualizar la sesión
+    -- Actualizar el estado a aprobado
     UPDATE course_sessions
     SET 
         approval_status = 'approved',
-        official_letter_path = p_file_path,
-        documentation_folder = p_folder_name,
-        status = 'opened'  -- Cambiamos el status a opened ya que fue aprobada
+        status = 'opened'
     WHERE id = p_session_id;
     
-    COMMIT;
+    COMMIT; -- Y confirmar la transacción
     
     SET p_status_code = 200;
     SET p_message = 'Sesión aprobada exitosamente';
 END$$
-select * from users;
+DELIMITER ;
+
+DELIMITER $$
 CREATE PROCEDURE sp_reject_course_session(
     IN p_session_id INT,
     OUT p_status_code INT,
@@ -1013,20 +1044,19 @@ CREATE PROCEDURE sp_reject_course_session(
 BEGIN
     DECLARE v_exists INT;
     
-    -- Verificar que la sesión existe y está pendiente
+    -- Verificar que la sesión existe
     SELECT COUNT(*) INTO v_exists
     FROM course_sessions
-    WHERE id = p_session_id 
-    AND approval_status = 'pending';
+    WHERE id = p_session_id;
     
     IF v_exists = 0 THEN
         SET p_status_code = 404;
-        SET p_message = 'La sesión no existe o no está pendiente de aprobación';
+        SET p_message = 'La sesión no existe';
     END IF;
     
     START TRANSACTION;
     
-    -- Eliminar los registros del cronograma primero
+    -- Eliminar el cronograma
     DELETE FROM course_schedules 
     WHERE session_id = p_session_id;
     
@@ -1053,6 +1083,7 @@ BEGIN
         cs.number_of_participants,
         cs.number_of_certificates,
         cs.cost,
+        cs.signed_request_letter_path,
         -- Información del centro y director
         ctr.name AS center_name,
         ctr.director_full_name AS director_name,
@@ -1096,6 +1127,82 @@ BEGIN
     FROM course_sessions cs
     JOIN course_schedules csch ON cs.id = csch.session_id
     WHERE cs.approval_status = 'pending'
+    ORDER BY cs.id, csch.date, csch.start_time;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE PROCEDURE sp_get_user_pending_apertures(
+    IN p_username VARCHAR(50)
+)
+BEGIN
+    -- Obtener el centro del usuario
+    DECLARE v_center_id INT;
+    
+    SELECT u.center_id INTO v_center_id
+    FROM users u
+    WHERE u.username = p_username;
+    
+    -- Primer resultset: Información principal de las aperturas del mismo centro
+    SELECT 
+        cs.id as sessionId,
+        c.course_key as courseKey,
+        c.course_name as courseName,
+        cs.period,
+        cs.number_of_participants as numberOfParticipants,
+        cs.number_of_certificates as numberOfCertificates,
+        cs.cost,
+        cs.signed_request_letter_path as signedRequestLetterPath,
+        cs.approval_status as approvalStatus,
+        -- Información del centro y director
+        ctr.name AS centerName,
+        ctr.director_full_name AS directorName,
+        ctr.academic_title AS directorTitle,
+        ctr.gender AS directorGender,
+        -- Resto de información del curso
+        c.modality,
+        c.total_duration as totalDuration,
+        MIN(csch.date) as startDate,
+        MAX(csch.date) as endDate,
+        COUNT(DISTINCT csch.date) as totalDays,
+        -- Indicador si está firmado o no
+        IF(cs.signed_request_letter_path IS NULL OR cs.signed_request_letter_path = '', 0, 1) AS signed,
+        GROUP_CONCAT(
+            DISTINCT CONCAT(
+                agi.first_name, ' ', 
+                agi.last_name, ' ', 
+                COALESCE(agi.second_last_name, ''),
+                ' (', car.role, ')'
+            ) 
+            SEPARATOR '; '
+        ) as instructors
+    FROM course_sessions cs
+    JOIN courses c ON cs.course_id = c.id
+    JOIN users u ON c.user_id = u.id
+    JOIN centers ctr ON u.center_id = ctr.id
+    LEFT JOIN course_schedules csch ON cs.id = csch.session_id
+    LEFT JOIN course_actor_roles car ON c.id = car.course_id
+    LEFT JOIN actors_general_information agi ON car.actor_id = agi.id
+    WHERE ctr.id = v_center_id
+    GROUP BY 
+        cs.id, c.course_key, c.course_name, cs.period,
+        cs.number_of_participants, cs.number_of_certificates,
+        cs.cost, ctr.name, c.modality, c.total_duration,
+        ctr.director_full_name, ctr.academic_title, ctr.gender,
+        cs.signed_request_letter_path, cs.approval_status;
+
+    -- Segundo resultset: Cronograma 
+    SELECT 
+        cs.id as sessionId,
+        csch.date,
+        csch.start_time as start,
+        csch.end_time as end
+    FROM course_sessions cs
+    JOIN course_schedules csch ON cs.id = csch.session_id
+    JOIN courses c ON cs.course_id = c.id
+    JOIN users u ON c.user_id = u.id
+    JOIN centers ctr ON u.center_id = ctr.id
+    WHERE ctr.id = v_center_id
     ORDER BY cs.id, csch.date, csch.start_time;
 END$$
 DELIMITER ;

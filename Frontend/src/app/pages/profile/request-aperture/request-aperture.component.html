@@ -77,5 +77,105 @@
         <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
       </table>
     </div>
+    <!-- Nueva sección de aperturas pendientes -->
+    <div
+      id="pendingAperturesSection"
+      class="bg-white border border-gray-400 rounded-lg p-8 shadow"
+    >
+      <div class="text-center mb-6">
+        <h2 class="heading">Mis solicitudes de apertura</h2>
+      </div>
+
+      <table mat-table [dataSource]="pendingApertures" class="w-full">
+        <ng-container matColumnDef="courseKey">
+          <th mat-header-cell *matHeaderCellDef>Clave</th>
+          <td mat-cell *matCellDef="let element">{{ element.courseKey }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="courseName">
+          <th mat-header-cell *matHeaderCellDef>Nombre</th>
+          <td mat-cell *matCellDef="let element">{{ element.courseName }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="period">
+          <th mat-header-cell *matHeaderCellDef>Periodo</th>
+          <td mat-cell *matCellDef="let element">{{ element.period }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="participants">
+          <th mat-header-cell *matHeaderCellDef>Participantes</th>
+          <td mat-cell *matCellDef="let element">
+            {{ element.numberOfParticipants }}
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="cost">
+          <th mat-header-cell *matHeaderCellDef>Costo</th>
+          <td mat-cell *matCellDef="let element">
+            {{ element.cost | currency }}
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="status">
+          <th mat-header-cell *matHeaderCellDef>Estado</th>
+          <td mat-cell *matCellDef="let element">
+            <span
+              *ngIf="element.approvalStatus === 'pending'"
+              class="badge bg-warning"
+              >Pendiente</span
+            >
+            <span
+              *ngIf="element.approvalStatus === 'approved'"
+              class="badge bg-success"
+              >Aprobado</span
+            >
+            <span
+              *ngIf="element.approvalStatus === 'rejected'"
+              class="badge bg-danger"
+              >Rechazado</span
+            >
+            <span *ngIf="!element.signed" class="badge bg-info ml-2"
+              >Requiere firma</span
+            >
+            <span *ngIf="element.signed" class="badge bg-primary ml-2"
+              >Firmado</span
+            >
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef>Acciones</th>
+          <td mat-cell *matCellDef="let element">
+            <button
+              mat-icon-button
+              color="primary"
+              (click)="generatePDF(element)"
+              matTooltip="Descargar formato"
+            >
+              <mat-icon>picture_as_pdf</mat-icon>
+            </button>
+
+            <button
+              mat-icon-button
+              color="accent"
+              (click)="uploadSignedDocument(element.sessionId)"
+              [disabled]="
+                element.signed || element.approvalStatus !== 'pending'
+              "
+              matTooltip="Subir firmado"
+            >
+              <mat-icon>upload</mat-icon>
+            </button>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="pendingAperturesColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: pendingAperturesColumns"></tr>
+      </table>
+
+      <div *ngIf="pendingApertures.length === 0" class="text-center py-8">
+        <p>No tienes solicitudes de apertura pendientes</p>
+      </div>
+    </div>
   </div>
 </main>

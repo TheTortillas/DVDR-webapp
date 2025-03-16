@@ -136,9 +136,7 @@ namespace DVDR_courses.Controllers
             if (request == null)
                 return BadRequest(new { message = "Datos inválidos" });
 
-            if (request.ApprovalStatus == "approved" && (request.OfficialLetter == null || request.OfficialLetter.Length == 0))
-                return BadRequest(new { message = "El oficio es requerido para aprobar la sesión" });
-
+            // Ya no se valida el archivo, ahora lo importante es que exista el documento firmado en la BD
             var dbManager = new DBManager(_config);
             var result = await dbManager.ApproveOrRejectSession(request);
 
@@ -179,6 +177,55 @@ namespace DVDR_courses.Controllers
             catch (Exception ex)
             {
                 return StatusCode(500, new { message = "Error interno del servidor", error = ex.Message });
+            }
+        }
+
+        [HttpGet("GetUserPendingApertures")]
+        public IActionResult GetUserPendingApertures([FromQuery] string username)
+        {
+            if (string.IsNullOrEmpty(username))
+            {
+                return BadRequest(new { message = "El nombre de usuario es requerido." });
+            }
+
+            try
+            {
+                var dbManager = new DBManager(_config);
+                var pendingApertures = dbManager.GetUserPendingApertures(username);
+
+                if (pendingApertures == null)
+                    return StatusCode(500, new { message = "Error al obtener las aperturas pendientes del centro" });
+
+                if (!pendingApertures.Any())
+                    return Ok(new { message = "No hay aperturas pendientes para este centro", data = pendingApertures });
+
+                return Ok(pendingApertures);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Error interno del servidor", error = ex.Message });
+            }
+        }
+
+        [HttpPost("UploadSignedRequestLetter")]
+        public async Task<IActionResult> UploadSignedRequestLetter([FromForm] UploadSignedRequestLetterDTO request)
+        {
+            if (request.File == null || request.File.Length == 0)
+                return BadRequest(new { message = "El archivo PDF es requerido" });
+
+            try
+            {
+                var dbManager = new DBManager(_config);
+                var result = await dbManager.UploadSignedRequestLetter(request);
+
+                if (result.statusCode == 200)
+                    return Ok(new { message = result.message });
+
+                return StatusCode(result.statusCode, new { message = result.message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Error al procesar la solicitud", error = ex.Message });
             }
         }
 

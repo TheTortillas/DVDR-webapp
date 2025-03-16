@@ -803,7 +803,7 @@ namespace DVDR_courses
                 {
                     con.Open();
 
-                    // 🔍 Obtener el course_id basado en la clave del curso
+                    // 1. Obtener el course_id
                     var courseCmd = new MySqlCommand("SELECT id FROM courses WHERE course_key = @course_key", con);
                     courseCmd.Parameters.AddWithValue("@course_key", request.CourseKey);
                     var courseId = Convert.ToInt32(courseCmd.ExecuteScalar());
@@ -813,7 +813,17 @@ namespace DVDR_courses
                         return (-1, "Error: No se encontró un curso con la clave proporcionada.");
                     }
 
-                    // 🔄 Convertir el cronograma a JSON con formato correcto de 24 horas
+                    // 2. Crear el folder de documentación
+                    string folder = Guid.NewGuid().ToString();
+                    var basePath = Path.Combine("assets", "files", "signed-request-letters", folder);
+                    var physicalPath = Path.Combine("..", "..", "..", "Frontend", "public", basePath);
+
+                    if (!Directory.Exists(physicalPath))
+                    {
+                        Directory.CreateDirectory(physicalPath);
+                    }
+
+                    // 3. Preparar el JSON del cronograma
                     var scheduleJson = JsonConvert.SerializeObject(
                         request.Schedule.Select(entry => new
                         {
@@ -823,26 +833,30 @@ namespace DVDR_courses
                         })
                     );
 
-                    // 🔥 Llamada al procedimiento almacenado actualizado con el costo
-                    var cmd = new MySqlCommand("CALL sp_register_course_session(@course_id, @period, @num_participants, @num_certificates, @cost, @schedule_json, @status_code, @message)", con);
-                    cmd.Parameters.AddWithValue("@course_id", courseId);
-                    cmd.Parameters.AddWithValue("@period", request.Period);
-                    cmd.Parameters.AddWithValue("@num_participants", request.NumberOfParticipants);
-                    cmd.Parameters.AddWithValue("@num_certificates", request.NumberOfCertificates);
-                    cmd.Parameters.AddWithValue("@cost", request.Cost); // Nuevo parámetro para el costo
-                    cmd.Parameters.AddWithValue("@schedule_json", scheduleJson);
+                    // 4. Llamar al SP con el nuevo parámetro del folder
+                    using (var cmd = new MySqlCommand("sp_register_course_session", con))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+                        cmd.Parameters.AddWithValue("p_course_id", courseId);
+                        cmd.Parameters.AddWithValue("p_period", request.Period);
+                        cmd.Parameters.AddWithValue("p_num_participants", request.NumberOfParticipants);
+                        cmd.Parameters.AddWithValue("p_num_certificates", request.NumberOfCertificates);
+                        cmd.Parameters.AddWithValue("p_cost", request.Cost);
+                        cmd.Parameters.AddWithValue("p_schedule_json", scheduleJson);
+                        cmd.Parameters.AddWithValue("p_documentation_folder", folder);
 
-                    var statusCodeParam = new MySqlParameter("@status_code", MySqlDbType.Int32) { Direction = ParameterDirection.Output };
-                    var messageParam = new MySqlParameter("@message", MySqlDbType.VarChar, 255) { Direction = ParameterDirection.Output };
-                    cmd.Parameters.Add(statusCodeParam);
-                    cmd.Parameters.Add(messageParam);
+                        var statusCodeParam = new MySqlParameter("p_status_code", MySqlDbType.Int32)
+                        { Direction = ParameterDirection.Output };
+                        var messageParam = new MySqlParameter("p_message", MySqlDbType.VarChar, 255)
+                        { Direction = ParameterDirection.Output };
 
-                    cmd.ExecuteNonQuery();
+                        cmd.Parameters.Add(statusCodeParam);
+                        cmd.Parameters.Add(messageParam);
 
-                    int statusCode = Convert.ToInt32(statusCodeParam.Value);
-                    string message = messageParam.Value.ToString();
+                        cmd.ExecuteNonQuery();
 
-                    return (statusCode, message);
+                        return (Convert.ToInt32(statusCodeParam.Value), messageParam.Value.ToString());
+                    }
                 }
             }
             catch (Exception ex)
@@ -862,27 +876,22 @@ namespace DVDR_courses
 
                     if (request.ApprovalStatus == "approved")
                     {
-                        // Crear carpeta para el oficio
-                        var folder = Guid.NewGuid().ToString();
-                        var basePath = Path.Combine("assets", "files", "session-approvals", folder);
-                        var physicalPath = Path.Combine("..", "..", "..", "Frontend", "public", basePath);
-                        Directory.CreateDirectory(physicalPath);
-
-                        var fileName = request.OfficialLetter.FileName;
-                        var finalPath = Path.Combine(physicalPath, fileName);
-                        using (var stream = new FileStream(finalPath, FileMode.Create))
+                        // Verificar si la sesión existe y si tiene un documento firmado
+                        using (var checkCmd = new MySqlCommand("SELECT signed_request_letter_path FROM course_sessions WHERE id = @sessionId", con))
                         {
-                            await request.OfficialLetter.CopyToAsync(stream);
-                        }
+                            checkCmd.Parameters.AddWithValue("@sessionId", request.SessionId);
+                            var signedDocPath = checkCmd.ExecuteScalar() as string;
 
-                        var savedPath = Path.Combine(basePath, fileName);
+                            if (string.IsNullOrEmpty(signedDocPath))
+                            {
+                                return (400, "No se puede aprobar una sesión sin documento firmado");
+                            }
+                        }
 
                         using (var cmd = new MySqlCommand("sp_approve_course_session", con))
                         {
                             cmd.CommandType = CommandType.StoredProcedure;
                             cmd.Parameters.AddWithValue("p_session_id", request.SessionId);
-                            cmd.Parameters.AddWithValue("p_file_path", savedPath);
-                            cmd.Parameters.AddWithValue("p_folder_name", folder);
 
                             var statusCodeParam = new MySqlParameter("p_status_code", MySqlDbType.Int32)
                             { Direction = ParameterDirection.Output };
@@ -892,13 +901,80 @@ namespace DVDR_courses
                             cmd.Parameters.Add(statusCodeParam);
                             cmd.Parameters.Add(messageParam);
 
-                            cmd.ExecuteNonQuery();
+                            await cmd.ExecuteNonQueryAsync();
 
                             return (Convert.ToInt32(statusCodeParam.Value), messageParam.Value.ToString());
                         }
                     }
                     else
                     {
+                        // Obtener la información de la sesión antes de eliminarla
+                        string documentPath = string.Empty;
+                        string folder = string.Empty;
+
+                        using (var cmdGet = new MySqlCommand(
+                            "SELECT signed_request_letter_path, documentation_folder FROM course_sessions WHERE id = @sessionId",
+                            con))
+                        {
+                            cmdGet.Parameters.AddWithValue("@sessionId", request.SessionId);
+                            using (var reader = cmdGet.ExecuteReader())
+                            {
+                                if (reader.Read())
+                                {
+                                    documentPath = reader["signed_request_letter_path"]?.ToString() ?? string.Empty;
+                                    folder = reader["documentation_folder"]?.ToString() ?? string.Empty;
+                                }
+                            }
+                        }
+
+                        // Para manejar el borrado de carpetas
+                        using (var cmdCheckFolder = new MySqlCommand(
+                            "SELECT COUNT(*) FROM course_sessions WHERE documentation_folder = @folder AND id != @sessionId",
+                            con))
+                        {
+                            cmdCheckFolder.Parameters.AddWithValue("@folder", folder);
+                            cmdCheckFolder.Parameters.AddWithValue("@sessionId", request.SessionId);
+                            int otherSessionsCount = Convert.ToInt32(cmdCheckFolder.ExecuteScalar());
+
+                            // Eliminar solo el archivo específico si hay otras sesiones usando la carpeta
+                            if (!string.IsNullOrEmpty(documentPath))
+                            {
+                                var physicalPath = Path.Combine("..", "..", "..", "Frontend", "public", documentPath);
+                                if (File.Exists(physicalPath))
+                                {
+                                    try
+                                    {
+                                        File.Delete(physicalPath);
+                                        Console.WriteLine($"Archivo eliminado: {physicalPath}");
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        Console.WriteLine($"No se pudo borrar el archivo: {ex.Message}");
+                                        // Continuar con la eliminación aunque no se haya podido borrar el archivo
+                                    }
+                                }
+                            }
+
+                            // Borrar la carpeta solo si no hay otras sesiones usándola
+                            if (otherSessionsCount == 0 && !string.IsNullOrEmpty(folder))
+                            {
+                                var folderPath = Path.Combine("..", "..", "..", "Frontend", "public", "assets", "files", "signed-request-letters", folder);
+                                if (Directory.Exists(folderPath))
+                                {
+                                    try
+                                    {
+                                        Directory.Delete(folderPath, true); // true = borrar recursivamente
+                                        Console.WriteLine($"Carpeta eliminada: {folderPath}");
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        Console.WriteLine($"No se pudo borrar la carpeta: {ex.Message}");
+                                        // Continuar con la eliminación de la sesión aunque no se haya podido borrar la carpeta
+                                    }
+                                }
+                            }
+                        }
+
                         using (var cmd = new MySqlCommand("sp_reject_course_session", con))
                         {
                             cmd.CommandType = CommandType.StoredProcedure;
@@ -912,7 +988,7 @@ namespace DVDR_courses
                             cmd.Parameters.Add(statusCodeParam);
                             cmd.Parameters.Add(messageParam);
 
-                            cmd.ExecuteNonQuery();
+                            await cmd.ExecuteNonQueryAsync();
 
                             return (Convert.ToInt32(statusCodeParam.Value), messageParam.Value.ToString());
                         }
@@ -921,8 +997,188 @@ namespace DVDR_courses
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error: {ex.Message}");
+                Console.WriteLine($"Error en ApproveOrRejectSession: {ex.Message}");
+                Console.WriteLine($"StackTrace: {ex.StackTrace}");
                 return (500, "Error interno del servidor.");
+            }
+        }
+
+        public List<PendingApertureDTO> GetUserPendingApertures(string username)
+        {
+            try
+            {
+                var pendingApertures = new List<PendingApertureDTO>();
+                var schedulesBySessionId = new Dictionary<int, List<ScheduleEntryDTO>>();
+
+                using (var con = new MySqlConnection(_config.GetConnectionString("default")))
+                {
+                    con.Open();
+
+                    using (var cmd = new MySqlCommand("sp_get_user_pending_apertures", con))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+                        cmd.Parameters.AddWithValue("p_username", username);
+
+                        using (var reader = cmd.ExecuteReader())
+                        {
+                            // Leer los datos principales de las aperturas
+                            while (reader.Read())
+                            {
+                                try
+                                {
+                                    var pendingAperture = new PendingApertureDTO
+                                    {
+                                        SessionId = reader.GetInt32("sessionId"),
+                                        CourseKey = reader.IsDBNull("courseKey") ? string.Empty : reader.GetString("courseKey"),
+                                        CourseName = reader.IsDBNull("courseName") ? string.Empty : reader.GetString("courseName"),
+                                        Period = reader.IsDBNull("period") ? string.Empty : reader.GetString("period"),
+                                        NumberOfParticipants = reader.IsDBNull("numberOfParticipants") ? 0 : reader.GetInt32("numberOfParticipants"),
+                                        NumberOfCertificates = reader.IsDBNull("numberOfCertificates") ? 0 : reader.GetInt32("numberOfCertificates"),
+                                        Cost = reader.IsDBNull("cost") ? 0 : reader.GetDecimal("cost"),
+                                        SignedRequestLetterPath = reader.IsDBNull("signedRequestLetterPath") ? null : reader.GetString("signedRequestLetterPath"),
+                                        CenterName = reader.IsDBNull("centerName") ? string.Empty : reader.GetString("centerName"),
+                                        // Campos del director
+                                        DirectorName = reader.IsDBNull("directorName") ? string.Empty : reader.GetString("directorName"),
+                                        DirectorTitle = reader.IsDBNull("directorTitle") ? string.Empty : reader.GetString("directorTitle"),
+                                        DirectorGender = reader.IsDBNull("directorGender") ? string.Empty : reader.GetString("directorGender"),
+                                        // Resto de campos
+                                        Modality = reader.IsDBNull("modality") ? string.Empty : reader.GetString("modality"),
+                                        TotalDuration = reader.IsDBNull("totalDuration") ? 0 : reader.GetInt32("totalDuration"),
+                                        StartDate = reader.IsDBNull("startDate") ? DateTime.MinValue : reader.GetDateTime("startDate"),
+                                        EndDate = reader.IsDBNull("endDate") ? DateTime.MinValue : reader.GetDateTime("endDate"),
+                                        TotalDays = reader.IsDBNull("totalDays") ? 0 : reader.GetInt32("totalDays"),
+                                        Instructors = reader.IsDBNull("instructors") ? string.Empty : reader.GetString("instructors"),
+                                        // Nuevos campos
+                                        Signed = reader.IsDBNull("signed") ? false : reader.GetBoolean("signed"),
+                                        ApprovalStatus = reader.IsDBNull("approvalStatus") ? "pending" : reader.GetString("approvalStatus"),
+                                        Schedule = new List<ScheduleEntryDTO>()
+                                    };
+
+                                    pendingApertures.Add(pendingAperture);
+                                    schedulesBySessionId[pendingAperture.SessionId] = pendingAperture.Schedule;
+                                }
+                                catch (Exception ex)
+                                {
+                                    Console.WriteLine($"Error al leer una apertura: {ex.Message}");
+                                    // Continuar con la siguiente apertura
+                                }
+                            }
+
+                            // Leer el cronograma
+                            if (reader.NextResult())
+                            {
+                                while (reader.Read())
+                                {
+                                    try
+                                    {
+                                        var sessionId = reader.GetInt32("sessionId");
+
+                                        if (schedulesBySessionId.ContainsKey(sessionId))
+                                        {
+                                            var schedule = new ScheduleEntryDTO
+                                            {
+                                                Date = reader.IsDBNull("date") ? string.Empty : reader.GetDateTime("date").ToString("yyyy-MM-dd"),
+                                                Start = reader.IsDBNull("start") ? string.Empty : reader.GetTimeSpan("start").ToString(@"hh\:mm"),
+                                                End = reader.IsDBNull("end") ? string.Empty : reader.GetTimeSpan("end").ToString(@"hh\:mm")
+                                            };
+
+                                            schedulesBySessionId[sessionId].Add(schedule);
+                                        }
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        Console.WriteLine($"Error al leer una entrada de cronograma: {ex.Message}");
+                                        // Continuar con la siguiente entrada
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                return pendingApertures;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error en GetUserPendingApertures: {ex.Message}");
+                return new List<PendingApertureDTO>(); // Devolver lista vacía en lugar de null
+            }
+        }
+        public async Task<(int statusCode, string message)> UploadSignedRequestLetter(UploadSignedRequestLetterDTO request)
+        {
+            try
+            {
+                using (var con = new MySqlConnection(_config.GetConnectionString("default")))
+                {
+                    con.Open();
+
+                    // 1. Verificar si ya existe un folder para esta sesión
+                    string query = "SELECT documentation_folder FROM course_sessions WHERE id = @sessionId";
+                    string folder;
+
+                    using (var cmd = new MySqlCommand(query, con))
+                    {
+                        cmd.Parameters.AddWithValue("@sessionId", request.SessionId);
+                        var existingFolder = cmd.ExecuteScalar()?.ToString();
+
+                        if (string.IsNullOrEmpty(existingFolder))
+                        {
+                            // Si no existe folder, crear uno nuevo
+                            folder = Guid.NewGuid().ToString();
+                        }
+                        else
+                        {
+                            // Si existe, usar el mismo folder
+                            folder = existingFolder;
+                        }
+                    }
+
+                    // 2. Crear/verificar la estructura de carpetas
+                    var basePath = Path.Combine("assets", "files", "signed-request-letters", folder);
+                    var physicalPath = Path.Combine("..", "..", "..", "Frontend", "public", basePath);
+
+                    if (!Directory.Exists(physicalPath))
+                    {
+                        Directory.CreateDirectory(physicalPath);
+                    }
+
+                    // 3. Guardar el archivo
+                    var fileName = request.File.FileName;
+                    var finalPath = Path.Combine(physicalPath, fileName);
+                    var savedPath = Path.Combine(basePath, fileName);
+
+                    using (var stream = new FileStream(finalPath, FileMode.Create))
+                    {
+                        await request.File.CopyToAsync(stream);
+                    }
+
+                    // 4. Actualizar la base de datos
+                    using (var cmd = new MySqlCommand("sp_upload_signed_request_letter", con))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+                        cmd.Parameters.AddWithValue("p_session_id", request.SessionId);
+                        cmd.Parameters.AddWithValue("p_file_path", savedPath);
+                        cmd.Parameters.AddWithValue("p_folder_name", folder);
+
+                        var statusCodeParam = new MySqlParameter("p_status_code", MySqlDbType.Int32)
+                        { Direction = ParameterDirection.Output };
+                        var messageParam = new MySqlParameter("p_message", MySqlDbType.VarChar, 255)
+                        { Direction = ParameterDirection.Output };
+
+                        cmd.Parameters.Add(statusCodeParam);
+                        cmd.Parameters.Add(messageParam);
+
+                        cmd.ExecuteNonQuery();
+
+                        return (Convert.ToInt32(statusCodeParam.Value), messageParam.Value.ToString());
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error en UploadSignedRequestLetter: {ex.Message}");
+                Console.WriteLine($"StackTrace: {ex.StackTrace}");
+                return (500, "Error al procesar la solicitud");
             }
         }
 
@@ -956,6 +1212,7 @@ namespace DVDR_courses
                                         NumberOfParticipants = reader.IsDBNull("number_of_participants") ? 0 : reader.GetInt32("number_of_participants"),
                                         NumberOfCertificates = reader.IsDBNull("number_of_certificates") ? 0 : reader.GetInt32("number_of_certificates"),
                                         Cost = reader.IsDBNull("cost") ? 0 : reader.GetDecimal("cost"),
+                                        SignedRequestLetterPath = reader.IsDBNull("signed_request_letter_path") ? null : reader.GetString("signed_request_letter_path"),
                                         CenterName = reader.IsDBNull("center_name") ? string.Empty : reader.GetString("center_name"),
                                         // Nuevos campos
                                         DirectorName = reader.IsDBNull("director_name") ? string.Empty : reader.GetString("director_name"),

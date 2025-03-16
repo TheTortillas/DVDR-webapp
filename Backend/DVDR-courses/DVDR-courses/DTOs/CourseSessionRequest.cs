@@ -35,7 +35,6 @@
     {
         public int SessionId { get; set; }
         public string ApprovalStatus { get; set; } // "approved" o "rejected"
-        public IFormFile? OfficialLetter { get; set; } // Solo requerido si es "approved"
     }
 
 }

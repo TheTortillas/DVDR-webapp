@@ -7,6 +7,7 @@
     public int NumberOfParticipants { get; set; }
     public int NumberOfCertificates { get; set; }
     public decimal Cost { get; set; }
+    public string? SignedRequestLetterPath { get; set; }
     public string CenterName { get; set; }
     // Nuevos campos del director
     public string DirectorName { get; set; }
@@ -18,6 +19,8 @@
     public DateTime EndDate { get; set; }
     public int TotalDays { get; set; }
     public string Instructors { get; set; }
+    public bool? Signed { get; set; }
+    public string? ApprovalStatus { get; set; }
     public List<ScheduleEntryDTO> Schedule { get; set; } = new List<ScheduleEntryDTO>();
 }
 

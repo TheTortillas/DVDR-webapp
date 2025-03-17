@@ -744,6 +744,7 @@ namespace DVDR_courses
                                 CreatedAt = reader.GetDateTime("created_at"), // Leer la fecha de creación
                                 Status = reader.GetString("status"), // Leer el status
                                 ApprovalStatus = reader.GetString("approval_status"), // Leer el approval_status
+                                VerificationStatus = reader.GetString("verification_status"), // Leer el verification_status
                                 Center = reader.GetString("center_name"),
                                 Documents = new List<DocumentResponse>()
                             };
@@ -1610,7 +1611,8 @@ namespace DVDR_courses
                     // Obtener datos del curso
                     var getCourseCmd = new MySqlCommand(@"
                 SELECT c.id, c.parent_course_id, c.renewal_count,
-                       u.center_id, ctr.type AS centerType, ctr.identifier AS centerIdentifier
+                       u.center_id, ctr.type AS centerType, ctr.identifier AS centerIdentifier,
+                       c.verification_status
                 FROM courses c
                 JOIN users u ON c.user_id = u.id
                 JOIN centers ctr ON u.center_id = ctr.id
@@ -1623,6 +1625,15 @@ namespace DVDR_courses
                         if (!reader.Read())
                         {
                             return (0, "No se encontró el curso para actualizar.");
+                        }
+
+                        // Verificar que el curso haya sido verificado primero (si está siendo aprobado)
+                        var verificationStatus = reader["verification_status"].ToString();
+
+                        if (approvalStatus.Equals("approved", StringComparison.OrdinalIgnoreCase) &&
+                            !verificationStatus.Equals("approved", StringComparison.OrdinalIgnoreCase))
+                        {
+                            return (0, "El curso debe ser verificado antes de ser aprobado.");
                         }
 
                         var parentCourseId = reader["parent_course_id"] as int?;
@@ -1729,6 +1740,57 @@ namespace DVDR_courses
             {
                 Console.WriteLine($"Error en UpdateCourseApprovalStatus: {ex.Message}");
                 return (0, "Error al actualizar el estado de aprobación.");
+            }
+        }
+
+        public (int statusCode, string message) UpdateCourseVerificationStatus(int courseId, string verificationStatus, string? verificationNotes = null)
+        {
+            try
+            {
+                using (var con = new MySqlConnection(_config.GetConnectionString("default")))
+                {
+                    con.Open();
+
+                    // Verificar si el curso existe
+                    var getCourseCmd = new MySqlCommand("SELECT id FROM courses WHERE id = @courseId", con);
+                    getCourseCmd.Parameters.AddWithValue("@courseId", courseId);
+
+                    var courseExists = getCourseCmd.ExecuteScalar();
+                    if (courseExists == null)
+                    {
+                        return (0, "No se encontró el curso para actualizar.");
+                    }
+
+                    // Actualizar el estado de verificación
+                    var sqlUpdate = @"
+                UPDATE courses
+                SET verification_status = @verificationStatus,
+                    verification_notes = @verificationNotes
+                WHERE id = @courseId;
+            ";
+
+                    using (var cmd = new MySqlCommand(sqlUpdate, con))
+                    {
+                        cmd.Parameters.AddWithValue("@verificationStatus", verificationStatus);
+                        cmd.Parameters.AddWithValue("@verificationNotes", verificationNotes ?? (object)DBNull.Value);
+                        cmd.Parameters.AddWithValue("@courseId", courseId);
+
+                        var rows = cmd.ExecuteNonQuery();
+
+                        string statusMessage = verificationStatus.Equals("approved", StringComparison.OrdinalIgnoreCase)
+                            ? "Curso verificado exitosamente."
+                            : "Curso rechazado en verificación.";
+
+                        return rows > 0
+                            ? (1, statusMessage)
+                            : (0, "No se pudo actualizar el estado de verificación del curso.");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error en UpdateCourseVerificationStatus: {ex.Message}");
+                return (0, "Error al actualizar el estado de verificación.");
             }
         }
 

@@ -53,7 +53,9 @@
         public DateTime CreatedAt { get; set; } // Incluir la fecha de creación
         public string Status { get; set; } // Incluir el status
         public string ApprovalStatus { get; set; } // Incluir el approval_status
-        public string AdminNotes { get; set; } // Incluir las notas del administrador
+        public string VerificationStatus { get; set; } // Incluir el verification_status
+        public string? AdminNotes { get; set; } // Incluir las notas del administrador
+        public string? VerificarionNotes { get; set; }
         public string Center { get; set; }
     }
 

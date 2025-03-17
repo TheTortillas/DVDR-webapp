@@ -23,7 +23,7 @@ CREATE TABLE users (
     last_name VARCHAR(100) NOT NULL,
     second_last_name VARCHAR(100),
     center_id INT, 
-    role ENUM('root', 'user') NOT NULL DEFAULT 'user',
+    role ENUM('root', 'user', 'verifier') NOT NULL DEFAULT 'user',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (center_id) REFERENCES centers(id)
 );
@@ -40,9 +40,14 @@ CREATE TABLE courses (
    educational_platform VARCHAR(255),
    other_educationals_platforms VARCHAR(255),
    course_key VARCHAR(50),
+   
    status ENUM('draft', 'submitted') DEFAULT 'submitted' NOT NULL,
    approval_status ENUM('pending', 'approved', 'rejected') DEFAULT 'pending' NOT NULL,
+   verification_status ENUM('pending', 'approved', 'rejected') DEFAULT 'pending' NOT NULL,
+
    admin_notes TEXT,
+   verification_notes TEXT,
+   
    is_renewed TINYINT(1) NOT NULL DEFAULT 0,
    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -76,8 +81,11 @@ CREATE TABLE diplomas (
   service_type VARCHAR(50),        
   modality VARCHAR(50) ,           
   educational_offer ENUM('DEMS','DES'),
+  
   status ENUM('active','finished','ongoing') DEFAULT 'ongoing',
   approval_status ENUM('pending', 'approved', 'rejected') DEFAULT 'pending' NOT NULL,
+  verification_status ENUM('pending', 'approved', 'rejected') DEFAULT 'pending' NOT NULL, 
+  
   cost DECIMAL(10, 2) DEFAULT 0,
   participants INT DEFAULT 0,
   number_of_certificates INT DEFAULT 0,
@@ -90,7 +98,7 @@ CREATE TABLE diplomas (
   certificates_delivered TINYINT(1) DEFAULT 0,
   official_letter_path VARCHAR(255) DEFAULT NULL,
   documentation_folder VARCHAR (255) DEFAULT NULL,
-  
+  verification_notes TEXT,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
@@ -872,6 +880,7 @@ BEGIN
         c.created_at, -- Incluir la fecha de creación
         c.status, -- Incluir el status
         c.approval_status, -- Incluir el approval_status
+        c.verification_status,
         u.username AS created_by,
 		ctr.name AS center_name  -- nombre del centro
     FROM courses c
@@ -2652,23 +2661,26 @@ INSERT INTO document_access (document_id, modality, required) VALUES
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ PRUEBAS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 -- Insertar administrador para cada centro
-CALL sp_insert_user('director_chihuahua', 'pass_chihuahua', 'Carlos', 'Hernández', 'López', 'Centro de Innovación e Integración de Tecnologías Avanzadas Chihuahua', 'user');
-CALL sp_insert_user('director_puebla', 'pass_puebla', 'María', 'García', 'Martínez', 'Centro de Innovación e Integración de Tecnologías Avanzadas Puebla', 'user');
-CALL sp_insert_user('director_veracruz', 'pass_veracruz', 'Sebastián', 'Morales', 'Palacios', 'Centro de Innovación e Integración de Tecnologías Avanzadas Veracruz', 'user');
-CALL sp_insert_user('director_cajeme', 'pass_cajeme', 'Ana', 'Martínez', 'Pérez', 'Centro de Vinculación y Desarrollo Regional Unidad Cajeme', 'user');
-CALL sp_insert_user('director_campeche', 'pass_campeche', 'Jorge', 'Díaz', 'Ramírez', 'Centro de Vinculación y Desarrollo Regional Unidad Campeche', 'user');
-CALL sp_insert_user('director_cancun', 'pass_cancun', 'Sofía', 'Jiménez', 'Vargas', 'Centro de Vinculación y Desarrollo Regional Unidad Cancún', 'user');
-CALL sp_insert_user('director_culiacan', 'pass_culiacan', 'Roberto', 'Torres', 'Morales', 'Centro de Vinculación y Desarrollo Regional Culiacán', 'user');
-CALL sp_insert_user('director_durango', 'pass_durango', 'Daniela', 'Sánchez', 'Ortega', 'Centro de Vinculación y Desarrollo Regional Durango', 'user');
-CALL sp_insert_user('director_losmochis', 'pass_losmochis', 'Ricardo', 'Pérez', 'Castillo', 'Centro de Vinculación y Desarrollo Regional Unidad Los Mochis', 'user');
-CALL sp_insert_user('director_mazatlan', 'pass_mazatlan', 'Fernanda', 'Ruiz', 'Gómez', 'Centro de Desarrollo y Vinculación Regional Unidad Mazatlán', 'user');
-CALL sp_insert_user('director_morelia', 'pass_morelia', 'Miguel', 'Hernández', 'Lara', 'Centro de Vinculación y Desarrollo Regional Unidad Morelia', 'user');
-CALL sp_insert_user('director_tlaxcala', 'pass_tlaxcala', 'Valeria', 'Castillo', 'Núñez', 'Centro de Vinculación y Desarrollo Regional Unidad Tlaxcala', 'user');
-CALL sp_insert_user('director_oaxaca', 'pass_oaxaca', 'Héctor', 'Cruz', 'Mendoza', 'Centro de Vinculación y Desarrollo Regional Unidad Oaxaca', 'user');
-CALL sp_insert_user('director_tijuana', 'pass_tijuana', 'Gabriela', 'Flores', 'Ramos', 'Centro de Vinculación y Desarrollo Regional Unidad Tijuana', 'user');
-CALL sp_insert_user('director_tampico', 'pass_tampico', 'Eduardo', 'Rojas', 'Peña', 'Centro de Vinculación y Desarrollo Regional Unidad Tampico', 'user');
+CALL sp_insert_user('director_chihuahua', 'director_chihuahua@example.com', 'pass_chihuahua', 'Carlos', 'Hernández', 'López', 'Centro de Innovación e Integración de Tecnologías Avanzadas Chihuahua', 'user', @status_code, @message);
+CALL sp_insert_user('director_puebla', 'director_puebla@example.com', 'pass_puebla', 'María', 'García', 'Martínez', 'Centro de Innovación e Integración de Tecnologías Avanzadas Puebla', 'user', @status_code, @message);
+CALL sp_insert_user('director_veracruz', 'director_veracruz@example.com', 'pass_veracruz', 'Sebastián', 'Morales', 'Palacios', 'Centro de Innovación e Integración de Tecnologías Avanzadas Veracruz', 'user', @status_code, @message);
+CALL sp_insert_user('director_cajeme', 'director_cajeme@example.com', 'pass_cajeme', 'Ana', 'Martínez', 'Pérez', 'Centro de Vinculación y Desarrollo Regional Unidad Cajeme', 'user', @status_code, @message);
+CALL sp_insert_user('director_campeche', 'director_campeche@example.com', 'pass_campeche', 'Jorge', 'Díaz', 'Ramírez', 'Centro de Vinculación y Desarrollo Regional Unidad Campeche', 'user', @status_code, @message);
+CALL sp_insert_user('director_cancun', 'director_cancun@example.com', 'pass_cancun', 'Sofía', 'Jiménez', 'Vargas', 'Centro de Vinculación y Desarrollo Regional Unidad Cancún', 'user', @status_code, @message);
+CALL sp_insert_user('director_culiacan', 'director_culiacan@example.com', 'pass_culiacan', 'Roberto', 'Torres', 'Morales', 'Centro de Vinculación y Desarrollo Regional Culiacán', 'user', @status_code, @message);
+CALL sp_insert_user('director_durango', 'director_durango@example.com', 'pass_durango', 'Daniela', 'Sánchez', 'Ortega', 'Centro de Vinculación y Desarrollo Regional Durango', 'user', @status_code, @message);
+CALL sp_insert_user('director_losmochis', 'director_losmochis@example.com', 'pass_losmochis', 'Ricardo', 'Pérez', 'Castillo', 'Centro de Vinculación y Desarrollo Regional Unidad Los Mochis', 'user', @status_code, @message);
+CALL sp_insert_user('director_mazatlan', 'director_mazatlan@example.com', 'pass_mazatlan', 'Fernanda', 'Ruiz', 'Gómez', 'Centro de Desarrollo y Vinculación Regional Unidad Mazatlán', 'user', @status_code, @message);
+CALL sp_insert_user('director_morelia', 'director_morelia@example.com', 'pass_morelia', 'Miguel', 'Hernández', 'Lara', 'Centro de Vinculación y Desarrollo Regional Unidad Morelia', 'user', @status_code, @message);
+CALL sp_insert_user('director_tlaxcala', 'director_tlaxcala@example.com', 'pass_tlaxcala', 'Valeria', 'Castillo', 'Núñez', 'Centro de Vinculación y Desarrollo Regional Unidad Tlaxcala', 'user', @status_code, @message);
+CALL sp_insert_user('director_oaxaca', 'director_oaxaca@example.com', 'pass_oaxaca', 'Héctor', 'Cruz', 'Mendoza', 'Centro de Vinculación y Desarrollo Regional Unidad Oaxaca', 'user', @status_code, @message);
+CALL sp_insert_user('director_tijuana', 'director_tijuana@example.com', 'pass_tijuana', 'Gabriela', 'Flores', 'Ramos', 'Centro de Vinculación y Desarrollo Regional Unidad Tijuana', 'user', @status_code, @message);
+CALL sp_insert_user('director_tampico', 'director_tampico@example.com', 'pass_tampico', 'Eduardo', 'Rojas', 'Peña', 'Centro de Vinculación y Desarrollo Regional Unidad Tampico', 'user', @status_code, @message);
 
-CALL sp_insert_user('admin', 'pass_admin', 'Luis', 'Fernández', 'Gómez', NULL, 'root');
+-- Insertar el usuario root (sin centro)
+CALL sp_insert_user('admin', 'admin@example.com', 'pass_admin', 'Alejandra', 'Delgadillo', 'Martínez', NULL, 'root', @status_code, @message);
+
+CALL sp_insert_user('verificador',  'nparram@ipn.mx',  'pass_verificador', 'Nancy Dalia', 'Parra', 'Mejía', NULL, 'verifier',  @status_code, @message);
 select * from users;
 
 INSERT INTO tutorial_videos (title, description, video_url, thumbnail_url) VALUES 
@@ -2956,7 +2968,7 @@ WHERE id = 5;*/
 
 /*
 UPDATE courses 
-SET approval_status = 'approved' 
+SET approval_status = 'pending' 
 WHERE id = 5;*/
 
 /*

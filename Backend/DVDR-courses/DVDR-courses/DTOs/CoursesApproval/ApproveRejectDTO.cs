@@ -1,4 +1,4 @@
-﻿namespace DVDR_courses.DTOs
+﻿namespace DVDR_courses.DTOs.CoursesApproval
 {
     public class ApproveRejectDTO
     {

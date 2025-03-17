@@ -1,4 +1,5 @@
 ﻿using DVDR_courses.DTOs;
+using DVDR_courses.DTOs.CoursesApproval;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
@@ -300,6 +301,25 @@ namespace DVDR_courses.Controllers
                 request.CourseId,
                 request.ApprovalStatus,
                 request.AdminNotes
+            );
+
+            if (statusCode == 1)
+                return Ok(new { message });
+            else
+                return StatusCode(500, new { message });
+        }
+
+        [HttpPatch("VerifyOrRejectCourse")]
+        public IActionResult VerifyOrRejectCourse([FromBody] VerifyRejectDTO request)
+        {
+            if (request == null || request.CourseId <= 0 || string.IsNullOrEmpty(request.VerificationStatus))
+                return BadRequest(new { message = "Datos inválidos en la solicitud." });
+
+            var dbManager = new DBManager(_config);
+            var (statusCode, message) = dbManager.UpdateCourseVerificationStatus(
+                request.CourseId,
+                request.VerificationStatus,
+                request.VerificationNotes
             );
 
             if (statusCode == 1)

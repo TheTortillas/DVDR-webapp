@@ -7,7 +7,7 @@
   </div>
 
   <div class="overflow-x-auto">
-    <table mat-table [dataSource]="dataSource" class="mat-elevation-z8 w-full">
+    <table mat-table [dataSource]="dataSource" class="w-full">
       <!-- Nivel Escolar Column -->
       <ng-container matColumnDef="nivelAcademico">
         <th mat-header-cell *matHeaderCellDef>Grado académico</th>
@@ -65,5 +65,14 @@
       <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
       <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
     </table>
+
+    <div
+      *ngIf="!dataSource.length"
+      class="text-center py-8 border border-gray-200 rounded-lg"
+    >
+      <mat-icon class="text-gray-400 text-5xl mb-4">school</mat-icon>
+      <p class="text-gray-900 text-lg">Ninguna formación académica añadida</p>
+      <p class="text-gray-900">Añade por lo menos un grado académico</p>
+    </div>
   </div>
 </div>

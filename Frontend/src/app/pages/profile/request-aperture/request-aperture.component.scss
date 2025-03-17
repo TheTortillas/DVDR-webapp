@@ -7,3 +7,15 @@ td, th {
 .mat-sort-header-container {
     justify-content: center !important;
 }
+
+.table-empty-message {
+  @apply text-gray-600 text-lg;
+}
+
+mat-table {
+  width: 100%;
+}
+
+.mat-mdc-row:hover {
+  background-color: rgba(0, 0, 0, 0.04);
+}

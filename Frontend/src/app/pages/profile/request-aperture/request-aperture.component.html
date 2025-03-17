@@ -76,17 +76,19 @@
         <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
         <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
       </table>
+      <!-- Mensaje cuando no hay cursos -->
+      <div *ngIf="dataSource.data.length === 0" class="text-center py-8">
+        <p>No hay cursos disponibles para solicitar apertura</p>
+      </div>
     </div>
+
     <!-- Nueva sección de aperturas pendientes -->
-    <div
-      id="pendingAperturesSection"
-      class="bg-white border border-gray-400 rounded-lg p-8 shadow"
-    >
+    <div class="bg-white border border-gray-400 rounded-lg p-8 shadow">
       <div class="text-center mb-6">
         <h2 class="heading">Mis solicitudes de apertura</h2>
       </div>
 
-      <table mat-table [dataSource]="pendingApertures" class="w-full">
+      <table mat-table [dataSource]="pendingAperturesDataSource" class="w-full">
         <ng-container matColumnDef="courseKey">
           <th mat-header-cell *matHeaderCellDef>Clave</th>
           <td mat-cell *matCellDef="let element">{{ element.courseKey }}</td>
@@ -173,8 +175,11 @@
         <tr mat-row *matRowDef="let row; columns: pendingAperturesColumns"></tr>
       </table>
 
-      <div *ngIf="pendingApertures.length === 0" class="text-center py-8">
-        <p>No tienes solicitudes de apertura pendientes</p>
+      <div
+        *ngIf="pendingAperturesDataSource.data.length === 0"
+        class="text-center py-8"
+      >
+        <p>Aún no has solicitado ninguna apertura</p>
       </div>
     </div>
   </div>

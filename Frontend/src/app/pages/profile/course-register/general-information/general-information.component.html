@@ -386,6 +386,13 @@
               *matRowDef="let row; columns: ['nombre', 'rol', 'accion']"
             ></tr>
           </table>
+
+          <div
+            *ngIf="!dataSource.data.length"
+            class="text-center py-8 bg-white border border-gray-200 rounded-lg"
+          >
+            <p class="text-gray-900">Ningún instructor asignado</p>
+          </div>
           <div class="mt-2">
             <mat-error
               *ngIf="

@@ -5,6 +5,7 @@ import { MatButton } from '@angular/material/button';
 import { MatTableModule } from '@angular/material/table';
 import { MatIcon } from '@angular/material/icon';
 import { MatTooltip } from '@angular/material/tooltip';
+import { CommonModule } from '@angular/common';
 
 export interface AcademicBackground {
   nivelAcademico: string;
@@ -18,7 +19,7 @@ export interface AcademicBackground {
 @Component({
   selector: 'app-academic-background',
   standalone: true,
-  imports: [MatButton, MatTableModule, MatIcon, MatTooltip],
+  imports: [MatButton, MatTableModule, MatIcon, MatTooltip, CommonModule],
   templateUrl: './academic-background.component.html',
   styleUrls: ['./academic-background.component.scss'],
 })

@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
-import { MatTableModule } from '@angular/material/table';
+import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { ApertureStateService } from '../../../core/services/aperture-state.service';
@@ -52,7 +52,7 @@ interface Course {
 })
 export class RequestApertureComponent implements OnInit {
   displayedColumns: string[] = ['no', 'title', 'clave', 'accion'];
-  dataSource: Course[] = [];
+  dataSource = new MatTableDataSource<Course>([]);
   username: string | null = null;
 
   // Agregar propiedades para la tabla de aperturas pendientes
@@ -65,7 +65,7 @@ export class RequestApertureComponent implements OnInit {
     'status',
     'actions',
   ];
-  pendingApertures: PendingAperture[] = [];
+  pendingAperturesDataSource = new MatTableDataSource<PendingAperture>([]);
 
   constructor(
     private courseService: CoursesService,
@@ -101,12 +101,13 @@ export class RequestApertureComponent implements OnInit {
     if (this.username) {
       this.courseService.getCoursesByUser(this.username).subscribe({
         next: (courses: Course[]) => {
-          this.dataSource = courses.filter((course) => {
+          const filteredCourses = courses.filter((course) => {
             if (course.status === 'draft') return false;
             const isExpired = this.isCursoExpirado(course);
             if (isExpired && course.isRenewed) return false;
             return true;
           });
+          this.dataSource.data = filteredCourses;
         },
         error: (err) => {
           console.error('Error al obtener los cursos:', err);
@@ -159,7 +160,7 @@ export class RequestApertureComponent implements OnInit {
       .getUserPendingApertures(this.username)
       .subscribe({
         next: (data: PendingAperture[]) => {
-          this.pendingApertures = data;
+          this.pendingAperturesDataSource.data = data;
         },
         error: () => {
           this.snackBar.open(

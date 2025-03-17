@@ -9,6 +9,11 @@
         <h2 class="text-xl font-semibold text-gray-700 mb-4">
           Cursos registrados
         </h2>
+        <!-- Mensaje cuando no hay cursos -->
+        <div *ngIf="!courses?.length" class="text-center py-8">
+          <p class>No tienes cursos registrados</p>
+        </div>
+
         <mat-accordion>
           <ng-container *ngFor="let course of courses">
             <mat-expansion-panel
@@ -96,6 +101,10 @@
           Diplomados registrados
         </h2>
 
+        <!-- Mensaje cuando no hay diplomados -->
+        <div *ngIf="!diplomas?.length" class="text-center py-8">
+          <p class>No tienes diplomados registrados</p>
+        </div>
         <mat-accordion>
           <mat-expansion-panel
             *ngFor="let diploma of diplomas"

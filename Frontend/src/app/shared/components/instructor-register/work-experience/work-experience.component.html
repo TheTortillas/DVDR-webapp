@@ -7,7 +7,7 @@
   </div>
 
   <div class="overflow-x-auto">
-    <table mat-table [dataSource]="dataSource" class="mat-elevation-z8 w-full">
+    <table mat-table [dataSource]="dataSource" class="w-full">
       <!-- Periodo Column -->
       <ng-container matColumnDef="periodo">
         <th mat-header-cell *matHeaderCellDef>Periodo</th>
@@ -65,5 +65,14 @@
       <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
       <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
     </table>
+
+    <div
+      *ngIf="!dataSource.length"
+      class="text-center py-8 border border-gray-200 rounded-lg"
+    >
+      <mat-icon class="text-gray-400 text-5xl mb-4">work</mat-icon>
+      <p class="text-gray-900 text-lg">Ninguna experiencia laboral añadida</p>
+      <p class="text-gray-900">Añade por lo menos una experiencia laboral</p>
+    </div>
   </div>
 </div>

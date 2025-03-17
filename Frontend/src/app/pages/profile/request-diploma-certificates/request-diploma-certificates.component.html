@@ -66,6 +66,9 @@
           <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
           <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
         </table>
+        <div *ngIf="!completedDiplomas?.length" class="text-center py-8">
+          <p>No tienes diplomados completados para solicitar constancias</p>
+        </div>
       </div>
     </div>
   </div>

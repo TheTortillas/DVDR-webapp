@@ -6,6 +6,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { RouterModule } from '@angular/router';
 import { StorageService } from '../../../core/services/storage.service';
 import { CoursesService } from '../../../core/services/courses.service';
+import { DiplomasService } from '../../../core/services/diplomas.service';
 
 @Component({
   selector: 'app-verification-dashboard',
@@ -23,10 +24,12 @@ import { CoursesService } from '../../../core/services/courses.service';
 export class VerificationDashboardComponent implements OnInit {
   username: string = '';
   pendingCoursesCount: number = 0;
+  pendingDiplomasCount: number = 0;
 
   constructor(
     private storageService: StorageService,
-    private coursesService: CoursesService
+    private coursesService: CoursesService,
+    private diplomasService: DiplomasService
   ) {}
 
   ngOnInit() {
@@ -55,6 +58,20 @@ export class VerificationDashboardComponent implements OnInit {
       },
       error: (err) => {
         console.error('Error al cargar datos del dashboard:', err);
+      },
+    });
+
+    // Contar diplomados pendientes de verificación
+    this.diplomasService.getAllDiplomas().subscribe({
+      next: (diplomas: { status: string; verificationStatus: string }[]) => {
+        this.pendingDiplomasCount = diplomas.filter(
+          (diploma: { status: string; verificationStatus: string }) =>
+            diploma.status !== 'submitted' &&
+            diploma.verificationStatus === 'pending'
+        ).length;
+      },
+      error: (err) => {
+        console.error('Error al cargar datos del dashboard (diplomas):', err);
       },
     });
   }

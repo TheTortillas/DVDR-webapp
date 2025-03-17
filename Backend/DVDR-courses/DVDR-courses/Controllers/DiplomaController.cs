@@ -105,6 +105,32 @@ namespace DVDR_courses.Controllers
             }
         }
 
+        [HttpPost("UpdateDiplomaVerificationStatus")]
+        public IActionResult UpdateDiplomaVerificationStatus([FromBody] DiplomaVerificationRequest request)
+        {
+            if (request == null)
+            {
+                return BadRequest(new { message = "La información proporcionada es inválida." });
+            }
+
+            try
+            {
+                var dbManager = new DBManager(_config);
+                var (statusCode, message) = dbManager.UpdateDiplomaVerificationStatus(
+                    request.DiplomaId,
+                    request.VerificationStatus,
+                    request.VerificationNotes);
+
+                return statusCode == 1
+                    ? Ok(new { message })
+                    : StatusCode(500, new { message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Error al actualizar el estado de verificación del diplomado.", error = ex.Message });
+            }
+        }
+
         [HttpGet("GetAllDiplomas")]
         public IActionResult GetAllDiplomas()
         {

@@ -30,6 +30,7 @@ export class DiplomasService {
     return this.httpClient.get(url);
   }
 
+  // Método para aprobar/rechazar diplomado (administrador)
   approveDiplomaRequest(data: any): Observable<any> {
     const url = this.URLBase + '/api/Diploma/ApproveDiplomaRequest';
     return this.httpClient.post(url, data);
@@ -64,6 +65,12 @@ export class DiplomasService {
     return this.httpClient.get(
       `${this.URLBase}/api/Diploma/GetRequestedDiplomaCertificates`
     );
+  }
+
+  // Método para verificar/rechazar diplomado (verificador)
+  updateDiplomaVerificationStatus(data: any): Observable<any> {
+    const url = this.URLBase + '/api/Diploma/UpdateDiplomaVerificationStatus';
+    return this.httpClient.post(url, data);
   }
 
   uploadDiplomaOfficialLetter(formData: FormData): Observable<any> {

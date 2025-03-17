@@ -2216,6 +2216,7 @@ namespace DVDR_courses
                                     EducationalOffer = reader.IsDBNull(reader.GetOrdinal("educational_offer")) ? null : reader.GetString("educational_offer"),
                                     Status = reader.IsDBNull(reader.GetOrdinal("status")) ? null : reader.GetString("status"),
                                     ApprovalStatus = reader.IsDBNull(reader.GetOrdinal("approval_status")) ? null : reader.GetString("approval_status"),
+                                    VerificationStatus = reader.IsDBNull(reader.GetOrdinal("verification_status")) ? null : reader.GetString("verification_status"),
                                     Cost = reader.IsDBNull(reader.GetOrdinal("cost")) ? 0 : reader.GetDecimal("cost"),
                                     Participants = reader.IsDBNull(reader.GetOrdinal("participants")) ? 0 : reader.GetInt32("participants"),
                                     StartDate = reader.IsDBNull(reader.GetOrdinal("start_date")) ? null : reader.GetDateTime("start_date"),
@@ -2287,6 +2288,50 @@ namespace DVDR_courses
             {
                 using (MySqlConnection con = new MySqlConnection(_config.GetConnectionString("default")))
                 {
+                    con.Open();
+
+                    // Verificar si es una operación de rechazo
+                    if (request.ApprovalStatus == "rejected")
+                    {
+                        // Primero obtenemos la información del diplomado para eliminar archivos
+                        var getFolderCmd = new MySqlCommand(@"
+                            SELECT documentation_folder 
+                            FROM diplomas 
+                            WHERE id = @diplomaId", con);
+
+                        getFolderCmd.Parameters.AddWithValue("@diplomaId", request.DiplomaId);
+
+                        string folderName = null;
+                        using (var reader = getFolderCmd.ExecuteReader())
+                        {
+                            if (reader.Read())
+                            {
+                                folderName = reader.IsDBNull(reader.GetOrdinal("documentation_folder")) ? null : reader.GetString("documentation_folder");
+                            }
+                        }
+
+                        if (!string.IsNullOrEmpty(folderName))
+                        {
+                            // Eliminar archivos físicos
+                            string folderPath = Path.Combine("..", "..", "..", "Frontend", "public", "assets", "files", "diploma-documentation", folderName);
+                            if (Directory.Exists(folderPath))
+                            {
+                                Directory.Delete(folderPath, true);
+                            }
+                        }
+
+                        // Eliminar el diplomado de la base de datos
+                        var deleteDiplomaCmd = new MySqlCommand(@"
+                            DELETE FROM diplomas
+                            WHERE id = @diplomaId", con);
+
+                        deleteDiplomaCmd.Parameters.AddWithValue("@diplomaId", request.DiplomaId);
+                        deleteDiplomaCmd.ExecuteNonQuery();
+
+                        return (1, "Solicitud de diplomado rechazada y eliminada exitosamente.");
+                    }
+
+                    // Si no es rechazo, continuar con la lógica de aprobación existente
                     using (MySqlCommand cmd = new MySqlCommand("sp_approve_diploma_request", con))
                     {
                         cmd.CommandType = CommandType.StoredProcedure;
@@ -2320,7 +2365,6 @@ namespace DVDR_courses
                         cmd.Parameters.Add("p_message", MySqlDbType.VarChar, 255);
                         cmd.Parameters["p_message"].Direction = ParameterDirection.Output;
 
-                        con.Open();
                         cmd.ExecuteNonQuery();
 
                         var statusCode = Convert.ToInt32(cmd.Parameters["p_status_code"].Value);
@@ -2428,6 +2472,83 @@ namespace DVDR_courses
                 Console.WriteLine($"Error al obtener diplomados por centro: {ex.Message}");
             }
             return diplomas;
+        }
+
+        public (int statusCode, string message) UpdateDiplomaVerificationStatus(int diplomaId, string verificationStatus, string? verificationNotes = null)
+        {
+            try
+            {
+                using (var con = new MySqlConnection(_config.GetConnectionString("default")))
+                {
+                    con.Open();
+
+                    // Si se rechaza, eliminar todo el registro del diplomado
+                    if (verificationStatus.Equals("rejected", StringComparison.OrdinalIgnoreCase))
+                    {
+                        // Primero obtenemos la información del diplomado para eliminar archivos
+                        var getFolderCmd = new MySqlCommand(@"
+                            SELECT documentation_folder 
+                            FROM diplomas 
+                            WHERE id = @diplomaId", con);
+
+                        getFolderCmd.Parameters.AddWithValue("@diplomaId", diplomaId);
+
+                        string folderName = null;
+                        using (var reader = getFolderCmd.ExecuteReader())
+                        {
+                            if (reader.Read())
+                            {
+                                folderName = reader.IsDBNull(reader.GetOrdinal("documentation_folder")) ? null : reader.GetString("documentation_folder");
+                            }
+                        }
+
+                        if (!string.IsNullOrEmpty(folderName))
+                        {
+                            // Eliminar archivos físicos
+                            string folderPath = Path.Combine("..", "..", "..", "Frontend", "public", "assets", "files", "diploma-documentation", folderName);
+                            if (Directory.Exists(folderPath))
+                            {
+                                Directory.Delete(folderPath, true);
+                            }
+                        }
+
+                        // Eliminar el diplomado de la base de datos
+                        var deleteDiplomaCmd = new MySqlCommand(@"
+                            DELETE FROM diplomas
+                            WHERE id = @diplomaId", con);
+
+                        deleteDiplomaCmd.Parameters.AddWithValue("@diplomaId", diplomaId);
+                        deleteDiplomaCmd.ExecuteNonQuery();
+
+                        return (1, "Solicitud de diplomado rechazada y eliminada exitosamente.");
+                    }
+                    else if (verificationStatus.Equals("approved", StringComparison.OrdinalIgnoreCase))
+                    {
+                        // Actualizar el estado de verificación del diplomado
+                        var updateVerificationCmd = new MySqlCommand(@"
+                            UPDATE diplomas
+                            SET verification_status = @verificationStatus,
+                                verification_notes = @verificationNotes
+                            WHERE id = @diplomaId", con);
+
+                        updateVerificationCmd.Parameters.AddWithValue("@verificationStatus", verificationStatus);
+                        updateVerificationCmd.Parameters.AddWithValue("@verificationNotes", verificationNotes ?? (object)DBNull.Value);
+                        updateVerificationCmd.Parameters.AddWithValue("@diplomaId", diplomaId);
+                        updateVerificationCmd.ExecuteNonQuery();
+
+                        return (1, "Diplomado verificado exitosamente.");
+                    }
+                    else
+                    {
+                        return (0, "Estado de verificación no válido.");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error en UpdateDiplomaVerificationStatus: {ex.Message}");
+                return (0, "Error al actualizar el estado de verificación del diplomado.");
+            }
         }
 
         public List<CompletedDiplomaDTO> GetCompletedDiplomas(string username)

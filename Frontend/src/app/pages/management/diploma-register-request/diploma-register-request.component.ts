@@ -17,6 +17,7 @@ interface DiplomaDTO {
   diplomaId: number;
   name: string;
   approvalStatus: string;
+  verificationStatus: string;
   center: string;
   registeredBy: string;
   documentation: {
@@ -44,7 +45,7 @@ interface DiplomaDTO {
 })
 export class DiplomaRegisterRequestComponent implements OnInit {
   // Se agrega la columna "acciones" para usar iconos con hover
-  displayedColumns = ['name', 'approvalStatus', 'expand', 'acciones'];
+  displayedColumns = ['name', 'verificationStatus', 'acciones', 'expand'];
   diplomasData = new MatTableDataSource<DiplomaDTO>([]);
   expandedElement: DiplomaDTO | null = null;
 
@@ -55,6 +56,7 @@ export class DiplomaRegisterRequestComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadPendingDiplomas();
+    console.log('Diplomas:', this.diplomasData);
   }
 
   loadPendingDiplomas(): void {

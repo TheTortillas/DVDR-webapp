@@ -1727,6 +1727,7 @@ BEGIN
         d.educational_offer,
         d.status,
         d.approval_status,
+        d.verification_status,
         d.cost,
         d.participants,
         d.start_date,
@@ -2600,7 +2601,7 @@ INSERT INTO documents_templates_diplomae (name, filePath, type, required) VALUES
 ('Cronograma de actividades', 'assets/diplomae_templates/cronograma-de-actividades.doc', 'file', true),
 ('Currículum Vitae de Instructor y Aval', 'assets/diplomae_templates/formato-cv-instructor.docx', 'file', true),
 ('Carta Aval', 'assets/diplomae_templates/ejemplo-carta-aval.pdf', 'file', true),
-('Lista inicial de participantes', 'assets/diplomae_templates/lista-inicial-de-participantes.doc', 'file', false);
+('Lista inicial de participantes', 'assets/diplomae_templates/lista-inicial-de-participantes.doc', 'file', true);
 
 INSERT INTO documents_templates (name, filePath, type) VALUES
 ('Formato de registro de cursos de formación a lo largo de la vida', 'assets/templates/01 FS20H 2024-2.docx', 'file'),
@@ -2963,7 +2964,7 @@ WHERE id = 15;*/
 
 /*
 UPDATE diplomas 
-SET approval_status = 'approved' 
+SET verification_status = 'pending' 
 WHERE id = 1;
 select *from diploma_actor_roles;
 */

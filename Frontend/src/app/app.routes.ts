@@ -37,6 +37,7 @@ import { CourseAperturesComponent } from './pages/management/course-apertures/co
 import { CourseRegisterVerificationComponent } from './pages/verification/course-register-verification/course-register-verification.component';
 import { VerificationComponent } from './pages/verification/verification.component';
 import { VerificationDashboardComponent } from './pages/verification/verification-dashboard/verification-dashboard.component';
+import { DiplomaRegisterVerificationComponent } from './pages/verification/diploma-register-verification/diploma-register-verification.component';
 
 export const routes: Routes = [
   {
@@ -223,6 +224,10 @@ export const routes: Routes = [
       {
         path: 'course-register-request',
         component: CourseRegisterVerificationComponent,
+      },
+      {
+        path: 'diploma-register-request',
+        component: DiplomaRegisterVerificationComponent,
       },
       {
         path: '',

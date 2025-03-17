@@ -46,6 +46,7 @@
         public string? EducationalOffer { get; set; }
         public string? Status { get; set; }
         public string? ApprovalStatus { get; set; }
+        public string? VerificationStatus { get; set; }
         public decimal? Cost { get; set; }
         public int? Participants { get; set; }
         public DateTime? StartDate { get; set; }
@@ -76,6 +77,8 @@
         public DateTime ExpirationDate { get; set; }
         public string Username { get; set; }
         public List<ActorRoleDTO> ActorRoles { get; set; }
+        public string? ApprovalStatus { get; set; }
+
     }
     public class DiplomaActorDTO
     {
@@ -116,5 +119,12 @@
         public int DocumentId { get; set; }
         public IFormFile File { get; set; }
         public string FolderName { get; set; }
+    }
+
+    public class DiplomaVerificationRequest
+    {
+        public int DiplomaId { get; set; }
+        public string VerificationStatus { get; set; } // "approved" o "rejected"
+        public string? VerificationNotes { get; set; }
     }
 }

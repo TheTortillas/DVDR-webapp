@@ -96,6 +96,24 @@ export class NavbarComponent implements OnInit, OnDestroy {
     );
   }
 
+  isLoggedInAndVerifier(): boolean {
+    if (!isPlatformBrowser(this.platformId)) {
+      return false;
+    }
+
+    const token = this.storageService.getItem('token');
+    if (!token || !this.storageService.isTokenValid(token)) {
+      return false;
+    }
+
+    const claims = this.storageService.getTokenClaims(token);
+    return (
+      !!claims &&
+      this.router.url.includes('/verification') &&
+      claims.role === 'verifier'
+    );
+  }
+
   private loadUnreadMessages() {
     this.messagesService.getAllMessages().subscribe({
       next: (messages) => {

@@ -102,6 +102,52 @@
             </a>
           </li>
         </ul>
+
+        <ul
+          *ngIf="isLoggedInAndVerifier()"
+          class="flex flex-wrap items-center mb-6 text-sm font-medium sm:mb-0"
+        >
+          <li>
+            <a>
+              <button
+                mat-icon-button
+                [matMenuTriggerFor]="verifierMenu"
+                aria-label="Verifier menu"
+                class="navbar-button"
+              >
+                <mat-icon>more_vert</mat-icon>
+              </button>
+              <mat-menu #verifierMenu="matMenu">
+                <button mat-menu-item routerLink="../verification/dashboard">
+                  <mat-icon>dashboard</mat-icon>
+                  <span>Dashboard</span>
+                </button>
+                <button
+                  mat-menu-item
+                  routerLink="../verification/course-register-request"
+                >
+                  <mat-icon>school</mat-icon>
+                  <span>Verificar cursos</span>
+                </button>
+                <button mat-menu-item (click)="logout()" class="logout-button">
+                  <mat-icon>exit_to_app</mat-icon>
+                  <span>Cerrar sesión</span>
+                </button>
+              </mat-menu>
+            </a>
+          </li>
+          <li>
+            <a>
+              <button
+                mat-icon-button
+                routerLink="../verification/dashboard"
+                class="navbar-button"
+              >
+                <mat-icon>home</mat-icon>
+              </button>
+            </a>
+          </li>
+        </ul>
       </ul>
     </div>
   </div>

@@ -124,6 +124,7 @@
           required
         >
           <mat-option value="user">Usuario</mat-option>
+          <mat-option value="verifier">Verificador</mat-option>
           <mat-option value="root">Administrador</mat-option>
         </mat-select>
         <mat-error *ngIf="userForm.get('role')?.hasError('required')">

@@ -55,7 +55,9 @@ export class AddUserDialogComponent implements OnInit {
         [
           Validators.required,
           Validators.minLength(8),
-          Validators.pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$/), // Al menos una mayúscula, una minúscula y un número
+          Validators.pattern(
+            /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d!@#$%^&*()\-_.]*$/
+          ), // Al menos una mayúscula, una minúscula y un número
         ],
       ],
       firstName: ['', Validators.required],

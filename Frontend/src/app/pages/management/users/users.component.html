@@ -27,8 +27,9 @@
             (selectionChange)="filterByRole()"
           >
             <mat-option value="">Todos</mat-option>
-            <mat-option value="root">Administrador</mat-option>
             <mat-option value="user">Usuario</mat-option>
+            <mat-option value="verifier">Verificador</mat-option>
+            <mat-option value="root">Administrador</mat-option>
           </mat-select>
         </mat-form-field>
       </div>
@@ -67,7 +68,13 @@
           <ng-container matColumnDef="role">
             <th mat-header-cell *matHeaderCellDef mat-sort-header>Rol</th>
             <td mat-cell *matCellDef="let row">
-              {{ row.role === "root" ? "Administrador" : "Usuario" }}
+              {{
+                row.role === "root"
+                  ? "Administrador"
+                  : row.role === "verifier"
+                  ? "Verificador"
+                  : "Usuario"
+              }}
             </td>
           </ng-container>
 

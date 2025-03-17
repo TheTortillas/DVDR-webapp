@@ -50,6 +50,8 @@ import { MatSelectModule } from '@angular/material/select';
 })
 export class PeriodicScheduleComponent implements OnInit {
   @Input() totalDuration: number = 0;
+  @Input() enableDateFilter: boolean = true;
+
   form: FormGroup;
 
   daysOfWeek = [
@@ -148,10 +150,14 @@ export class PeriodicScheduleComponent implements OnInit {
     return moment(date).format('ddd DD/MM/YYYY');
   }
 
-  myFilter(d: Date | null): boolean {
-    if (!d) return false;
+  myFilter = (d: Date | null): boolean => {
+    if (!this.enableDateFilter) return true;
+
     const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    return d.getTime() >= today.getTime();
-  }
+    const minDate = new Date();
+    minDate.setDate(today.getDate() + 5); // Añade 5 días a la fecha actual
+    minDate.setHours(0, 0, 0, 0);
+
+    return d ? d >= minDate : false;
+  };
 }

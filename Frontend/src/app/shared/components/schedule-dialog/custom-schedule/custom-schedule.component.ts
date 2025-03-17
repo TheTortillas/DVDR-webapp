@@ -64,6 +64,8 @@ const ELEMENT_DATA: customSchedule[] = [];
 })
 export class CustomScheduleComponent implements OnInit {
   @Input() totalDuration: number = 0;
+  @Input() enableDateFilter: boolean = true;
+
   displayedColumns: string[] = ['date', 'start', 'end', 'actions'];
   dataSource = ELEMENT_DATA;
 
@@ -201,8 +203,13 @@ export class CustomScheduleComponent implements OnInit {
   }
 
   myFilter = (d: Date | null): boolean => {
+    if (!this.enableDateFilter) return true;
+
     const today = new Date();
-    today.setHours(0, 0, 0, 0); // Set the time to midnight to compare only the date part
-    return d ? d >= today : false;
+    const minDate = new Date();
+    minDate.setDate(today.getDate() + 5); // Añade 5 días a la fecha actual
+    minDate.setHours(0, 0, 0, 0);
+
+    return d ? d >= minDate : false;
   };
 }

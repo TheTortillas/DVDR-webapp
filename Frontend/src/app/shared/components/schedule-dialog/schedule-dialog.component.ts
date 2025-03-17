@@ -85,6 +85,7 @@ import Swal from 'sweetalert2';
 })
 export class ScheduleDialogComponent implements OnInit {
   @Input() totalDuration: number = 0;
+  @Input() enableDateFilter: boolean = true;
 
   @ViewChild(PeriodicScheduleComponent)
   periodicScheduleComponent!: PeriodicScheduleComponent;
@@ -96,9 +97,14 @@ export class ScheduleDialogComponent implements OnInit {
 
   constructor(
     private dialogRef: MatDialogRef<ScheduleDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: { totalDuration: number }
+    @Inject(MAT_DIALOG_DATA)
+    public data: {
+      totalDuration: number;
+      enableDateFilter?: boolean;
+    }
   ) {
     this.totalDuration = data.totalDuration;
+    this.enableDateFilter = data.enableDateFilter ?? true;
   }
 
   ngOnInit() {

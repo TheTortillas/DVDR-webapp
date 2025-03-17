@@ -28,6 +28,57 @@ CREATE TABLE users (
     FOREIGN KEY (center_id) REFERENCES centers(id)
 );
 
+
+CREATE TABLE actors_general_information (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    first_name VARCHAR(255) NOT NULL,
+    last_name VARCHAR(255) NOT NULL,
+    second_last_name VARCHAR(255) NOT NULL,
+    street VARCHAR(255) NOT NULL,
+    house_number VARCHAR(20) NOT NULL,
+    neighborhood VARCHAR(255) NOT NULL,
+    postal_code VARCHAR(5) NOT NULL,
+    municipality VARCHAR(255) NOT NULL,
+    state VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL,
+    landline_phone VARCHAR(15),
+    mobile_phone VARCHAR(15) NOT NULL,
+    knowledge_area VARCHAR(255) NOT NULL,
+	center_type ENUM('CITTA', 'CVDR', 'UA') NOT NULL, -- Incluye el tipo de centro
+    center_identifier INT NOT NULL, -- Referencia al identificador único del centro
+    approval_status ENUM('pending', 'approved', 'rejected') DEFAULT 'pending' NOT NULL,
+	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+	FOREIGN KEY (center_type, center_identifier) REFERENCES centers(type, identifier)
+);
+
+-- Tabla de historial académico, relacionada con el instructor
+CREATE TABLE academic_history (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    actor_id INT NOT NULL, -- Relación con el actor
+    education_level VARCHAR(255) NOT NULL,
+    period VARCHAR(255) NOT NULL,
+    institution VARCHAR(255) NOT NULL,
+    degree_awarded VARCHAR(255) NOT NULL,
+    evidence_path VARCHAR(255) NOT NULL,
+    FOREIGN KEY (actor_id) REFERENCES actors_general_information(id)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
+);
+
+-- Tabla de experiencia profesional, relacionada con el instructor
+CREATE TABLE professional_experience (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    actor_id INT NOT NULL, -- Relación con el instructor
+    period VARCHAR(255) NOT NULL,
+    organization VARCHAR(255) NOT NULL,
+    position VARCHAR(255) NOT NULL,
+    activity TEXT NOT NULL,
+    evidence_path VARCHAR(255) NOT NULL,
+    FOREIGN KEY (actor_id) REFERENCES actors_general_information(id)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
+);
+
 CREATE TABLE courses (
    id INT PRIMARY KEY AUTO_INCREMENT,
    course_name VARCHAR(255), 
@@ -104,6 +155,14 @@ CREATE TABLE diplomas (
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
+CREATE TABLE documents_templates_diplomae (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(255),
+    filePath VARCHAR(2083), 
+    type ENUM('file', 'url') DEFAULT 'file' NOT NULL,
+	required BOOLEAN DEFAULT true
+);
+
 CREATE TABLE diploma_actor_roles (
   id INT PRIMARY KEY AUTO_INCREMENT,
   diploma_id INT NOT NULL,
@@ -123,13 +182,6 @@ CREATE TABLE diploma_documentation (
   FOREIGN KEY (document_id) REFERENCES documents_templates_diplomae(id) ON DELETE CASCADE
 );
 
-CREATE TABLE documents_templates_diplomae (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    name VARCHAR(255),
-    filePath VARCHAR(2083), 
-    type ENUM('file', 'url') DEFAULT 'file' NOT NULL,
-	required BOOLEAN DEFAULT true
-);
 
 CREATE TABLE certificate_documents_templates (
     id INT PRIMARY KEY AUTO_INCREMENT,
@@ -158,55 +210,6 @@ CREATE TABLE course_documentation (
     FOREIGN KEY (document_id) REFERENCES documents_templates(id) ON DELETE CASCADE
 );
 
-CREATE TABLE actors_general_information (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    first_name VARCHAR(255) NOT NULL,
-    last_name VARCHAR(255) NOT NULL,
-    second_last_name VARCHAR(255) NOT NULL,
-    street VARCHAR(255) NOT NULL,
-    house_number VARCHAR(20) NOT NULL,
-    neighborhood VARCHAR(255) NOT NULL,
-    postal_code VARCHAR(5) NOT NULL,
-    municipality VARCHAR(255) NOT NULL,
-    state VARCHAR(255) NOT NULL,
-    email VARCHAR(255) NOT NULL,
-    landline_phone VARCHAR(15),
-    mobile_phone VARCHAR(15) NOT NULL,
-    knowledge_area VARCHAR(255) NOT NULL,
-	center_type ENUM('CITTA', 'CVDR', 'UA') NOT NULL, -- Incluye el tipo de centro
-    center_identifier INT NOT NULL, -- Referencia al identificador único del centro
-    approval_status ENUM('pending', 'approved', 'rejected') DEFAULT 'pending' NOT NULL,
-	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-	FOREIGN KEY (center_type, center_identifier) REFERENCES centers(type, identifier)
-);
-
--- Tabla de historial académico, relacionada con el instructor
-CREATE TABLE academic_history (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    actor_id INT NOT NULL, -- Relación con el actor
-    education_level VARCHAR(255) NOT NULL,
-    period VARCHAR(255) NOT NULL,
-    institution VARCHAR(255) NOT NULL,
-    degree_awarded VARCHAR(255) NOT NULL,
-    evidence_path VARCHAR(255) NOT NULL,
-    FOREIGN KEY (actor_id) REFERENCES actors_general_information(id)
-        ON DELETE CASCADE
-        ON UPDATE CASCADE
-);
-
--- Tabla de experiencia profesional, relacionada con el instructor
-CREATE TABLE professional_experience (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    actor_id INT NOT NULL, -- Relación con el instructor
-    period VARCHAR(255) NOT NULL,
-    organization VARCHAR(255) NOT NULL,
-    position VARCHAR(255) NOT NULL,
-    activity TEXT NOT NULL,
-    evidence_path VARCHAR(255) NOT NULL,
-    FOREIGN KEY (actor_id) REFERENCES actors_general_information(id)
-        ON DELETE CASCADE
-        ON UPDATE CASCADE
-);
 
 -- Tabla intermedia para relacionar cursos con actores y sus roles
 CREATE TABLE course_actor_roles (
@@ -2216,11 +2219,6 @@ BEGIN
 END$$
 DELIMITER ;
 
-CALL sp_get_current_vigent_courses();
-CALL sp_get_current_vigent_diplomas(); 
-CALL sp_get_certificates_delivered_sessions();
-CALL sp_get_certificates_delivered_diplomas();
-
 DELIMITER $$
 CREATE PROCEDURE sp_insert_message(
     IN p_name VARCHAR(100),
@@ -2264,33 +2262,6 @@ BEGIN
     FROM messages m
     LEFT JOIN users u ON m.attended_by = u.id
     ORDER BY m.sent_at DESC;
-END$$
-DELIMITER ;
-
-DELIMITER $$
-CREATE PROCEDURE sp_insert_message(
-    IN p_name VARCHAR(100),
-    IN p_email VARCHAR(255),
-    IN p_subject VARCHAR(255),
-    IN p_message TEXT,
-    OUT p_status_code INT,
-    OUT p_response_message VARCHAR(255)
-)
-BEGIN
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-    BEGIN
-        ROLLBACK;
-        SET p_status_code = -1;
-        SET p_response_message = 'Error al registrar el mensaje';
-    END;
-
-    START TRANSACTION;
-        INSERT INTO messages (name, email, subject, message)
-        VALUES (p_name, p_email, p_subject, p_message);
-
-        SET p_status_code = 1;
-        SET p_response_message = 'Mensaje registrado exitosamente';
-    COMMIT;
 END$$
 DELIMITER ;
 
@@ -2661,27 +2632,27 @@ INSERT INTO document_access (document_id, modality, required) VALUES
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ PRUEBAS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 -- Insertar administrador para cada centro
-CALL sp_insert_user('director_chihuahua', 'director_chihuahua@example.com', 'pass_chihuahua', 'Carlos', 'Hernández', 'López', 'Centro de Innovación e Integración de Tecnologías Avanzadas Chihuahua', 'user', @status_code, @message);
-CALL sp_insert_user('director_puebla', 'director_puebla@example.com', 'pass_puebla', 'María', 'García', 'Martínez', 'Centro de Innovación e Integración de Tecnologías Avanzadas Puebla', 'user', @status_code, @message);
-CALL sp_insert_user('director_veracruz', 'director_veracruz@example.com', 'pass_veracruz', 'Sebastián', 'Morales', 'Palacios', 'Centro de Innovación e Integración de Tecnologías Avanzadas Veracruz', 'user', @status_code, @message);
-CALL sp_insert_user('director_cajeme', 'director_cajeme@example.com', 'pass_cajeme', 'Ana', 'Martínez', 'Pérez', 'Centro de Vinculación y Desarrollo Regional Unidad Cajeme', 'user', @status_code, @message);
-CALL sp_insert_user('director_campeche', 'director_campeche@example.com', 'pass_campeche', 'Jorge', 'Díaz', 'Ramírez', 'Centro de Vinculación y Desarrollo Regional Unidad Campeche', 'user', @status_code, @message);
-CALL sp_insert_user('director_cancun', 'director_cancun@example.com', 'pass_cancun', 'Sofía', 'Jiménez', 'Vargas', 'Centro de Vinculación y Desarrollo Regional Unidad Cancún', 'user', @status_code, @message);
-CALL sp_insert_user('director_culiacan', 'director_culiacan@example.com', 'pass_culiacan', 'Roberto', 'Torres', 'Morales', 'Centro de Vinculación y Desarrollo Regional Culiacán', 'user', @status_code, @message);
-CALL sp_insert_user('director_durango', 'director_durango@example.com', 'pass_durango', 'Daniela', 'Sánchez', 'Ortega', 'Centro de Vinculación y Desarrollo Regional Durango', 'user', @status_code, @message);
-CALL sp_insert_user('director_losmochis', 'director_losmochis@example.com', 'pass_losmochis', 'Ricardo', 'Pérez', 'Castillo', 'Centro de Vinculación y Desarrollo Regional Unidad Los Mochis', 'user', @status_code, @message);
-CALL sp_insert_user('director_mazatlan', 'director_mazatlan@example.com', 'pass_mazatlan', 'Fernanda', 'Ruiz', 'Gómez', 'Centro de Desarrollo y Vinculación Regional Unidad Mazatlán', 'user', @status_code, @message);
-CALL sp_insert_user('director_morelia', 'director_morelia@example.com', 'pass_morelia', 'Miguel', 'Hernández', 'Lara', 'Centro de Vinculación y Desarrollo Regional Unidad Morelia', 'user', @status_code, @message);
-CALL sp_insert_user('director_tlaxcala', 'director_tlaxcala@example.com', 'pass_tlaxcala', 'Valeria', 'Castillo', 'Núñez', 'Centro de Vinculación y Desarrollo Regional Unidad Tlaxcala', 'user', @status_code, @message);
-CALL sp_insert_user('director_oaxaca', 'director_oaxaca@example.com', 'pass_oaxaca', 'Héctor', 'Cruz', 'Mendoza', 'Centro de Vinculación y Desarrollo Regional Unidad Oaxaca', 'user', @status_code, @message);
-CALL sp_insert_user('director_tijuana', 'director_tijuana@example.com', 'pass_tijuana', 'Gabriela', 'Flores', 'Ramos', 'Centro de Vinculación y Desarrollo Regional Unidad Tijuana', 'user', @status_code, @message);
+-- CALL sp_insert_user('director_chihuahua', 'director_chihuahua@example.com', 'pass_chihuahua', 'Carlos', 'Hernández', 'López', 'Centro de Innovación e Integración de Tecnologías Avanzadas Chihuahua', 'user', @status_code, @message);
+-- CALL sp_insert_user('director_puebla', 'director_puebla@example.com', 'pass_puebla', 'María', 'García', 'Martínez', 'Centro de Innovación e Integración de Tecnologías Avanzadas Puebla', 'user', @status_code, @message);
+-- CALL sp_insert_user('director_veracruz', 'director_veracruz@example.com', 'pass_veracruz', 'Sebastián', 'Morales', 'Palacios', 'Centro de Innovación e Integración de Tecnologías Avanzadas Veracruz', 'user', @status_code, @message);
+-- CALL sp_insert_user('director_cajeme', 'director_cajeme@example.com', 'pass_cajeme', 'Ana', 'Martínez', 'Pérez', 'Centro de Vinculación y Desarrollo Regional Unidad Cajeme', 'user', @status_code, @message);
+-- CALL sp_insert_user('director_campeche', 'director_campeche@example.com', 'pass_campeche', 'Jorge', 'Díaz', 'Ramírez', 'Centro de Vinculación y Desarrollo Regional Unidad Campeche', 'user', @status_code, @message);
+-- CALL sp_insert_user('director_cancun', 'director_cancun@example.com', 'pass_cancun', 'Sofía', 'Jiménez', 'Vargas', 'Centro de Vinculación y Desarrollo Regional Unidad Cancún', 'user', @status_code, @message);
+-- CALL sp_insert_user('director_culiacan', 'director_culiacan@example.com', 'pass_culiacan', 'Roberto', 'Torres', 'Morales', 'Centro de Vinculación y Desarrollo Regional Culiacán', 'user', @status_code, @message);
+-- CALL sp_insert_user('director_durango', 'director_durango@example.com', 'pass_durango', 'Daniela', 'Sánchez', 'Ortega', 'Centro de Vinculación y Desarrollo Regional Durango', 'user', @status_code, @message);
+-- CALL sp_insert_user('director_losmochis', 'director_losmochis@example.com', 'pass_losmochis', 'Ricardo', 'Pérez', 'Castillo', 'Centro de Vinculación y Desarrollo Regional Unidad Los Mochis', 'user', @status_code, @message);
+-- CALL sp_insert_user('director_mazatlan', 'director_mazatlan@example.com', 'pass_mazatlan', 'Fernanda', 'Ruiz', 'Gómez', 'Centro de Desarrollo y Vinculación Regional Unidad Mazatlán', 'user', @status_code, @message);
+-- CALL sp_insert_user('director_morelia', 'director_morelia@example.com', 'pass_morelia', 'Miguel', 'Hernández', 'Lara', 'Centro de Vinculación y Desarrollo Regional Unidad Morelia', 'user', @status_code, @message);
+-- CALL sp_insert_user('director_tlaxcala', 'director_tlaxcala@example.com', 'pass_tlaxcala', 'Valeria', 'Castillo', 'Núñez', 'Centro de Vinculación y Desarrollo Regional Unidad Tlaxcala', 'user', @status_code, @message);
+-- CALL sp_insert_user('director_oaxaca', 'director_oaxaca@example.com', 'pass_oaxaca', 'Héctor', 'Cruz', 'Mendoza', 'Centro de Vinculación y Desarrollo Regional Unidad Oaxaca', 'user', @status_code, @message);
+-- CALL sp_insert_user('director_tijuana', 'director_tijuana@example.com', 'pass_tijuana', 'Gabriela', 'Flores', 'Ramos', 'Centro de Vinculación y Desarrollo Regional Unidad Tijuana', 'user', @status_code, @message);
 CALL sp_insert_user('director_tampico', 'director_tampico@example.com', 'pass_tampico', 'Eduardo', 'Rojas', 'Peña', 'Centro de Vinculación y Desarrollo Regional Unidad Tampico', 'user', @status_code, @message);
 
 -- Insertar el usuario root (sin centro)
 CALL sp_insert_user('admin', 'admin@example.com', 'pass_admin', 'Alejandra', 'Delgadillo', 'Martínez', NULL, 'root', @status_code, @message);
-
+select * from  courses;
+-- Insertar usuario directora
 CALL sp_insert_user('verificador',  'nparram@ipn.mx',  'pass_verificador', 'Nancy Dalia', 'Parra', 'Mejía', NULL, 'verifier',  @status_code, @message);
-select * from users;
 
 INSERT INTO tutorial_videos (title, description, video_url, thumbnail_url) VALUES 
 (
@@ -2699,19 +2670,25 @@ INSERT INTO tutorial_videos (title, description, video_url, thumbnail_url) VALUE
  -- SELECT * FROM course_schedules;
  
 -- SELECT * FROM course_schedules WHERE session_id = 2;
+
+-- SP para reportes
+-- CALL sp_get_current_vigent_courses();
+-- CALL sp_get_current_vigent_diplomas(); 
+-- CALL sp_get_certificates_delivered_sessions();
+-- CALL sp_get_certificates_delivered_diplomas();
+
 /*
 UPDATE course_sessions 
 SET status = 'pending' 
 WHERE id = 2;
 */
-select * from course_documentation;
 
  /*
 SET FOREIGN_KEY_CHECKS = 0;
 TRUNCATE TABLE nombre_de_la_tabla;
 SET FOREIGN_KEY_CHECKS = 1;
 */
- 
+
 -- SELECT * FROM actors_general_information;
 /*
 SELECT 
@@ -2759,7 +2736,6 @@ CALL sp_register_instructor_general_info(
 -- Consultar los valores de los parámetros de salida
 SELECT @status_code AS status_code, @message AS message;
 */
-
 
 -- SELECT * FROM actors_general_information;
 /*
@@ -2969,8 +2945,12 @@ WHERE id = 5;*/
 /*
 UPDATE courses 
 SET approval_status = 'pending' 
-WHERE id = 5;*/
+WHERE id = 2;
 
+UPDATE courses 
+SET verification_status = 'pending' 
+WHERE id = 2;
+*/
 /*
 UPDATE course_sessions
 SET status = 'completed' 
@@ -2987,7 +2967,7 @@ SET approval_status = 'approved'
 WHERE id = 1;
 select *from diploma_actor_roles;
 */
-select * from diplomas;
+
 /*
 UPDATE diplomas 
 SET certificates_requested = 1
@@ -2995,9 +2975,4 @@ WHERE id = 1;
 select *from diploma_actor_roles;
 */
 -- update course_sessions set status = 'opened' where id = 4;
-call sp_get_all_courses();
-CALL sp_update_user_password('admin', 'pass_admin', @p_status_code, @p_message);
-SELECT @p_status_code, @p_message; 
-SELECT * FROM diplomas;
-select * from users;
 -- DROP DATABASE dvdr_cursos;

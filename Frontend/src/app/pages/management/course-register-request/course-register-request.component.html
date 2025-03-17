@@ -92,20 +92,32 @@
         <ng-container matColumnDef="acciones">
           <th mat-header-cell *matHeaderCellDef>Acciones</th>
           <td mat-cell *matCellDef="let row">
-            <button
-              mat-icon-button
-              (click)="approveCourse(row.courseId)"
-              matTooltip="Aprobar curso"
+            <!-- Si el curso ya fue aprobado por nosotros (admin), mostrar mensaje de verificado -->
+            <div
+              *ngIf="row.approvalStatus === 'approved'"
+              class="flex items-center justify-center text-green-600"
             >
-              <mat-icon class="hover-green">check_circle</mat-icon>
-            </button>
-            <button
-              mat-icon-button
-              (click)="rejectCourse(row.courseId)"
-              matTooltip="Rechazar curso"
-            >
-              <mat-icon class="hover-red">cancel</mat-icon>
-            </button>
+              <mat-icon class="mr-1">verified</mat-icon>
+              <span>Aprobado</span>
+            </div>
+
+            <!-- Si el curso no ha sido aprobado, mostrar botones de acción -->
+            <div *ngIf="row.approvalStatus !== 'approved'">
+              <button
+                mat-icon-button
+                (click)="approveCourse(row.courseId)"
+                matTooltip="Aprobar curso"
+              >
+                <mat-icon class="hover-green">check_circle</mat-icon>
+              </button>
+              <button
+                mat-icon-button
+                (click)="rejectCourse(row.courseId)"
+                matTooltip="Rechazar curso"
+              >
+                <mat-icon class="hover-red">cancel</mat-icon>
+              </button>
+            </div>
           </td>
         </ng-container>
 

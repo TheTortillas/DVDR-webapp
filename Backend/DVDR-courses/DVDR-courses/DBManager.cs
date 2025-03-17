@@ -1610,13 +1610,13 @@ namespace DVDR_courses
 
                     // Obtener datos del curso
                     var getCourseCmd = new MySqlCommand(@"
-                SELECT c.id, c.parent_course_id, c.renewal_count,
-                       u.center_id, ctr.type AS centerType, ctr.identifier AS centerIdentifier,
-                       c.verification_status
-                FROM courses c
-                JOIN users u ON c.user_id = u.id
-                JOIN centers ctr ON u.center_id = ctr.id
-                WHERE c.id = @courseId", con);
+                        SELECT c.id, c.parent_course_id, c.renewal_count,
+                               u.center_id, ctr.type AS centerType, ctr.identifier AS centerIdentifier,
+                               c.verification_status, c.course_key
+                        FROM courses c
+                        JOIN users u ON c.user_id = u.id
+                        JOIN centers ctr ON u.center_id = ctr.id
+                        WHERE c.id = @courseId", con);
 
                     getCourseCmd.Parameters.AddWithValue("@courseId", courseId);
 
@@ -1627,14 +1627,9 @@ namespace DVDR_courses
                             return (0, "No se encontró el curso para actualizar.");
                         }
 
-                        // Verificar que el curso haya sido verificado primero (si está siendo aprobado)
+                        // Solo verificamos el estado actual de verificación y si ya tiene clave
                         var verificationStatus = reader["verification_status"].ToString();
-
-                        if (approvalStatus.Equals("approved", StringComparison.OrdinalIgnoreCase) &&
-                            !verificationStatus.Equals("approved", StringComparison.OrdinalIgnoreCase))
-                        {
-                            return (0, "El curso debe ser verificado antes de ser aprobado.");
-                        }
+                        var existingCourseKey = reader.IsDBNull(reader.GetOrdinal("course_key")) ? null : reader.GetString("course_key");
 
                         var parentCourseId = reader["parent_course_id"] as int?;
                         var renewalCount = Convert.ToInt32(reader["renewal_count"]);
@@ -1646,11 +1641,11 @@ namespace DVDR_courses
                         if (approvalStatus.Equals("rejected", StringComparison.OrdinalIgnoreCase))
                         {
                             var sqlReject = @"
-                        UPDATE courses
-                        SET approval_status = @approvalStatus,
-                            admin_notes = @adminNotes
-                        WHERE id = @courseId;
-                    ";
+                                UPDATE courses
+                                SET approval_status = @approvalStatus,
+                                    admin_notes = @adminNotes
+                                WHERE id = @courseId;
+                            ";
                             using (var cmdReject = new MySqlCommand(sqlReject, con))
                             {
                                 cmdReject.Parameters.AddWithValue("@approvalStatus", approvalStatus);
@@ -1664,74 +1659,109 @@ namespace DVDR_courses
                             }
                         }
 
-                        // Si el curso es aprobado, generamos la clave y la fecha de expiración
-                        var currentDate = DateTime.Now;
-                        var expirationDate = currentDate.AddYears(2); // Ahora la expiración se calcula al aprobar
+                        // Si el curso es aprobado, verificamos si ambos estados son "approved"
+                        bool shouldGenerateKey = approvalStatus.Equals("approved", StringComparison.OrdinalIgnoreCase) &&
+                                                verificationStatus.Equals("approved", StringComparison.OrdinalIgnoreCase) &&
+                                                string.IsNullOrEmpty(existingCourseKey);
 
-                        string courseKey;
-                        if (parentCourseId == null) // Nuevo curso
+                        // Variables para la clave y fecha
+                        string courseKey = null;
+                        DateTime expirationDate = DateTime.Now.AddYears(2);
+                        string sqlApprove;
+                        // Solo generamos la clave si ambos estados son "approved" y aún no tiene clave
+                        if (shouldGenerateKey)
                         {
-                            // Contamos solo los cursos APROBADOS en el año
-                            var countApprovedCoursesCmd = new MySqlCommand(@"
-                        SELECT COUNT(*)
-                        FROM courses
-                        WHERE YEAR(created_at) = @currentYear 
-                        AND course_key IS NOT NULL", con);
+                            var currentDate = DateTime.Now;
 
-                            countApprovedCoursesCmd.Parameters.AddWithValue("@currentYear", currentDate.Year);
-                            var approvedCount = Convert.ToInt32(countApprovedCoursesCmd.ExecuteScalar()) + 1;
+                            // Generación de clave para curso original o renovación
+                            if (parentCourseId == null)
+                            {
+                                // Caso: CURSO ORIGINAL
+                                var countCoursesCmd = new MySqlCommand("SELECT COUNT(*) FROM courses WHERE YEAR(created_at) = @currentYear AND course_key IS NOT NULL", con);
+                                countCoursesCmd.Parameters.AddWithValue("@currentYear", currentDate.Year);
+                                var nextCourseNumber = Convert.ToInt32(countCoursesCmd.ExecuteScalar()) + 1;
 
-                            var courseCount = approvedCount.ToString("D3");
-                            var vigencia = $"{currentDate.Year}-{currentDate.Year + 2}";
+                                var courseCount = nextCourseNumber.ToString("D3");  // Convertir a formato 3 dígitos
+                                var vigencia = $"{currentDate.Year}-{currentDate.Year + 2}";
+                                courseKey = $"DVDR/{centerType}/{centerIdentifier}/{courseCount}/{vigencia}";
+                            }
+                            else
+                            {
+                                // Caso: RENOVACIÓN
+                                var getParentCourseCmd = new MySqlCommand("SELECT course_key, renewal_count FROM courses WHERE id = @parentCourseId", con);
+                                getParentCourseCmd.Parameters.AddWithValue("@parentCourseId", parentCourseId);
+                                using (var parentReader = getParentCourseCmd.ExecuteReader())
+                                {
+                                    if (!parentReader.Read())
+                                    {
+                                        return (0, "Curso a renovar no encontrado.");
+                                    }
 
-                            courseKey = $"DVDR/{centerType}/{centerIdentifier}/{courseCount}/{vigencia}";
+                                    var parentCourseKey = parentReader.GetString("course_key");
+                                    renewalCount = parentReader.GetInt32("renewal_count") + 1;
+                                }
+
+                                var countCoursesCmd = new MySqlCommand("SELECT COUNT(*) FROM courses WHERE YEAR(created_at) = @currentYear AND course_key IS NOT NULL", con);
+                                countCoursesCmd.Parameters.AddWithValue("@currentYear", currentDate.Year);
+                                var courseCount = (Convert.ToInt32(countCoursesCmd.ExecuteScalar()) + 1).ToString("D3");
+
+                                var vigencia = $"{currentDate.Year}-{currentDate.Year + 2}";
+                                courseKey = $"DVDR/{centerType}/{centerIdentifier}/{courseCount}_{renewalCount}/{vigencia}";
+                            }
+
+                            // SQL para actualizar con clave y fecha
+                            sqlApprove = @"
+                                UPDATE courses
+                                SET approval_status = @approvalStatus,
+                                    admin_notes = @adminNotes,
+                                    course_key = @courseKey,
+                                    expiration_date = @expirationDate
+                                WHERE id = @courseId;
+                            ";
                         }
-                        else // Curso renovado
+                        else
                         {
-                            var newRenewalCount = renewalCount + 1;
-
-                            var countApprovedCoursesCmd = new MySqlCommand(@"
-                        SELECT COUNT(*)
-                        FROM courses
-                        WHERE YEAR(created_at) = @currentYear 
-                        AND course_key IS NOT NULL", con);
-
-                            countApprovedCoursesCmd.Parameters.AddWithValue("@currentYear", currentDate.Year);
-                            var approvedCount = Convert.ToInt32(countApprovedCoursesCmd.ExecuteScalar()) + 1;
-
-                            var courseCount = approvedCount.ToString("D3");
-                            var vigencia = $"{currentDate.Year}-{currentDate.Year + 2}";
-
-                            courseKey = $"DVDR/{centerType}/{centerIdentifier}/{courseCount}_{newRenewalCount}/{vigencia}";
-
-                            renewalCount = newRenewalCount;
+                            // SQL para actualizar sólo el estado de aprobación sin generar clave
+                            sqlApprove = @"
+                                UPDATE courses
+                                SET approval_status = @approvalStatus,
+                                    admin_notes = @adminNotes
+                                WHERE id = @courseId;
+                            ";
                         }
-
-                        // Actualizar curso con clave generada y nueva fecha de expiración
-                        var sqlApprove = @"
-                    UPDATE courses
-                    SET approval_status = @approvalStatus,
-                        admin_notes = @adminNotes,
-                        course_key = @courseKey,
-                        expiration_date = @expirationDate,
-                        renewal_count = @renewalCount
-                    WHERE id = @courseId;
-                ";
 
                         using (var cmdApprove = new MySqlCommand(sqlApprove, con))
                         {
                             cmdApprove.Parameters.AddWithValue("@approvalStatus", approvalStatus);
                             cmdApprove.Parameters.AddWithValue("@adminNotes", adminNotes ?? (object)DBNull.Value);
-                            cmdApprove.Parameters.AddWithValue("@courseKey", courseKey);
-                            cmdApprove.Parameters.AddWithValue("@expirationDate", expirationDate);
-                            cmdApprove.Parameters.AddWithValue("@renewalCount", renewalCount);
                             cmdApprove.Parameters.AddWithValue("@courseId", courseId);
 
+                            // Sólo añadimos estos parámetros si vamos a generar la clave
+                            if (shouldGenerateKey)
+                            {
+                                cmdApprove.Parameters.AddWithValue("@courseKey", courseKey);
+                                cmdApprove.Parameters.AddWithValue("@expirationDate", expirationDate);
+                            }
+
                             var rows = cmdApprove.ExecuteNonQuery();
-                            if (rows > 0)
-                                return (1, "Curso aprobado, clave generada y fecha de expiración asignada.");
+
+                            string successMessage;
+                            if (shouldGenerateKey)
+                            {
+                                successMessage = $"Curso aprobado exitosamente. Clave generada: {courseKey}";
+                            }
+                            else if (verificationStatus.Equals("approved", StringComparison.OrdinalIgnoreCase))
+                            {
+                                successMessage = "Curso aprobado exitosamente. La clave se generará automáticamente.";
+                            }
                             else
-                                return (0, "No se pudo actualizar el curso como aprobado.");
+                            {
+                                successMessage = "Curso aprobado exitosamente. La clave se generará cuando sea verificado.";
+                            }
+
+                            return rows > 0
+                                ? (1, successMessage)
+                                : (0, "No se pudo actualizar el curso como aprobado.");
                         }
                     }
                 }
@@ -1751,39 +1781,123 @@ namespace DVDR_courses
                 {
                     con.Open();
 
-                    // Verificar si el curso existe
-                    var getCourseCmd = new MySqlCommand("SELECT id FROM courses WHERE id = @courseId", con);
+                    // Verificar si el curso existe y obtener datos necesarios
+                    var getCourseCmd = new MySqlCommand(@"
+                        SELECT c.id, c.approval_status, c.course_key, c.parent_course_id, c.renewal_count,
+                               u.center_id, ctr.type AS centerType, ctr.identifier AS centerIdentifier
+                        FROM courses c
+                        JOIN users u ON c.user_id = u.id
+                        JOIN centers ctr ON u.center_id = ctr.id
+                        WHERE c.id = @courseId", con);
+
                     getCourseCmd.Parameters.AddWithValue("@courseId", courseId);
 
-                    var courseExists = getCourseCmd.ExecuteScalar();
-                    if (courseExists == null)
+                    using (var reader = getCourseCmd.ExecuteReader())
                     {
-                        return (0, "No se encontró el curso para actualizar.");
-                    }
+                        if (!reader.Read())
+                        {
+                            return (0, "No se encontró el curso para actualizar.");
+                        }
 
-                    // Actualizar el estado de verificación
-                    var sqlUpdate = @"
-                UPDATE courses
-                SET verification_status = @verificationStatus,
-                    verification_notes = @verificationNotes
-                WHERE id = @courseId;
-            ";
+                        // Verificar si ya está aprobado administrativamente y no tiene clave
+                        var approvalStatus = reader.GetString("approval_status");
+                        var courseKey = reader.IsDBNull(reader.GetOrdinal("course_key")) ? null : reader.GetString("course_key");
+                        var parentCourseId = reader.IsDBNull(reader.GetOrdinal("parent_course_id")) ? (int?)null : reader.GetInt32("parent_course_id");
+                        var renewalCount = reader.GetInt32("renewal_count");
+                        var centerType = reader.GetString("centerType");
+                        var centerIdentifier = reader.GetInt32("centerIdentifier").ToString("D2");
+                        reader.Close();
 
-                    using (var cmd = new MySqlCommand(sqlUpdate, con))
-                    {
-                        cmd.Parameters.AddWithValue("@verificationStatus", verificationStatus);
-                        cmd.Parameters.AddWithValue("@verificationNotes", verificationNotes ?? (object)DBNull.Value);
-                        cmd.Parameters.AddWithValue("@courseId", courseId);
+                        // Primero, actualizar el estado de verificación
+                        var sqlUpdate = @"
+                            UPDATE courses
+                            SET verification_status = @verificationStatus,
+                                verification_notes = @verificationNotes
+                            WHERE id = @courseId;
+                        ";
 
-                        var rows = cmd.ExecuteNonQuery();
+                        using (var cmd = new MySqlCommand(sqlUpdate, con))
+                        {
+                            cmd.Parameters.AddWithValue("@verificationStatus", verificationStatus);
+                            cmd.Parameters.AddWithValue("@verificationNotes", verificationNotes ?? (object)DBNull.Value);
+                            cmd.Parameters.AddWithValue("@courseId", courseId);
+                            cmd.ExecuteNonQuery();
+                        }
 
+                        // Si el curso ya está aprobado administrativamente, verificado ahora, y no tiene clave, generar la clave
+                        bool shouldGenerateKey =
+                            verificationStatus.Equals("approved", StringComparison.OrdinalIgnoreCase) &&
+                            approvalStatus.Equals("approved", StringComparison.OrdinalIgnoreCase) &&
+                            string.IsNullOrEmpty(courseKey);
+
+                        if (shouldGenerateKey)
+                        {
+                            // Generar la clave
+                            var currentDate = DateTime.Now;
+                            var expirationDate = currentDate.AddYears(2);
+                            string courseKeyGenerated;
+
+                            if (parentCourseId == null) // Nuevo curso
+                            {
+                                // Contamos solo los cursos APROBADOS en el año
+                                var countApprovedCoursesCmd = new MySqlCommand(@"
+                                    SELECT COUNT(*)
+                                    FROM courses
+                                    WHERE YEAR(created_at) = @currentYear 
+                                    AND course_key IS NOT NULL", con);
+
+                                countApprovedCoursesCmd.Parameters.AddWithValue("@currentYear", currentDate.Year);
+                                var approvedCount = Convert.ToInt32(countApprovedCoursesCmd.ExecuteScalar()) + 1;
+
+                                var courseCount = approvedCount.ToString("D3");
+                                var vigencia = $"{currentDate.Year}-{currentDate.Year + 2}";
+
+                                courseKeyGenerated = $"DVDR/{centerType}/{centerIdentifier}/{courseCount}/{vigencia}";
+                            }
+                            else // Curso renovado
+                            {
+                                var newRenewalCount = renewalCount + 1;
+
+                                var countApprovedCoursesCmd = new MySqlCommand(@"
+                                    SELECT COUNT(*)
+                                    FROM courses
+                                    WHERE YEAR(created_at) = @currentYear 
+                                    AND course_key IS NOT NULL", con);
+
+                                countApprovedCoursesCmd.Parameters.AddWithValue("@currentYear", currentDate.Year);
+                                var approvedCount = Convert.ToInt32(countApprovedCoursesCmd.ExecuteScalar()) + 1;
+
+                                var courseCount = approvedCount.ToString("D3");
+                                var vigencia = $"{currentDate.Year}-{currentDate.Year + 2}";
+
+                                courseKeyGenerated = $"DVDR/{centerType}/{centerIdentifier}/{courseCount}_{newRenewalCount}/{vigencia}";
+                            }
+
+                            // Actualizar el curso con la clave generada y fecha de expiración
+                            var sqlUpdateKey = @"
+                                UPDATE courses
+                                SET course_key = @courseKey,
+                                    expiration_date = @expirationDate
+                                WHERE id = @courseId;
+                            ";
+
+                            using (var updateCmd = new MySqlCommand(sqlUpdateKey, con))
+                            {
+                                updateCmd.Parameters.AddWithValue("@courseKey", courseKeyGenerated);
+                                updateCmd.Parameters.AddWithValue("@expirationDate", expirationDate);
+                                updateCmd.Parameters.AddWithValue("@courseId", courseId);
+                                updateCmd.ExecuteNonQuery();
+                            }
+
+                            return (1, $"Curso verificado y clave generada exitosamente: {courseKeyGenerated}");
+                        }
+
+                        // Mensaje estándar si no se generó clave
                         string statusMessage = verificationStatus.Equals("approved", StringComparison.OrdinalIgnoreCase)
                             ? "Curso verificado exitosamente."
                             : "Curso rechazado en verificación.";
 
-                        return rows > 0
-                            ? (1, statusMessage)
-                            : (0, "No se pudo actualizar el estado de verificación del curso.");
+                        return (1, statusMessage);
                     }
                 }
             }

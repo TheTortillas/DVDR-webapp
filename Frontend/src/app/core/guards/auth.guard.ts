@@ -44,6 +44,14 @@ export class AuthGuard implements CanActivate {
       return false;
     }
 
+    if (
+      requestedRoute.startsWith('/verification') &&
+      claims.role !== 'verifier'
+    ) {
+      this.router.navigate(['/auth/login']);
+      return false;
+    }
+
     if (requestedRoute.startsWith('/management') && claims.role !== 'root') {
       this.router.navigate(['/auth/login']);
       return false;

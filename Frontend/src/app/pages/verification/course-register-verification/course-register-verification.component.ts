@@ -9,7 +9,6 @@ import { MatDialog } from '@angular/material/dialog';
 import { DocumentationDialogComponent } from '../../../shared/components/course-data-dialogs/documentation-dialog/documentation-dialog.component';
 import { GeneralInfoDialogComponent } from '../../../shared/components/course-data-dialogs/general-info-dialog/general-info-dialog.component';
 import { ActorsDialogComponent } from '../../../shared/components/course-data-dialogs/actors-dialog/actors-dialog.component';
-import { SessionsDialogComponent } from '../../../shared/components/course-data-dialogs/sessions-dialog/sessions-dialog.component';
 import {
   CoursesService,
   CourseFullData,
@@ -17,7 +16,7 @@ import {
 import Swal from 'sweetalert2';
 
 @Component({
-  selector: 'app-course-register-request',
+  selector: 'app-course-register-verification',
   standalone: true,
   imports: [
     CommonModule,
@@ -26,14 +25,14 @@ import Swal from 'sweetalert2';
     MatTooltipModule,
     MatPaginatorModule,
   ],
-  templateUrl: './course-register-request.component.html',
-  styleUrl: './course-register-request.component.scss',
+  templateUrl: './course-register-verification.component.html',
+  styleUrl: './course-register-verification.component.scss',
 })
-export class CourseRegisterRequestComponent implements OnInit {
+export class CourseRegisterVerificationComponent implements OnInit {
   displayedColumns: string[] = [
     'nombreCurso',
     'claveCurso',
-    'estadoVerificacion',
+    'estadoAprobacion',
     'datosGenerales',
     'instructores',
     'documentacion',
@@ -56,7 +55,7 @@ export class CourseRegisterRequestComponent implements OnInit {
   loadPendingCourses() {
     this.coursesService.getAllCourses().subscribe({
       next: (response) => {
-        // Filtra cursos con status 'submitted' y que no tengan 'approved' ni 'rejected'
+        // Filtra cursos con status 'submitted' y verification_status 'pending'
         const filteredCourses = response.filter(
           (course) =>
             course.approvalStatus !== 'approved' ||
@@ -123,55 +122,30 @@ export class CourseRegisterRequestComponent implements OnInit {
     }
   }
 
-  openSessionsDialog(courseId: number) {
-    const course = this.dataSource.data.find((c) => c.courseId === courseId);
-    if (course) {
-      this.coursesService.getCourseSessions(courseId).subscribe({
-        next: (sessions) => {
-          this.dialog.open(SessionsDialogComponent, {
-            width: '70%',
-            height: '90%',
-            maxWidth: '100vw',
-            maxHeight: '100vh',
-            autoFocus: false,
-            data: {
-              courseKey: course.courseKey,
-              sessions: sessions,
-            },
-          });
-        },
-        error: (error) => {
-          console.error('Error al cargar sesiones:', error);
-        },
-      });
-    }
-  }
-
-  // Nuevos métodos para aprobar y rechazar cursos
-  approveCourse(courseId: number) {
+  // Nuevos métodos para verificar y rechazar cursos
+  verifyCourse(courseId: number) {
     Swal.fire({
       title: '¿Estás seguro?',
-      text: '¿Deseas aprobar este curso?',
+      text: '¿Deseas verificar este curso?',
       icon: 'question',
       showCancelButton: true,
-      confirmButtonText: 'Sí, aprobar',
+      confirmButtonText: 'Sí, verificar',
       cancelButtonText: 'Cancelar',
     }).then((result) => {
       if (result.isConfirmed) {
         this.coursesService
-          .approveOrRejectCourse(courseId, 'approved')
+          .verifyOrRejectCourse(courseId, 'approved')
           .subscribe({
             next: (response) => {
               Swal.fire(
-                '¡Aprobado!',
-                'Curso aprobado y listo para solicitar aperturas',
+                '¡Verificado!',
+                'Curso verificado y listo para aprobación final',
                 'success'
               );
               this.loadPendingCourses();
             },
             error: (error) => console.error(error),
           });
-        this.loadPendingCourses(); // Recargar la lista
       }
     });
   }
@@ -193,11 +167,9 @@ export class CourseRegisterRequestComponent implements OnInit {
     }).then((result) => {
       if (result.isConfirmed && result.value) {
         const rejectionMessage: string = result.value;
-        console.log('Mensaje de rechazo:', rejectionMessage);
-        console.log('ID del curso rechazado:', courseId);
 
         this.coursesService
-          .approveOrRejectCourse(courseId, 'rejected', rejectionMessage)
+          .verifyOrRejectCourse(courseId, 'rejected', rejectionMessage)
           .subscribe({
             next: (response) => {
               Swal.fire(
@@ -209,8 +181,6 @@ export class CourseRegisterRequestComponent implements OnInit {
             },
             error: (error) => console.error(error),
           });
-
-        this.loadPendingCourses();
       }
     });
   }

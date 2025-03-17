@@ -28,6 +28,7 @@ export interface CourseFullData {
   createdAt: string;
   status: string;
   approvalStatus: string;
+  verificationStatus: string;
   center: string;
 }
 
@@ -182,6 +183,20 @@ export class CoursesService {
       courseId,
       approvalStatus,
       adminNotes,
+    };
+    return this.httpClient.patch(url, body);
+  }
+
+  verifyOrRejectCourse(
+    courseId: number,
+    verificationStatus: 'approved' | 'rejected',
+    verificationNotes?: string
+  ): Observable<any> {
+    const url = this.URLBase + '/api/Course/VerifyOrRejectCourse';
+    const body = {
+      courseId,
+      verificationStatus,
+      verificationNotes,
     };
     return this.httpClient.patch(url, body);
   }

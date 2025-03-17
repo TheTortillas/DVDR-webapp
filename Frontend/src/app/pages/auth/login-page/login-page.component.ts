@@ -68,12 +68,13 @@ export class LoginPageComponent {
         console.log('Token válido, redirigiendo según rol');
 
         if (claims.role === 'user') {
-          this.router.navigate(['/profile/dashboard']);
+          this.router.navigate(['/profile']);
         } else if (claims.role === 'root') {
-          this.router.navigate(['/management/dashboard']);
+          this.router.navigate(['/management']);
+        } else if (claims.role === 'verifier') {
+          this.router.navigate(['/verification']);
         } else {
           console.warn('Rol desconocido:', claims.role);
-          this.storageService.clear();
         }
       }
     } else if (token) {
@@ -137,6 +138,8 @@ export class LoginPageComponent {
               this.router.navigate(['/profile']);
             } else if (claims.role === 'root') {
               this.router.navigate(['/management']);
+            } else if (claims.role === 'verifier') {
+              this.router.navigate(['/verification']);
             } else {
               console.warn('Rol desconocido:', claims.role);
             }

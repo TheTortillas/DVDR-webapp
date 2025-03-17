@@ -34,6 +34,9 @@ import { UsersComponent } from './pages/management/users/users.component';
 import { InstructorsComponent } from './pages/management/instructors/instructors.component';
 import { TemplatesComponent } from './pages/management/templates/templates.component';
 import { CourseAperturesComponent } from './pages/management/course-apertures/course-apertures.component';
+import { CourseRegisterVerificationComponent } from './pages/verification/course-register-verification/course-register-verification.component';
+import { VerificationComponent } from './pages/verification/verification.component';
+import { VerificationDashboardComponent } from './pages/verification/verification-dashboard/verification-dashboard.component';
 
 export const routes: Routes = [
   {
@@ -198,6 +201,32 @@ export const routes: Routes = [
       {
         path: '',
         redirectTo: 'dashboard',
+        pathMatch: 'full',
+      },
+      {
+        path: '**',
+        redirectTo: 'dashboard',
+        pathMatch: 'full',
+      },
+    ],
+  },
+
+  {
+    path: 'verification',
+    component: VerificationComponent,
+    canActivate: [AuthGuard],
+    children: [
+      {
+        path: 'dashboard',
+        component: VerificationDashboardComponent, // Cambiar por el nuevo dashboard específico
+      },
+      {
+        path: 'course-register-request',
+        component: CourseRegisterVerificationComponent,
+      },
+      {
+        path: '',
+        redirectTo: 'dashboard', // Ahora redirigimos al dashboard
         pathMatch: 'full',
       },
       {

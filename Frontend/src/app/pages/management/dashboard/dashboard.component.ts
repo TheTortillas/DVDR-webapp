@@ -8,7 +8,6 @@ import { MatListModule } from '@angular/material/list';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatExpansionModule } from '@angular/material/expansion';
-import { CourseFullData } from '../../../core/services/courses.service';
 import { MatBadgeModule } from '@angular/material/badge';
 import { RouterLink } from '@angular/router';
 import { StorageService } from '../../../core/services/storage.service';
@@ -66,66 +65,143 @@ export class ManagementDashboardComponent implements OnInit {
     this.loadPendingCertificatesCount();
     this.loadPendingDiplomasCount();
     this.loadPendingAperturesCount();
+    this.loadPendingDiplomaCertificatesCount();
   }
 
   loadPendingCoursesCount(): void {
     this.coursesService.getAllCourses().subscribe({
-      next: (courses: CourseFullData[]) => {
-        // Filtrar los cursos que tienen status = 'submitted' y approvalStatus != 'approved'
-        const filteredCourses = courses.filter(
-          (course) =>
-            course.status === 'submitted' && course.approvalStatus === 'pending'
-        );
-        this.pendingCoursesCount = filteredCourses.length;
+      next: (response: any) => {
+        // Verificar primero si la respuesta es undefined
+        if (response === undefined || response === null) {
+          console.warn('La respuesta es undefined o null');
+          this.pendingCoursesCount = 0;
+          return;
+        }
+
+        if (Array.isArray(response)) {
+          // Es un array de cursos
+          const filteredCourses = response.filter(
+            (course) =>
+              course.status === 'submitted' &&
+              course.approvalStatus === 'pending'
+          );
+          this.pendingCoursesCount = filteredCourses.length;
+        } else if (response.data) {
+          // Es un objeto con array data vacío
+          this.pendingCoursesCount = 0;
+        } else {
+          console.warn('Formato de respuesta inesperado:', response);
+          this.pendingCoursesCount = 0;
+        }
       },
       error: (err) => {
         console.error('Error al obtener cursos:', err);
+        this.pendingCoursesCount = 0;
       },
     });
   }
 
   loadPendingCertificatesCount(): void {
     this.coursesService.GetRequestedCertificatesSessions().subscribe({
-      next: (sessions) => {
-        this.pendingCertificatesCount = sessions.length;
+      next: (response: any) => {
+        if (response === undefined || response === null) {
+          console.warn('La respuesta es undefined o null');
+          this.pendingCertificatesCount = 0;
+          return;
+        }
+
+        if (Array.isArray(response)) {
+          this.pendingCertificatesCount = response.length;
+        } else if (response.data) {
+          this.pendingCertificatesCount = 0;
+        } else {
+          console.warn('Formato de respuesta inesperado:', response);
+          this.pendingCertificatesCount = 0;
+        }
       },
       error: (err) => {
         console.error('Error al obtener solicitudes de constancias:', err);
+        this.pendingCertificatesCount = 0;
       },
     });
   }
 
   loadPendingDiplomasCount(): void {
     this.diplomasService.getAllDiplomas().subscribe({
-      next: (diplomas: any[]) => {
-        const pending = diplomas.filter((d) => d.approvalStatus === 'pending');
-        this.pendingDiplomasCount = pending.length;
-        console.log('Diplomas pendientes:', pending.length);
+      next: (response: any) => {
+        if (response === undefined || response === null) {
+          console.warn('La respuesta es undefined o null');
+          this.pendingDiplomasCount = 0;
+          return;
+        }
+
+        if (Array.isArray(response)) {
+          const pending = response.filter(
+            (d) => d.approvalStatus === 'pending'
+          );
+          this.pendingDiplomasCount = pending.length;
+        } else if (response.data) {
+          this.pendingDiplomasCount = 0;
+        } else {
+          console.warn('Formato de respuesta inesperado:', response);
+          this.pendingDiplomasCount = 0;
+        }
       },
       error: (err) => {
         console.error('Error al obtener diplomados:', err);
+        this.pendingDiplomasCount = 0;
       },
     });
   }
 
   loadPendingDiplomaCertificatesCount(): void {
     this.diplomasService.getRequestedDiplomaCertificates().subscribe({
-      next: (requests) => {
-        this.pendingDiplomaCertificatesCount = requests.length;
+      next: (response: any) => {
+        if (response === undefined || response === null) {
+          console.warn('La respuesta es undefined o null');
+          this.pendingDiplomaCertificatesCount = 0;
+          return;
+        }
+
+        if (Array.isArray(response)) {
+          this.pendingDiplomaCertificatesCount = response.length;
+        } else if (response.data) {
+          this.pendingDiplomaCertificatesCount = 0;
+        } else {
+          console.warn('Formato de respuesta inesperado:', response);
+          this.pendingDiplomaCertificatesCount = 0;
+        }
       },
       error: (err) => {
         console.error('Error al obtener solicitudes de constancias:', err);
+        this.pendingDiplomaCertificatesCount = 0;
       },
     });
   }
 
   loadPendingAperturesCount(): void {
     this.apertureService.getPendingAperturesCount().subscribe({
-      next: (count) => {
-        this.pendingAperturesCount = count;
+      next: (response: any) => {
+        if (response === undefined || response === null) {
+          console.warn('La respuesta es undefined o null');
+          this.pendingAperturesCount = 0;
+          return;
+        }
+
+        if (typeof response === 'number') {
+          this.pendingAperturesCount = response;
+        } else if (response.data !== undefined) {
+          this.pendingAperturesCount = Array.isArray(response.data)
+            ? response.data.length
+            : 0;
+        } else {
+          console.warn('Formato de respuesta inesperado:', response);
+          this.pendingAperturesCount = 0;
+        }
       },
       error: (err) => {
         console.error('Error al obtener conteo de aperturas:', err);
+        this.pendingAperturesCount = 0;
       },
     });
   }

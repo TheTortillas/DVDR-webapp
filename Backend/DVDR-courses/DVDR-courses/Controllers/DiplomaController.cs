@@ -207,12 +207,13 @@ namespace DVDR_courses.Controllers
                 var dbManager = new DBManager(_config);
                 var diplomas = dbManager.GetAllDiplomas();
 
-                if (diplomas == null || !diplomas.Any())
+                // Devolver un array vacío y código 200 en lugar de 404 cuando no hay diplomados
+                if (diplomas == null)
                 {
-                    return NotFound(new { message = "No se encontraron diplomados registrados." });
+                    return Ok(new { message = "No se encontraron diplomados registrados.", data = new List<object>() });
                 }
 
-                return Ok(diplomas);
+                return Ok(diplomas.Any() ? diplomas : new { message = "No se encontraron diplomados registrados.", data = new List<object>() });
             }
             catch (Exception ex)
             {

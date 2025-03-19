@@ -104,13 +104,23 @@ namespace DVDR_courses.Controllers
         [HttpGet("GetAllCourses")]
         public IActionResult GetAllCourses()
         {
-            var dbManager = new DBManager(_config);
-            var courses = dbManager.GetAllCourses();
+            try
+            {
+                var dbManager = new DBManager(_config);
+                var courses = dbManager.GetAllCourses();
 
-            if (courses == null || !courses.Any())
-                return NotFound(new { message = "No se encontraron cursos" });
+                // Devolver un array vacío y código 200 en lugar de 404 cuando no hay cursos
+                if (courses == null)
+                {
+                    return Ok(new { message = "No se encontraron cursos", data = new List<object>() });
+                }
 
-            return Ok(courses);
+                return Ok(courses.Any() ? courses : new { message = "No se encontraron cursos", data = new List<object>() });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Error al obtener los cursos.", error = ex.Message });
+            }
         }
 
         [HttpPost("RegisterCourseSession", Name = "PostRegisterCourseSession")]

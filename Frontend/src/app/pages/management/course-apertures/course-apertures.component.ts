@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
+import { MatIcon, MatIconModule } from '@angular/material/icon';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import {
   ApertureCoursesSessionsService,
@@ -21,6 +21,7 @@ import { MatTooltip } from '@angular/material/tooltip';
     MatIconModule,
     MatSnackBarModule,
     MatTooltip,
+    MatIcon,
   ],
   templateUrl: './course-apertures.component.html',
   providers: [DatePipe],
@@ -49,23 +50,46 @@ export class CourseAperturesComponent implements OnInit {
 
   loadPendingApertures(): void {
     this.apertureService.getPendingApertures().subscribe({
-      next: (data: PendingAperture[]) => {
-        this.dataSource = data;
-        // Añadir console.log para debuggear los datos
+      next: (response: any) => {
+        // Verificar si la respuesta es válida
+        if (response === undefined || response === null) {
+          console.log('Respuesta vacía del servidor');
+          this.dataSource = [];
+          return;
+        }
+
+        // Manejar respuestas en diferentes formatos
+        if (Array.isArray(response)) {
+          this.dataSource = response;
+        } else if (response.data && Array.isArray(response.data)) {
+          this.dataSource = response.data;
+        } else {
+          console.warn('Formato de respuesta inesperado:', response);
+          this.dataSource = [];
+        }
+
+        // Logs para depuración
         console.log(
           'Datos de aperturas recibidos:',
-          JSON.stringify(data, null, 2)
+          JSON.stringify(this.dataSource, null, 2)
         );
 
-        // Verificar específicamente la propiedad 'signed'
-        data.forEach((aperture) => {
-          console.log(
-            `Apertura ${aperture.sessionId}: Path=${aperture.signedRequestLetterPath}, Signed=${aperture.signed}`
-          );
-        });
+        // Verificar específicamente propiedades importantes si hay datos
+        if (this.dataSource.length > 0) {
+          this.dataSource.forEach((aperture) => {
+            console.log(
+              `Apertura ${aperture.sessionId}: Path=${
+                aperture.signedRequestLetterPath || 'N/A'
+              }`
+            );
+          });
+        } else {
+          console.log('No hay solicitudes de apertura pendientes');
+        }
       },
       error: (err) => {
         console.error('Error al cargar solicitudes:', err);
+        this.dataSource = [];
         this.snackBar.open('Error al cargar las solicitudes', 'Cerrar', {
           duration: 3000,
         });

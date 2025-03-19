@@ -73,7 +73,7 @@ namespace DVDR_courses.Controllers
             }
 
             // Carpeta base + subcarpeta: \Frontend\public\assets\files\courses-documentation\{FolderName}\
-            var angularPublicPath = Path.Combine("..", "..", "..", "Frontend", "public", "assets", "files", "courses-documentation");
+            var angularPublicPath = Path.Combine("..", "..", "..", "Frontend", "public", "assets", "files", "carpeta-prueba");
             string uploadPath = Path.Combine(angularPublicPath, request.FolderName);
 
             try

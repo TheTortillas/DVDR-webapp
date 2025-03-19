@@ -1,4 +1,5 @@
 ﻿using DVDR_courses.DTOs;
+using DVDR_courses.Helpers;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using MySql.Data.MySqlClient;
@@ -11,14 +12,15 @@ namespace DVDR_courses.Controllers
     [ApiController]
     public class InstructorController : ControllerBase
     {
-        IConfiguration _config;
-        DBManager _dbManager;
+        private readonly IConfiguration _config;
+        private readonly DBManager _dbManager;
+        private readonly FileStorageHelper _fileStorage;
 
-        public InstructorController(IConfiguration conf)
+        public InstructorController(IConfiguration conf, IWebHostEnvironment env)
         {
             _config = conf;
             _dbManager = new DBManager(_config);
-
+            _fileStorage = new FileStorageHelper(conf, env);
         }
 
         [HttpPost("RegisterInstructor", Name = "PostRegisterInstructor")]
@@ -30,31 +32,22 @@ namespace DVDR_courses.Controllers
             }
 
             // Generar carpeta aleatoria
-            var folderName = Guid.NewGuid().ToString(); // Nombre aleatorio único
+            var folderName = Guid.NewGuid().ToString();
             request.FolderName = folderName;
-
-            // Ruta base: assets/instructors-documentation/{folderName}
-            var baseFolderPath = Path.Combine("..", "..", "..", "Frontend", "public", "assets", "files", "instructors-documentation", folderName);
-            var academicFolderPath = Path.Combine(baseFolderPath, "academic-history");
-            var workExpFolderPath = Path.Combine(baseFolderPath, "work-experience");
 
             try
             {
-                // Crear directorios si no existen
-                Directory.CreateDirectory(academicFolderPath);
-                Directory.CreateDirectory(workExpFolderPath);
-
                 // Guardar archivos académicos
                 foreach (var academic in request.AcademicHistories)
                 {
                     if (academic.Evidence != null)
                     {
-                        var filePath = Path.Combine(academicFolderPath, academic.Evidence.FileName);
-                        using (var stream = new FileStream(filePath, FileMode.Create))
-                        {
-                            await academic.Evidence.CopyToAsync(stream);
-                        }
-                        // No se necesita asignar EvidencePath aquí
+                        var storagePath = Path.Combine(
+                            _fileStorage.GetStoragePath("InstructorsDocumentation", folderName),
+                            "academic-history");
+                        var fullPath = Path.Combine(storagePath, academic.Evidence.FileName);
+
+                        await _fileStorage.SaveFileAsync(academic.Evidence, fullPath);
                     }
                 }
 
@@ -63,31 +56,31 @@ namespace DVDR_courses.Controllers
                 {
                     if (workExp.Evidence != null)
                     {
-                        var filePath = Path.Combine(workExpFolderPath, workExp.Evidence.FileName);
-                        using (var stream = new FileStream(filePath, FileMode.Create))
-                        {
-                            await workExp.Evidence.CopyToAsync(stream);
-                        }
-                        // No se necesita asignar EvidencePath aquí
+                        var storagePath = Path.Combine(
+                            _fileStorage.GetStoragePath("InstructorsDocumentation", folderName),
+                            "work-experience");
+                        var fullPath = Path.Combine(storagePath, workExp.Evidence.FileName);
+
+                        await _fileStorage.SaveFileAsync(workExp.Evidence, fullPath);
                     }
                 }
+
+                // Llamar al SP para guardar los datos en la BD
+                var (statusCode, message) = _dbManager.RegisterInstructorAll(request);
+
+                return statusCode switch
+                {
+                    1 => Ok(new { message }),
+                    -2 => BadRequest(new { message }),
+                    _ => StatusCode(500, new { message }) // Error genérico
+                };
             }
             catch (Exception ex)
             {
                 return StatusCode(500, new { message = "Error al guardar los archivos.", error = ex.Message });
             }
-
-            // Llamar al SP para guardar los datos en la BD
-            var dbManager = new DBManager(_config);
-            var (statusCode, message) = dbManager.RegisterInstructorAll(request);
-
-            return statusCode switch
-            {
-                1 => Ok(new { message }),
-                -2 => BadRequest(new { message }),
-                _ => StatusCode(500, new { message }) // Error genérico
-            };
         }
+
         [HttpGet("GetInstructors", Name = "GetInstructors")]
         public IActionResult GetInstructors()
         {

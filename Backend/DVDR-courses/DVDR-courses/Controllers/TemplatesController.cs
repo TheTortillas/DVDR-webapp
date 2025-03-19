@@ -1,4 +1,5 @@
 ﻿using DVDR_courses.DTOs.Templates;
+using DVDR_courses.Helpers;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DVDR_courses.Controllers
@@ -9,11 +10,13 @@ namespace DVDR_courses.Controllers
     {
         private readonly IConfiguration _config;
         private readonly DBManager _dbManager;
+        private readonly FileStorageHelper _fileStorage;
 
-        public TemplatesController(IConfiguration config)
+        public TemplatesController(IConfiguration config, IWebHostEnvironment env)
         {
             _config = config;
             _dbManager = new DBManager(_config);
+            _fileStorage = new FileStorageHelper(config, env);
         }
 
         [HttpPost("Manage")]
@@ -25,30 +28,31 @@ namespace DVDR_courses.Controllers
 
                 if (request.File != null)
                 {
-                    var fileName = request.File.FileName; // Usar el nombre original del archivo
-                    var baseFolder = request.Type switch
+                    var fileName = request.File.FileName;
+
+                    // 1. Determinar la carpeta desde appsettings.json
+                    var folderType = request.Type switch
                     {
-                        "course" => "templates",
-                        "diploma" => "diplomae_templates",
-                        "certificate" => "certificate_documents_templates",
+                        "course" => "CourseTemplates",
+                        "diploma" => "DiplomaTemplates",
+                        "certificate" => "CertificateTemplates",
                         _ => throw new ArgumentException("Tipo de plantilla inválido")
                     };
 
-                    var basePath = Path.Combine("assets", baseFolder);
-                    var physicalPath = Path.Combine("..", "..", "..", "Frontend", "public", basePath);
-                    Directory.CreateDirectory(physicalPath);
+                    // 2. Obtener la ruta física para almacenar el archivo
+                    var storagePath = _fileStorage.GetStoragePath(folderType, "");
+                    Directory.CreateDirectory(storagePath);
 
-                    var filePath = Path.Combine(physicalPath, fileName);
-                    dbFilePath = Path.Combine(basePath, fileName).Replace("\\", "/");
+                    // 3. Guardar el archivo físicamente
+                    var physicalPath = Path.Combine(storagePath, fileName);
+                    await _fileStorage.SaveFileAsync(request.File, physicalPath);
 
-                    using (var stream = new FileStream(filePath, FileMode.Create))
-                    {
-                        await request.File.CopyToAsync(stream);
-                    }
+                    // 4. Obtener la ruta relativa para la base de datos
+                    dbFilePath = _fileStorage.GetRelativePath(folderType, "", fileName);
                 }
 
-                // Actualizar la base de datos
-                var (statusCode, message) = _dbManager.ManageTemplate(
+                // 5. Llamar a DBManager para gestionar la plantilla en la BD
+                var (statusCode, message) = await _dbManager.ManageTemplate(
                     request.Action,
                     request.TemplateId,
                     request.Type,
@@ -59,17 +63,17 @@ namespace DVDR_courses.Controllers
                     request.Modalities
                 );
 
-                if (statusCode == 1)
-                {
-                    return Ok(new { message });
-                }
-                return BadRequest(new { message });
+                return statusCode == 1
+                    ? Ok(new { message })
+                    : BadRequest(new { message });
             }
             catch (Exception ex)
             {
                 return StatusCode(500, new { message = $"Error: {ex.Message}" });
             }
         }
+
+
 
         [HttpGet("GetAll")]
         public IActionResult GetAllTemplates()

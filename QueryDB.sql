@@ -2635,7 +2635,7 @@ INSERT INTO document_access (document_id, modality, required) VALUES
 -- Insertar administrador para cada centro
 -- CALL sp_insert_user('director_chihuahua', 'director_chihuahua@example.com', 'pass_chihuahua', 'Carlos', 'Hernández', 'López', 'Centro de Innovación e Integración de Tecnologías Avanzadas Chihuahua', 'user', @status_code, @message);
 -- CALL sp_insert_user('director_puebla', 'director_puebla@example.com', 'pass_puebla', 'María', 'García', 'Martínez', 'Centro de Innovación e Integración de Tecnologías Avanzadas Puebla', 'user', @status_code, @message);
--- CALL sp_insert_user('director_veracruz', 'director_veracruz@example.com', 'pass_veracruz', 'Sebastián', 'Morales', 'Palacios', 'Centro de Innovación e Integración de Tecnologías Avanzadas Veracruz', 'user', @status_code, @message);
+ CALL sp_insert_user('director_veracruz', 'director_veracruz@example.com', 'pass_veracruz', 'Sebastián', 'Morales', 'Palacios', 'Centro de Innovación e Integración de Tecnologías Avanzadas Veracruz', 'user', @status_code, @message);
 -- CALL sp_insert_user('director_cajeme', 'director_cajeme@example.com', 'pass_cajeme', 'Ana', 'Martínez', 'Pérez', 'Centro de Vinculación y Desarrollo Regional Unidad Cajeme', 'user', @status_code, @message);
 -- CALL sp_insert_user('director_campeche', 'director_campeche@example.com', 'pass_campeche', 'Jorge', 'Díaz', 'Ramírez', 'Centro de Vinculación y Desarrollo Regional Unidad Campeche', 'user', @status_code, @message);
 -- CALL sp_insert_user('director_cancun', 'director_cancun@example.com', 'pass_cancun', 'Sofía', 'Jiménez', 'Vargas', 'Centro de Vinculación y Desarrollo Regional Unidad Cancún', 'user', @status_code, @message);
@@ -2647,11 +2647,10 @@ INSERT INTO document_access (document_id, modality, required) VALUES
 -- CALL sp_insert_user('director_tlaxcala', 'director_tlaxcala@example.com', 'pass_tlaxcala', 'Valeria', 'Castillo', 'Núñez', 'Centro de Vinculación y Desarrollo Regional Unidad Tlaxcala', 'user', @status_code, @message);
 -- CALL sp_insert_user('director_oaxaca', 'director_oaxaca@example.com', 'pass_oaxaca', 'Héctor', 'Cruz', 'Mendoza', 'Centro de Vinculación y Desarrollo Regional Unidad Oaxaca', 'user', @status_code, @message);
 -- CALL sp_insert_user('director_tijuana', 'director_tijuana@example.com', 'pass_tijuana', 'Gabriela', 'Flores', 'Ramos', 'Centro de Vinculación y Desarrollo Regional Unidad Tijuana', 'user', @status_code, @message);
-CALL sp_insert_user('director_tampico', 'director_tampico@example.com', 'pass_tampico', 'Eduardo', 'Rojas', 'Peña', 'Centro de Vinculación y Desarrollo Regional Unidad Tampico', 'user', @status_code, @message);
+	CALL sp_insert_user('director_tampico', 'director_tampico@example.com', 'pass_tampico', 'Eduardo', 'Rojas', 'Peña', 'Centro de Vinculación y Desarrollo Regional Unidad Tampico', 'user', @status_code, @message);
 
 -- Insertar el usuario root (sin centro)
 CALL sp_insert_user('admin', 'admin@example.com', 'pass_admin', 'Alejandra', 'Delgadillo', 'Martínez', NULL, 'root', @status_code, @message);
-select * from  courses;
 -- Insertar usuario directora
 CALL sp_insert_user('verificador',  'nparram@ipn.mx',  'pass_verificador', 'Nancy Dalia', 'Parra', 'Mejía', NULL, 'verifier',  @status_code, @message);
 
@@ -2851,7 +2850,6 @@ CALL sp_register_course(
     @status_code,
     @message
 );
-
 SELECT @status_code, @message; 
 */
 
@@ -2955,7 +2953,7 @@ WHERE id = 2;
 /*
 UPDATE course_sessions
 SET status = 'completed' 
-WHERE id = 4;*/
+WHERE id = 1;*/
 
 /*
 UPDATE course_schedules 
@@ -2965,6 +2963,12 @@ WHERE id = 15;*/
 /*
 UPDATE diplomas 
 SET verification_status = 'pending' 
+WHERE id = 1;
+select *from diploma_actor_roles;
+*/
+/*
+UPDATE diplomas 
+SET status = 'finished' 
 WHERE id = 1;
 select *from diploma_actor_roles;
 */

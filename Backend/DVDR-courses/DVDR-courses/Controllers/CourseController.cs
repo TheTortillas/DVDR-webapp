@@ -1,5 +1,6 @@
 ﻿using DVDR_courses.DTOs;
 using DVDR_courses.DTOs.CoursesApproval;
+using DVDR_courses.Helpers;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
@@ -11,11 +12,17 @@ namespace DVDR_courses.Controllers
     [ApiController]
     public class CourseController : ControllerBase
     {
-        IConfiguration _config;
-        public CourseController(IConfiguration config)
+        private readonly IConfiguration _config;
+        private readonly FileStorageHelper _fileStorage;
+        private readonly DBManager _dbManager;
+
+        public CourseController(IConfiguration config, IWebHostEnvironment env)
         {
             _config = config;
+            _fileStorage = new FileStorageHelper(config, env);
+            _dbManager = new DBManager(_config);
         }
+
 
         [HttpPost("RegisterCourse", Name = "PostRegisterCourse")]
         public async Task<IActionResult> RegisterCourse([FromForm] CourseRegister request)
@@ -32,46 +39,34 @@ namespace DVDR_courses.Controllers
             }
 
             // Generar carpeta aleatoria
-            var folderName = Guid.NewGuid().ToString(); // Nombre único para la carpeta
+            var folderName = Guid.NewGuid().ToString();
             request.FolderName = folderName;
-
-            // Ruta base para almacenar archivos
-            var baseFolderPath = Path.Combine("..", "..", "..", "Frontend", "public", "assets", "files", "courses-documentation", folderName);
 
             try
             {
-                // Crear directorio si no existe
-                Directory.CreateDirectory(baseFolderPath);
-
+                // Guardar los documentos usando FileStorageHelper
                 foreach (var document in request.Documents)
                 {
                     if (document.File != null)
                     {
-                        var fileName = document.File.FileName;
-                        var filePath = Path.Combine("assets", "files", "courses-documentation", folderName, fileName);
+                        var storagePath = _fileStorage.GetStoragePath("CoursesDocumentation", folderName);
+                        var fullPath = Path.Combine(storagePath, document.File.FileName);
 
-                        // Physical save path
-                        var physicalPath = Path.Combine("..", "..", "..", "Frontend", "public", filePath);
-                        var directory = Path.GetDirectoryName(physicalPath);
-                        Directory.CreateDirectory(directory);
-
-                        using (var stream = new FileStream(physicalPath, FileMode.Create))
-                        {
-                            await document.File.CopyToAsync(stream);
-                        }
+                        await _fileStorage.SaveFileAsync(document.File, fullPath);
                     }
                 }
+
+                // Llamar al SP para guardar los datos en la BD
+                var (statusCode, message) = _dbManager.RegisterCourseAll(request, request.Username);
+
+                return statusCode == 1 ?
+                    Ok(new { message }) :
+                    StatusCode(500, new { message });
             }
             catch (Exception ex)
             {
                 return StatusCode(500, new { message = "Error al guardar los documentos.", error = ex.Message });
             }
-
-            // Llamar al SP para guardar los datos en la BD
-            var dbManager = new DBManager(_config);
-            var (statusCode, message) = dbManager.RegisterCourseAll(request, request.Username);
-
-            return statusCode == 1 ? Ok(new { message }) : StatusCode(500, new { message });
         }
 
         [HttpGet("GetCoursesByUser")]
@@ -121,14 +116,31 @@ namespace DVDR_courses.Controllers
         [HttpPost("RegisterCourseSession", Name = "PostRegisterCourseSession")]
         public IActionResult RegisterCourseSession([FromBody] CourseSessionRequest request)
         {
-            var dbManager = new DBManager(_config);
-            var result = dbManager.RegisterCourseSession(request);
-
-            if (result.statusCode == 1)
+            try
             {
-                return Ok(new { message = "Sesión del curso registrada exitosamente" });
+                // Generar un nombre de carpeta único
+                string folder = Guid.NewGuid().ToString();
+
+                // Crear el directorio para sesiones de curso
+                var storagePath = _fileStorage.GetStoragePath("SignedRequestLetters", folder);
+                Directory.CreateDirectory(storagePath);
+
+                // Pasar el nombre de la carpeta a la solicitud (si es necesario)
+                request.FolderName = folder;
+
+                // Llamar al DBManager con la información de la carpeta
+                var result = _dbManager.RegisterCourseSession(request);
+
+                if (result.statusCode == 1)
+                {
+                    return Ok(new { message = "Sesión del curso registrada exitosamente" });
+                }
+                return BadRequest(new { message = result.message });
             }
-            return BadRequest(new { message = result.message });
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Error al registrar la sesión del curso.", error = ex.Message });
+            }
         }
 
         [HttpPost("ApproveOrRejectSession")]
@@ -137,15 +149,75 @@ namespace DVDR_courses.Controllers
             if (request == null)
                 return BadRequest(new { message = "Datos inválidos" });
 
-            // Ya no se valida el archivo, ahora lo importante es que exista el documento firmado en la BD
-            var dbManager = new DBManager(_config);
-            var result = await dbManager.ApproveOrRejectSession(request);
+            try
+            {
+                if (request.ApprovalStatus == "approved")
+                {
+                    // 1️ Verificar si la sesión tiene un documento firmado en la BD
+                    var signedDocPath = await _dbManager.GetSignedRequestLetterPath(request.SessionId);
 
-            if (result.statusCode == 200)
-                return Ok(new { message = result.message });
+                    if (string.IsNullOrEmpty(signedDocPath))
+                        return BadRequest(new { message = "No se puede aprobar una sesión sin documento firmado" });
 
-            return StatusCode(result.statusCode, new { message = result.message });
+                    // 2️ Aprobar la sesión
+                    var result = await _dbManager.ApproveSession(request.SessionId);
+                    return StatusCode(result.statusCode, new { message = result.message });
+                }
+                else // Rechazar sesión
+                {
+                    // 1️ Obtener los datos de la sesión antes de eliminarla
+                    var sessionData = await _dbManager.GetSessionData(request.SessionId);
+
+                    // 2️ Eliminar el documento firmado si existe
+                    if (!string.IsNullOrEmpty(sessionData.DocumentPath))
+                    {
+                        var physicalPath = _fileStorage.GetStoragePath("SignedRequestLetters", sessionData.FolderName);
+                        var filePath = Path.Combine(physicalPath, Path.GetFileName(sessionData.DocumentPath));
+
+                        if (System.IO.File.Exists(filePath))
+                        {
+                            try
+                            {
+                                System.IO.File.Delete(filePath);
+                                Console.WriteLine($"Archivo eliminado: {filePath}");
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine($"No se pudo borrar el archivo: {ex.Message}");
+                            }
+                        }
+                    }
+
+                    // 3️ Verificar si la carpeta se debe eliminar
+                    bool canDeleteFolder = await _dbManager.CanDeleteFolder(sessionData.FolderName, request.SessionId);
+                    if (canDeleteFolder && !string.IsNullOrEmpty(sessionData.FolderName))
+                    {
+                        var folderPath = _fileStorage.GetStoragePath("SignedRequestLetters", sessionData.FolderName);
+                        if (Directory.Exists(folderPath))
+                        {
+                            try
+                            {
+                                Directory.Delete(folderPath, true);
+                                Console.WriteLine($"Carpeta eliminada: {folderPath}");
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine($"No se pudo borrar la carpeta: {ex.Message}");
+                            }
+                        }
+                    }
+
+                    // 4️ Rechazar la sesión en la BD
+                    var result = await _dbManager.RejectSession(request.SessionId);
+                    return StatusCode(result.statusCode, new { message = result.message });
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Error interno del servidor", error = ex.Message });
+            }
         }
+
 
         [HttpGet("GetSessionOfficialLetter/{sessionId}")]
         public IActionResult GetSessionOfficialLetter(int sessionId)
@@ -207,7 +279,6 @@ namespace DVDR_courses.Controllers
                 return StatusCode(500, new { message = "Error interno del servidor", error = ex.Message });
             }
         }
-
         [HttpPost("UploadSignedRequestLetter")]
         public async Task<IActionResult> UploadSignedRequestLetter([FromForm] UploadSignedRequestLetterDTO request)
         {
@@ -216,13 +287,42 @@ namespace DVDR_courses.Controllers
 
             try
             {
-                var dbManager = new DBManager(_config);
-                var result = await dbManager.UploadSignedRequestLetter(request);
+                // 1. Obtener carpeta asignada a la sesión
+                var folderName = await _dbManager.GetCourseSessionFolder(request.SessionId);
+                if (string.IsNullOrEmpty(folderName))
+                {
+                    // Si la sesión aún no tiene carpeta, creamos y asignamos una
+                    folderName = Guid.NewGuid().ToString();
+                    await _dbManager.AssignFolderToSession(request.SessionId, folderName);
+                }
 
-                if (result.statusCode == 200)
-                    return Ok(new { message = result.message });
+                // 2. Obtener la ruta física donde se guardará
+                var storagePath = _fileStorage.GetStoragePath("SignedRequestLetters", folderName);
+                Directory.CreateDirectory(storagePath);
 
-                return StatusCode(result.statusCode, new { message = result.message });
+                // 3. Guardar el archivo físicamente
+                var physicalPath = Path.Combine(storagePath, request.File.FileName);
+                await _fileStorage.SaveFileAsync(request.File, physicalPath);
+
+                // 4. Construir la ruta relativa que se grabará en la BD
+                //    Por ejemplo: "assets\files\signed-request-letters\{folder}\MiArchivo.pdf"
+                var relativePath = Path.Combine(
+                    "assets",
+                    _config["FileStorage:Folders:SignedRequestLetters"], // "files/signed-request-letters"
+                    folderName,
+                    request.File.FileName
+                );
+
+                // 5. Llamar a UploadSignedRequestLetter para actualizar la BD
+                var result = await _dbManager.UploadSignedRequestLetter(
+                    request.SessionId,
+                    relativePath,
+                    folderName
+                );
+
+                return result.statusCode == 200
+                    ? Ok(new { message = result.message })
+                    : StatusCode(result.statusCode, new { message = result.message });
             }
             catch (Exception ex)
             {
@@ -253,20 +353,51 @@ namespace DVDR_courses.Controllers
 
             try
             {
-                var dbManager = new DBManager(_config);
-                var (statusCode, message) = dbManager.RequestCertificates(request.SessionId, request.Documents);
+                // 1. Generar la carpeta de sesión
+                var sessionFolder = Guid.NewGuid().ToString();
 
-                if (statusCode == 1)
+                // 2. Obtener la ruta de almacenamiento y asegurarnos de que exista
+                var storagePath = _fileStorage.GetStoragePath("RequestCertificatesDocumentation", sessionFolder);
+                Directory.CreateDirectory(storagePath);
+
+                // 3. Guardar los archivos y construir la lista de documentos
+                var documentsList = new List<object>();
+                foreach (var doc in request.Documents)
                 {
-                    return Ok(new { message });
+                    if (doc.File != null)
+                    {
+                        var filePath = Path.Combine(storagePath, doc.File.FileName);
+                        await _fileStorage.SaveFileAsync(doc.File, filePath);
+
+                        // Ruta relativa para la base de datos
+                        var relativePath = Path.Combine(
+                            "assets",
+                            _config["FileStorage:Folders:RequestCertificatesDocumentation"],
+                            sessionFolder,
+                            doc.File.FileName
+                        );
+
+                        documentsList.Add(new
+                        {
+                            document_id = doc.DocumentId,
+                            filePath = relativePath
+                        });
+                    }
                 }
-                return StatusCode(500, new { message });
+
+                // 4. Llamar a DBManager para registrar la información en la base de datos
+                var (statusCode, message) = await _dbManager.RequestCertificates(request.SessionId, documentsList, sessionFolder);
+
+                return statusCode == 1
+                    ? Ok(new { message })
+                    : StatusCode(500, new { message });
             }
             catch (Exception ex)
             {
                 return StatusCode(500, new { message = "Error al procesar la solicitud.", error = ex.Message });
             }
         }
+
 
         [HttpGet("GetCourseSessions/{courseId}")]
         public IActionResult GetCourseSessions(int courseId)
@@ -341,22 +472,54 @@ namespace DVDR_courses.Controllers
         }
 
         [HttpPost("UploadCertificateOfficialLetter")]
-        public IActionResult UploadCertificateOfficialLetter([FromForm] UploadCertificateOfficialLetterDTO request)
+        public async Task<IActionResult> UploadCertificateOfficialLetter([FromForm] UploadCertificateOfficialLetterDTO request)
         {
-            var dbManager = new DBManager(_config);
             if (request.File == null || request.File.Length == 0)
                 return BadRequest(new { message = "El archivo es obligatorio" });
 
             if (request.NumberOfCertificates < 0)
                 return BadRequest(new { message = "El número de constancias debe ser mayor o igual a 0" });
 
-            var result = dbManager.UploadCertificateOfficialLetter(request);
+            try
+            {
+                // 1. Obtener carpeta asignada a la sesión
+                var folderName = await _dbManager.GetCourseSessionFolder(request.SessionId);
+                if (string.IsNullOrEmpty(folderName))
+                {
+                    // Si la sesión aún no tiene carpeta, creamos y asignamos una
+                    folderName = Guid.NewGuid().ToString();
+                    await _dbManager.AssignFolderToSession(request.SessionId, folderName);
+                }
 
-            if (result.statusCode == 200)
-                return Ok(new { message = result.message });
+                // 2. Obtener la ruta de almacenamiento y asegurarnos de que exista
+                var storagePath = _fileStorage.GetStoragePath("CertificateOfficialLetters", folderName);
+                Directory.CreateDirectory(storagePath);
 
-            return StatusCode(result.statusCode, new { message = result.message });
+                // 3. Guardar el archivo físicamente
+                var physicalPath = Path.Combine(storagePath, request.File.FileName);
+                await _fileStorage.SaveFileAsync(request.File, physicalPath);
+
+                // 4. Construir la ruta relativa que se grabará en la BD
+                var relativePath = Path.Combine(
+                    "assets",
+                    _config["FileStorage:Folders:CertificateOfficialLetters"],
+                    folderName,
+                    request.File.FileName
+                );
+
+                // 5. Llamar a DBManager para registrar la información en la base de datos
+                var result = await _dbManager.UploadCertificateOfficialLetter(request.SessionId, relativePath, request.NumberOfCertificates);
+
+                return result.statusCode == 200
+                    ? Ok(new { message = result.message })
+                    : StatusCode(result.statusCode, new { message = result.message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Error al procesar la solicitud.", error = ex.Message });
+            }
         }
+
         [HttpGet("GetCertificateOfficialLetter/{sessionId}")]
         public IActionResult GetCertificateOfficialLetter(int sessionId)
         {

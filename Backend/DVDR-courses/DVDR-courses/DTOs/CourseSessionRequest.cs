@@ -8,6 +8,7 @@
         public int NumberOfCertificates { get; set; }
         public decimal Cost { get; set; }
         public List<ScheduleEntry> Schedule { get; set; }
+        public string? FolderName { get; set; }
     }
 
     public class CourseSessionResponse

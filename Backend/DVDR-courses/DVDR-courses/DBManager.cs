@@ -337,23 +337,35 @@ namespace DVDR_courses
                     cmd.Parameters.AddWithValue("p_knowledge_area", string.Join(",", generalInfo.ExpertiseAreas));
                     cmd.Parameters.AddWithValue("p_center_name", generalInfo.Center);
 
-                    // Generar rutas de evidencia en el backend
-                    var academicHistoriesJson = Newtonsoft.Json.JsonConvert.SerializeObject(request.AcademicHistories.Select(x => new
+                    // Generar rutas de evidencia usando rutas relativas consistentes
+                    var academicHistoriesJson = JsonConvert.SerializeObject(request.AcademicHistories.Select(x => new
                     {
                         x.education_level,
                         x.period,
                         x.institution,
                         x.degree_awarded,
-                        evidence_path = Path.Combine("assets", "files", "instructors-documentation", request.FolderName, "academic-history", x.Evidence.FileName)
+                        evidence_path = Path.Combine(
+                            "assets",
+                            "files",
+                            "instructors-documentation",
+                            request.FolderName,
+                            "academic-history",
+                            x.Evidence.FileName)
                     }));
 
-                    var workExperiencesJson = Newtonsoft.Json.JsonConvert.SerializeObject(request.WorkExperiences.Select(x => new
+                    var workExperiencesJson = JsonConvert.SerializeObject(request.WorkExperiences.Select(x => new
                     {
                         x.period,
                         x.organization,
                         x.position,
                         x.activity,
-                        evidence_path = Path.Combine("assets", "files", "instructors-documentation", request.FolderName, "work-experience", x.Evidence.FileName)
+                        evidence_path = Path.Combine(
+                            "assets",
+                            "files",
+                            "instructors-documentation",
+                            request.FolderName,
+                            "work-experience",
+                            x.Evidence.FileName)
                     }));
 
                     cmd.Parameters.AddWithValue("p_academic_history", academicHistoriesJson);
@@ -814,15 +826,8 @@ namespace DVDR_courses
                         return (-1, "Error: No se encontró un curso con la clave proporcionada.");
                     }
 
-                    // 2. Crear el folder de documentación
-                    string folder = Guid.NewGuid().ToString();
-                    var basePath = Path.Combine("assets", "files", "signed-request-letters", folder);
-                    var physicalPath = Path.Combine("..", "..", "..", "Frontend", "public", basePath);
-
-                    if (!Directory.Exists(physicalPath))
-                    {
-                        Directory.CreateDirectory(physicalPath);
-                    }
+                    // 2. Usar el folder que ya viene en la solicitud
+                    string folder = request.FolderName;
 
                     // 3. Preparar el JSON del cronograma
                     var scheduleJson = JsonConvert.SerializeObject(
@@ -834,7 +839,7 @@ namespace DVDR_courses
                         })
                     );
 
-                    // 4. Llamar al SP con el nuevo parámetro del folder
+                    // 4. Llamar al SP con el parámetro del folder
                     using (var cmd = new MySqlCommand("sp_register_course_session", con))
                     {
                         cmd.CommandType = CommandType.StoredProcedure;
@@ -867,142 +872,110 @@ namespace DVDR_courses
             }
         }
 
-        public async Task<(int statusCode, string message)> ApproveOrRejectSession(SessionApprovalRequest request)
+        public async Task<string> GetSignedRequestLetterPath(int sessionId)
         {
-            try
+            using (var con = new MySqlConnection(_config.GetConnectionString("default")))
             {
-                using (var con = new MySqlConnection(_config.GetConnectionString("default")))
+                await con.OpenAsync();
+                string query = "SELECT signed_request_letter_path FROM course_sessions WHERE id = @sessionId";
+                using (var cmd = new MySqlCommand(query, con))
                 {
-                    con.Open();
+                    cmd.Parameters.AddWithValue("@sessionId", sessionId);
+                    return (await cmd.ExecuteScalarAsync())?.ToString();
+                }
+            }
+        }
 
-                    if (request.ApprovalStatus == "approved")
+        public async Task<(string DocumentPath, string FolderName)> GetSessionData(int sessionId)
+        {
+            using (var con = new MySqlConnection(_config.GetConnectionString("default")))
+            {
+                await con.OpenAsync();
+                string query = "SELECT signed_request_letter_path, documentation_folder FROM course_sessions WHERE id = @sessionId";
+                using (var cmd = new MySqlCommand(query, con))
+                {
+                    cmd.Parameters.AddWithValue("@sessionId", sessionId);
+                    using (var reader = await cmd.ExecuteReaderAsync())
                     {
-                        // Verificar si la sesión existe y si tiene un documento firmado
-                        using (var checkCmd = new MySqlCommand("SELECT signed_request_letter_path FROM course_sessions WHERE id = @sessionId", con))
+                        if (await reader.ReadAsync())
                         {
-                            checkCmd.Parameters.AddWithValue("@sessionId", request.SessionId);
-                            var signedDocPath = checkCmd.ExecuteScalar() as string;
-
-                            if (string.IsNullOrEmpty(signedDocPath))
-                            {
-                                return (400, "No se puede aprobar una sesión sin documento firmado");
-                            }
-                        }
-
-                        using (var cmd = new MySqlCommand("sp_approve_course_session", con))
-                        {
-                            cmd.CommandType = CommandType.StoredProcedure;
-                            cmd.Parameters.AddWithValue("p_session_id", request.SessionId);
-
-                            var statusCodeParam = new MySqlParameter("p_status_code", MySqlDbType.Int32)
-                            { Direction = ParameterDirection.Output };
-                            var messageParam = new MySqlParameter("p_message", MySqlDbType.VarChar, 255)
-                            { Direction = ParameterDirection.Output };
-
-                            cmd.Parameters.Add(statusCodeParam);
-                            cmd.Parameters.Add(messageParam);
-
-                            await cmd.ExecuteNonQueryAsync();
-
-                            return (Convert.ToInt32(statusCodeParam.Value), messageParam.Value.ToString());
-                        }
-                    }
-                    else
-                    {
-                        // Obtener la información de la sesión antes de eliminarla
-                        string documentPath = string.Empty;
-                        string folder = string.Empty;
-
-                        using (var cmdGet = new MySqlCommand(
-                            "SELECT signed_request_letter_path, documentation_folder FROM course_sessions WHERE id = @sessionId",
-                            con))
-                        {
-                            cmdGet.Parameters.AddWithValue("@sessionId", request.SessionId);
-                            using (var reader = cmdGet.ExecuteReader())
-                            {
-                                if (reader.Read())
-                                {
-                                    documentPath = reader["signed_request_letter_path"]?.ToString() ?? string.Empty;
-                                    folder = reader["documentation_folder"]?.ToString() ?? string.Empty;
-                                }
-                            }
-                        }
-
-                        // Para manejar el borrado de carpetas
-                        using (var cmdCheckFolder = new MySqlCommand(
-                            "SELECT COUNT(*) FROM course_sessions WHERE documentation_folder = @folder AND id != @sessionId",
-                            con))
-                        {
-                            cmdCheckFolder.Parameters.AddWithValue("@folder", folder);
-                            cmdCheckFolder.Parameters.AddWithValue("@sessionId", request.SessionId);
-                            int otherSessionsCount = Convert.ToInt32(cmdCheckFolder.ExecuteScalar());
-
-                            // Eliminar solo el archivo específico si hay otras sesiones usando la carpeta
-                            if (!string.IsNullOrEmpty(documentPath))
-                            {
-                                var physicalPath = Path.Combine("..", "..", "..", "Frontend", "public", documentPath);
-                                if (File.Exists(physicalPath))
-                                {
-                                    try
-                                    {
-                                        File.Delete(physicalPath);
-                                        Console.WriteLine($"Archivo eliminado: {physicalPath}");
-                                    }
-                                    catch (Exception ex)
-                                    {
-                                        Console.WriteLine($"No se pudo borrar el archivo: {ex.Message}");
-                                        // Continuar con la eliminación aunque no se haya podido borrar el archivo
-                                    }
-                                }
-                            }
-
-                            // Borrar la carpeta solo si no hay otras sesiones usándola
-                            if (otherSessionsCount == 0 && !string.IsNullOrEmpty(folder))
-                            {
-                                var folderPath = Path.Combine("..", "..", "..", "Frontend", "public", "assets", "files", "signed-request-letters", folder);
-                                if (Directory.Exists(folderPath))
-                                {
-                                    try
-                                    {
-                                        Directory.Delete(folderPath, true); // true = borrar recursivamente
-                                        Console.WriteLine($"Carpeta eliminada: {folderPath}");
-                                    }
-                                    catch (Exception ex)
-                                    {
-                                        Console.WriteLine($"No se pudo borrar la carpeta: {ex.Message}");
-                                        // Continuar con la eliminación de la sesión aunque no se haya podido borrar la carpeta
-                                    }
-                                }
-                            }
-                        }
-
-                        using (var cmd = new MySqlCommand("sp_reject_course_session", con))
-                        {
-                            cmd.CommandType = CommandType.StoredProcedure;
-                            cmd.Parameters.AddWithValue("p_session_id", request.SessionId);
-
-                            var statusCodeParam = new MySqlParameter("p_status_code", MySqlDbType.Int32)
-                            { Direction = ParameterDirection.Output };
-                            var messageParam = new MySqlParameter("p_message", MySqlDbType.VarChar, 255)
-                            { Direction = ParameterDirection.Output };
-
-                            cmd.Parameters.Add(statusCodeParam);
-                            cmd.Parameters.Add(messageParam);
-
-                            await cmd.ExecuteNonQueryAsync();
-
-                            return (Convert.ToInt32(statusCodeParam.Value), messageParam.Value.ToString());
+                            return (
+                                reader["signed_request_letter_path"]?.ToString() ?? string.Empty,
+                                reader["documentation_folder"]?.ToString() ?? string.Empty
+                            );
                         }
                     }
                 }
             }
-            catch (Exception ex)
+            return (string.Empty, string.Empty);
+        }
+
+        public async Task<bool> CanDeleteFolder(string folderName, int sessionId)
+        {
+            using (var con = new MySqlConnection(_config.GetConnectionString("default")))
             {
-                Console.WriteLine($"Error en ApproveOrRejectSession: {ex.Message}");
-                Console.WriteLine($"StackTrace: {ex.StackTrace}");
-                return (500, "Error interno del servidor.");
+                await con.OpenAsync();
+                string query = "SELECT COUNT(*) FROM course_sessions WHERE documentation_folder = @folder AND id != @sessionId";
+                using (var cmd = new MySqlCommand(query, con))
+                {
+                    cmd.Parameters.AddWithValue("@folder", folderName);
+                    cmd.Parameters.AddWithValue("@sessionId", sessionId);
+                    int otherSessionsCount = Convert.ToInt32(await cmd.ExecuteScalarAsync());
+                    return otherSessionsCount == 0;
+                }
             }
         }
+
+        public async Task<(int statusCode, string message)> ApproveSession(int sessionId)
+        {
+            using (var con = new MySqlConnection(_config.GetConnectionString("default")))
+            {
+                await con.OpenAsync();
+                using (var cmd = new MySqlCommand("sp_approve_course_session", con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("p_session_id", sessionId);
+
+                    var statusCodeParam = new MySqlParameter("p_status_code", MySqlDbType.Int32)
+                    { Direction = ParameterDirection.Output };
+                    var messageParam = new MySqlParameter("p_message", MySqlDbType.VarChar, 255)
+                    { Direction = ParameterDirection.Output };
+
+                    cmd.Parameters.Add(statusCodeParam);
+                    cmd.Parameters.Add(messageParam);
+
+                    await cmd.ExecuteNonQueryAsync();
+
+                    return (Convert.ToInt32(statusCodeParam.Value), messageParam.Value.ToString());
+                }
+            }
+        }
+
+        public async Task<(int statusCode, string message)> RejectSession(int sessionId)
+        {
+            using (var con = new MySqlConnection(_config.GetConnectionString("default")))
+            {
+                await con.OpenAsync();
+                using (var cmd = new MySqlCommand("sp_reject_course_session", con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("p_session_id", sessionId);
+
+                    var statusCodeParam = new MySqlParameter("p_status_code", MySqlDbType.Int32)
+                    { Direction = ParameterDirection.Output };
+                    var messageParam = new MySqlParameter("p_message", MySqlDbType.VarChar, 255)
+                    { Direction = ParameterDirection.Output };
+
+                    cmd.Parameters.Add(statusCodeParam);
+                    cmd.Parameters.Add(messageParam);
+
+                    await cmd.ExecuteNonQueryAsync();
+
+                    return (Convert.ToInt32(statusCodeParam.Value), messageParam.Value.ToString());
+                }
+            }
+        }
+
 
         public List<PendingApertureDTO> GetUserPendingApertures(string username)
         {
@@ -1105,71 +1078,67 @@ namespace DVDR_courses
                 return new List<PendingApertureDTO>(); // Devolver lista vacía en lugar de null
             }
         }
-        public async Task<(int statusCode, string message)> UploadSignedRequestLetter(UploadSignedRequestLetterDTO request)
+        public async Task<string> GetCourseSessionFolder(int sessionId)
+        {
+            using (var con = new MySqlConnection(_config.GetConnectionString("default")))
+            {
+                await con.OpenAsync();
+                string query = "SELECT documentation_folder FROM course_sessions WHERE id = @sessionId";
+                using (var cmd = new MySqlCommand(query, con))
+                {
+                    cmd.Parameters.AddWithValue("@sessionId", sessionId);
+                    return (await cmd.ExecuteScalarAsync())?.ToString();
+                }
+            }
+        }
+
+        public async Task AssignFolderToSession(int sessionId, string folderName)
+        {
+            using (var con = new MySqlConnection(_config.GetConnectionString("default")))
+            {
+                await con.OpenAsync();
+                string query = "UPDATE course_sessions SET documentation_folder = @folder WHERE id = @sessionId";
+                using (var cmd = new MySqlCommand(query, con))
+                {
+                    cmd.Parameters.AddWithValue("@sessionId", sessionId);
+                    cmd.Parameters.AddWithValue("@folder", folderName);
+                    await cmd.ExecuteNonQueryAsync();
+                }
+            }
+        }
+
+        public async Task<(int statusCode, string message)> UploadSignedRequestLetter(
+            int sessionId,
+            string filePath,
+            string folderName)
         {
             try
             {
                 using (var con = new MySqlConnection(_config.GetConnectionString("default")))
                 {
-                    con.Open();
+                    await con.OpenAsync();
 
-                    // 1. Verificar si ya existe un folder para esta sesión
-                    string query = "SELECT documentation_folder FROM course_sessions WHERE id = @sessionId";
-                    string folder;
-
-                    using (var cmd = new MySqlCommand(query, con))
-                    {
-                        cmd.Parameters.AddWithValue("@sessionId", request.SessionId);
-                        var existingFolder = cmd.ExecuteScalar()?.ToString();
-
-                        if (string.IsNullOrEmpty(existingFolder))
-                        {
-                            // Si no existe folder, crear uno nuevo
-                            folder = Guid.NewGuid().ToString();
-                        }
-                        else
-                        {
-                            // Si existe, usar el mismo folder
-                            folder = existingFolder;
-                        }
-                    }
-
-                    // 2. Crear/verificar la estructura de carpetas
-                    var basePath = Path.Combine("assets", "files", "signed-request-letters", folder);
-                    var physicalPath = Path.Combine("..", "..", "..", "Frontend", "public", basePath);
-
-                    if (!Directory.Exists(physicalPath))
-                    {
-                        Directory.CreateDirectory(physicalPath);
-                    }
-
-                    // 3. Guardar el archivo
-                    var fileName = request.File.FileName;
-                    var finalPath = Path.Combine(physicalPath, fileName);
-                    var savedPath = Path.Combine(basePath, fileName);
-
-                    using (var stream = new FileStream(finalPath, FileMode.Create))
-                    {
-                        await request.File.CopyToAsync(stream);
-                    }
-
-                    // 4. Actualizar la base de datos
+                    // Aquí llamamos al SP con la información necesaria
                     using (var cmd = new MySqlCommand("sp_upload_signed_request_letter", con))
                     {
                         cmd.CommandType = CommandType.StoredProcedure;
-                        cmd.Parameters.AddWithValue("p_session_id", request.SessionId);
-                        cmd.Parameters.AddWithValue("p_file_path", savedPath);
-                        cmd.Parameters.AddWithValue("p_folder_name", folder);
+                        cmd.Parameters.AddWithValue("p_session_id", sessionId);
+                        cmd.Parameters.AddWithValue("p_file_path", filePath);
+                        cmd.Parameters.AddWithValue("p_folder_name", folderName);
 
                         var statusCodeParam = new MySqlParameter("p_status_code", MySqlDbType.Int32)
-                        { Direction = ParameterDirection.Output };
+                        {
+                            Direction = ParameterDirection.Output
+                        };
                         var messageParam = new MySqlParameter("p_message", MySqlDbType.VarChar, 255)
-                        { Direction = ParameterDirection.Output };
+                        {
+                            Direction = ParameterDirection.Output
+                        };
 
                         cmd.Parameters.Add(statusCodeParam);
                         cmd.Parameters.Add(messageParam);
 
-                        cmd.ExecuteNonQuery();
+                        await cmd.ExecuteNonQueryAsync();
 
                         return (Convert.ToInt32(statusCodeParam.Value), messageParam.Value.ToString());
                     }
@@ -1178,7 +1147,6 @@ namespace DVDR_courses
             catch (Exception ex)
             {
                 Console.WriteLine($"Error en UploadSignedRequestLetter: {ex.Message}");
-                Console.WriteLine($"StackTrace: {ex.StackTrace}");
                 return (500, "Error al procesar la solicitud");
             }
         }
@@ -1409,119 +1377,29 @@ namespace DVDR_courses
         }
 
 
-        public (int statusCode, string message) RequestCertificates(int sessionId, List<CertificateDocumentDTO> documents)
+        public async Task<(int statusCode, string message)> RequestCertificates(
+     int sessionId,
+     List<object> documents,
+     string sessionFolder)
         {
             try
             {
                 using (var con = new MySqlConnection(_config.GetConnectionString("default")))
                 {
-                    con.Open();
+                    await con.OpenAsync();
 
-                    // Create session folder
-                    var sessionFolder = Guid.NewGuid().ToString();
-                    var basePath = Path.Combine("assets", "files", "request-certificates-documentation", sessionFolder);
-                    var physicalPath = Path.Combine("..", "..", "..", "Frontend", "public", basePath);
-                    Directory.CreateDirectory(physicalPath);
+                    // Convertir la lista de documentos a JSON
+                    var jsonDocs = JsonConvert.SerializeObject(documents);
 
-                    // Save files and prepare JSON data
-                    var documentsList = new List<object>();
-                    foreach (var doc in documents)
-                    {
-                        if (doc.File != null)
-                        {
-                            var fileName = doc.File.FileName;
-                            var filePath = Path.Combine(basePath, fileName);
-                            var fullPath = Path.Combine(physicalPath, fileName);
-
-                            using (var stream = new FileStream(fullPath, FileMode.Create))
-                            {
-                                doc.File.CopyTo(stream);
-                            }
-
-                            documentsList.Add(new
-                            {
-                                document_id = doc.DocumentId,
-                                filePath = filePath
-                            });
-                        }
-                    }
-
-                    // Convert to JSON
-                    var jsonDocs = JsonConvert.SerializeObject(documentsList);
-
-                    // Call stored procedure
+                    // Llamar al procedimiento almacenado
                     using (var cmd = new MySqlCommand("sp_request_certificates", con))
                     {
                         cmd.CommandType = CommandType.StoredProcedure;
 
-                        // Input parameters
+                        // Parámetros de entrada
                         cmd.Parameters.AddWithValue("p_session_id", sessionId);
                         cmd.Parameters.AddWithValue("p_documentation", jsonDocs);
-
-                        // Output parameters
-                        var statusParam = new MySqlParameter("p_status_code", MySqlDbType.Int32)
-                        {
-                            Direction = ParameterDirection.Output
-                        };
-                        var messageParam = new MySqlParameter("p_message", MySqlDbType.VarChar, 255)
-                        {
-                            Direction = ParameterDirection.Output
-                        };
-
-                        cmd.Parameters.Add(statusParam);
-                        cmd.Parameters.Add(messageParam);
-
-                        cmd.ExecuteNonQuery();
-
-                        // Get results
-                        var status = (int)statusParam.Value;
-                        var message = messageParam.Value.ToString();
-
-                        return (status, message);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error: {ex.Message}");
-                return (-1, "Error al procesar la solicitud de constancias");
-            }
-        }
-
-        public (int statusCode, string message) UploadCertificateOfficialLetter(UploadCertificateOfficialLetterDTO request)
-        {
-            try
-            {
-                using (var con = new MySqlConnection(_config.GetConnectionString("default")))
-                {
-                    con.Open();
-
-                    // Crear carpeta para la sesión si no existe
-                    var sessionFolder = Guid.NewGuid().ToString();
-                    var basePath = Path.Combine("assets", "files", "certificate-official-letters", sessionFolder);
-                    var physicalPath = Path.Combine("..", "..", "..", "Frontend", "public", basePath);
-                    Directory.CreateDirectory(physicalPath);
-
-                    // Guardar archivo en el sistema
-                    //var fileName = $"Oficio_Sesion_{request.SessionId}{Path.GetExtension(request.File.FileName)}";
-                    var fileName = request.File.FileName;
-                    var filePath = Path.Combine(basePath, fileName);
-                    var fullPath = Path.Combine(physicalPath, fileName);
-
-                    using (var stream = new FileStream(fullPath, FileMode.Create))
-                    {
-                        request.File.CopyTo(stream);
-                    }
-
-                    // Llamar al procedimiento almacenado para guardar en la base de datos y actualizar number_of_certificates
-                    using (var cmd = new MySqlCommand("sp_upload_certificate_official_letter", con))
-                    {
-                        cmd.CommandType = CommandType.StoredProcedure;
-
-                        // Parámetros de entrada
-                        cmd.Parameters.AddWithValue("p_session_id", request.SessionId);
-                        cmd.Parameters.AddWithValue("p_file_path", filePath);
-                        cmd.Parameters.AddWithValue("p_number_of_certificates", request.NumberOfCertificates);
+                        cmd.Parameters.AddWithValue("p_documentation_folder", sessionFolder);
 
                         // Parámetros de salida
                         var statusParam = new MySqlParameter("p_status_code", MySqlDbType.Int32)
@@ -1536,22 +1414,67 @@ namespace DVDR_courses
                         cmd.Parameters.Add(statusParam);
                         cmd.Parameters.Add(messageParam);
 
-                        cmd.ExecuteNonQuery();
+                        await cmd.ExecuteNonQueryAsync();
 
-                        // Obtener resultados
-                        var status = (int)statusParam.Value;
-                        var message = messageParam.Value.ToString();
-
-                        return (status, message);
+                        return (Convert.ToInt32(statusParam.Value), messageParam.Value.ToString());
                     }
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error: {ex.Message}");
+                Console.WriteLine($"Error en RequestCertificates: {ex.Message}");
+                return (-1, "Error al procesar la solicitud de constancias");
+            }
+        }
+
+
+        public async Task<(int statusCode, string message)> UploadCertificateOfficialLetter(
+    int sessionId,
+    string filePath,
+    int numberOfCertificates)
+        {
+            try
+            {
+                using (var con = new MySqlConnection(_config.GetConnectionString("default")))
+                {
+                    await con.OpenAsync();
+
+                    // Llamar al procedimiento almacenado para guardar en la base de datos y actualizar number_of_certificates
+                    using (var cmd = new MySqlCommand("sp_upload_certificate_official_letter", con))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+
+                        // Parámetros de entrada
+                        cmd.Parameters.AddWithValue("p_session_id", sessionId);
+                        cmd.Parameters.AddWithValue("p_file_path", filePath);
+                        cmd.Parameters.AddWithValue("p_number_of_certificates", numberOfCertificates);
+
+                        // Parámetros de salida
+                        var statusParam = new MySqlParameter("p_status_code", MySqlDbType.Int32)
+                        {
+                            Direction = ParameterDirection.Output
+                        };
+                        var messageParam = new MySqlParameter("p_message", MySqlDbType.VarChar, 255)
+                        {
+                            Direction = ParameterDirection.Output
+                        };
+
+                        cmd.Parameters.Add(statusParam);
+                        cmd.Parameters.Add(messageParam);
+
+                        await cmd.ExecuteNonQueryAsync();
+
+                        return (Convert.ToInt32(statusParam.Value), messageParam.Value.ToString());
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error en UploadCertificateOfficialLetter: {ex.Message}");
                 return (-1, "Error al subir el oficio de constancias y actualizar las constancias entregadas");
             }
         }
+
 
         public List<CourseSessionResponse> GetCourseSessions(int courseId)
         {
@@ -2282,61 +2205,45 @@ namespace DVDR_courses
             return diplomas;
         }
 
-        public (int statusCode, string message) ApproveDiplomaRequest(DiplomaApprovalRequest request)
+        public async Task<string> GetDiplomaFolder(int diplomaId)
+        {
+            using (var con = new MySqlConnection(_config.GetConnectionString("default")))
+            {
+                await con.OpenAsync();
+                string query = "SELECT documentation_folder FROM diplomas WHERE id = @diplomaId";
+                using (var cmd = new MySqlCommand(query, con))
+                {
+                    cmd.Parameters.AddWithValue("@diplomaId", diplomaId);
+                    return (await cmd.ExecuteScalarAsync())?.ToString();
+                }
+            }
+        }
+
+        public async Task<(int statusCode, string message)> DeleteDiploma(int diplomaId)
+        {
+            using (var con = new MySqlConnection(_config.GetConnectionString("default")))
+            {
+                await con.OpenAsync();
+                using (var cmd = new MySqlCommand("DELETE FROM diplomas WHERE id = @diplomaId", con))
+                {
+                    cmd.Parameters.AddWithValue("@diplomaId", diplomaId);
+                    await cmd.ExecuteNonQueryAsync();
+                    return (1, "Solicitud de diplomado rechazada y eliminada exitosamente.");
+                }
+            }
+        }
+
+        public async Task<(int statusCode, string message)> ApproveDiplomaRequest(DiplomaApprovalRequest request)
         {
             try
             {
-                using (MySqlConnection con = new MySqlConnection(_config.GetConnectionString("default")))
+                using (var con = new MySqlConnection(_config.GetConnectionString("default")))
                 {
-                    con.Open();
-
-                    // Verificar si es una operación de rechazo
-                    if (request.ApprovalStatus == "rejected")
-                    {
-                        // Primero obtenemos la información del diplomado para eliminar archivos
-                        var getFolderCmd = new MySqlCommand(@"
-                            SELECT documentation_folder 
-                            FROM diplomas 
-                            WHERE id = @diplomaId", con);
-
-                        getFolderCmd.Parameters.AddWithValue("@diplomaId", request.DiplomaId);
-
-                        string folderName = null;
-                        using (var reader = getFolderCmd.ExecuteReader())
-                        {
-                            if (reader.Read())
-                            {
-                                folderName = reader.IsDBNull(reader.GetOrdinal("documentation_folder")) ? null : reader.GetString("documentation_folder");
-                            }
-                        }
-
-                        if (!string.IsNullOrEmpty(folderName))
-                        {
-                            // Eliminar archivos físicos
-                            string folderPath = Path.Combine("..", "..", "..", "Frontend", "public", "assets", "files", "diploma-documentation", folderName);
-                            if (Directory.Exists(folderPath))
-                            {
-                                Directory.Delete(folderPath, true);
-                            }
-                        }
-
-                        // Eliminar el diplomado de la base de datos
-                        var deleteDiplomaCmd = new MySqlCommand(@"
-                            DELETE FROM diplomas
-                            WHERE id = @diplomaId", con);
-
-                        deleteDiplomaCmd.Parameters.AddWithValue("@diplomaId", request.DiplomaId);
-                        deleteDiplomaCmd.ExecuteNonQuery();
-
-                        return (1, "Solicitud de diplomado rechazada y eliminada exitosamente.");
-                    }
-
-                    // Si no es rechazo, continuar con la lógica de aprobación existente
-                    using (MySqlCommand cmd = new MySqlCommand("sp_approve_diploma_request", con))
+                    await con.OpenAsync();
+                    using (var cmd = new MySqlCommand("sp_approve_diploma_request", con))
                     {
                         cmd.CommandType = CommandType.StoredProcedure;
 
-                        // Parámetros de entrada
                         cmd.Parameters.AddWithValue("p_diploma_id", request.DiplomaId);
                         cmd.Parameters.AddWithValue("p_name", request.Name);
                         cmd.Parameters.AddWithValue("p_total_duration", request.TotalDuration);
@@ -2359,18 +2266,15 @@ namespace DVDR_courses
 
                         cmd.Parameters.AddWithValue("p_actor_roles", actorRolesJson);
 
-                        // Parámetros de salida
-                        cmd.Parameters.Add("p_status_code", MySqlDbType.Int32);
-                        cmd.Parameters["p_status_code"].Direction = ParameterDirection.Output;
-                        cmd.Parameters.Add("p_message", MySqlDbType.VarChar, 255);
-                        cmd.Parameters["p_message"].Direction = ParameterDirection.Output;
+                        var statusCodeParam = new MySqlParameter("p_status_code", MySqlDbType.Int32) { Direction = ParameterDirection.Output };
+                        var messageParam = new MySqlParameter("p_message", MySqlDbType.VarChar, 255) { Direction = ParameterDirection.Output };
 
-                        cmd.ExecuteNonQuery();
+                        cmd.Parameters.Add(statusCodeParam);
+                        cmd.Parameters.Add(messageParam);
 
-                        var statusCode = Convert.ToInt32(cmd.Parameters["p_status_code"].Value);
-                        var message = cmd.Parameters["p_message"].Value.ToString();
+                        await cmd.ExecuteNonQueryAsync();
 
-                        return (statusCode, message);
+                        return (Convert.ToInt32(statusCodeParam.Value), messageParam.Value.ToString());
                     }
                 }
             }
@@ -2474,73 +2378,29 @@ namespace DVDR_courses
             return diplomas;
         }
 
-        public (int statusCode, string message) UpdateDiplomaVerificationStatus(int diplomaId, string verificationStatus, string? verificationNotes = null)
+        public async Task<(int statusCode, string message)> UpdateDiplomaVerificationStatus(int diplomaId, string verificationStatus, string? verificationNotes = null)
         {
             try
             {
                 using (var con = new MySqlConnection(_config.GetConnectionString("default")))
                 {
-                    con.Open();
+                    await con.OpenAsync();
 
-                    // Si se rechaza, eliminar todo el registro del diplomado
-                    if (verificationStatus.Equals("rejected", StringComparison.OrdinalIgnoreCase))
+                    using (var cmd = new MySqlCommand(@"
+                UPDATE diplomas
+                SET verification_status = @verificationStatus,
+                    verification_notes = @verificationNotes
+                WHERE id = @diplomaId", con))
                     {
-                        // Primero obtenemos la información del diplomado para eliminar archivos
-                        var getFolderCmd = new MySqlCommand(@"
-                            SELECT documentation_folder 
-                            FROM diplomas 
-                            WHERE id = @diplomaId", con);
+                        cmd.Parameters.AddWithValue("@verificationStatus", verificationStatus);
+                        cmd.Parameters.AddWithValue("@verificationNotes", verificationNotes ?? (object)DBNull.Value);
+                        cmd.Parameters.AddWithValue("@diplomaId", diplomaId);
 
-                        getFolderCmd.Parameters.AddWithValue("@diplomaId", diplomaId);
+                        int affectedRows = await cmd.ExecuteNonQueryAsync();
 
-                        string folderName = null;
-                        using (var reader = getFolderCmd.ExecuteReader())
-                        {
-                            if (reader.Read())
-                            {
-                                folderName = reader.IsDBNull(reader.GetOrdinal("documentation_folder")) ? null : reader.GetString("documentation_folder");
-                            }
-                        }
-
-                        if (!string.IsNullOrEmpty(folderName))
-                        {
-                            // Eliminar archivos físicos
-                            string folderPath = Path.Combine("..", "..", "..", "Frontend", "public", "assets", "files", "diploma-documentation", folderName);
-                            if (Directory.Exists(folderPath))
-                            {
-                                Directory.Delete(folderPath, true);
-                            }
-                        }
-
-                        // Eliminar el diplomado de la base de datos
-                        var deleteDiplomaCmd = new MySqlCommand(@"
-                            DELETE FROM diplomas
-                            WHERE id = @diplomaId", con);
-
-                        deleteDiplomaCmd.Parameters.AddWithValue("@diplomaId", diplomaId);
-                        deleteDiplomaCmd.ExecuteNonQuery();
-
-                        return (1, "Solicitud de diplomado rechazada y eliminada exitosamente.");
-                    }
-                    else if (verificationStatus.Equals("approved", StringComparison.OrdinalIgnoreCase))
-                    {
-                        // Actualizar el estado de verificación del diplomado
-                        var updateVerificationCmd = new MySqlCommand(@"
-                            UPDATE diplomas
-                            SET verification_status = @verificationStatus,
-                                verification_notes = @verificationNotes
-                            WHERE id = @diplomaId", con);
-
-                        updateVerificationCmd.Parameters.AddWithValue("@verificationStatus", verificationStatus);
-                        updateVerificationCmd.Parameters.AddWithValue("@verificationNotes", verificationNotes ?? (object)DBNull.Value);
-                        updateVerificationCmd.Parameters.AddWithValue("@diplomaId", diplomaId);
-                        updateVerificationCmd.ExecuteNonQuery();
-
-                        return (1, "Diplomado verificado exitosamente.");
-                    }
-                    else
-                    {
-                        return (0, "Estado de verificación no válido.");
+                        return affectedRows > 0
+                            ? (1, "Diplomado verificado exitosamente.")
+                            : (0, "No se encontró el diplomado.");
                     }
                 }
             }
@@ -2550,6 +2410,7 @@ namespace DVDR_courses
                 return (0, "Error al actualizar el estado de verificación del diplomado.");
             }
         }
+
 
         public List<CompletedDiplomaDTO> GetCompletedDiplomas(string username)
         {
@@ -2669,35 +2530,20 @@ namespace DVDR_courses
             }
         }
 
-        public (int statusCode, string message) UploadDiplomaOfficialLetter(UploadDiplomaOfficialLetterDTO request)
+        public async Task<(int statusCode, string message)> UploadDiplomaOfficialLetter(int diplomaId, string filePath, int numberOfCertificates)
         {
             try
             {
                 using (var con = new MySqlConnection(_config.GetConnectionString("default")))
                 {
-                    con.Open();
-
-                    // Crear carpeta para el oficio
-                    var folder = Guid.NewGuid().ToString();
-                    var basePath = Path.Combine("assets", "files", "diploma-official-letters", folder);
-                    var physicalPath = Path.Combine("..", "..", "..", "Frontend", "public", basePath);
-                    Directory.CreateDirectory(physicalPath);
-
-                    var fileName = request.File.FileName;
-                    var finalPath = Path.Combine(physicalPath, fileName);
-                    using (var stream = new FileStream(finalPath, FileMode.Create))
-                    {
-                        request.File.CopyTo(stream);
-                    }
-
-                    var savedPath = Path.Combine(basePath, fileName);
+                    await con.OpenAsync();
 
                     using (var cmd = new MySqlCommand("sp_upload_diploma_official_letter", con))
                     {
                         cmd.CommandType = CommandType.StoredProcedure;
-                        cmd.Parameters.AddWithValue("p_diploma_id", request.DiplomaId);
-                        cmd.Parameters.AddWithValue("p_file_path", savedPath);
-                        cmd.Parameters.AddWithValue("p_number_of_certificates", request.NumberOfCertificates);
+                        cmd.Parameters.AddWithValue("p_diploma_id", diplomaId);
+                        cmd.Parameters.AddWithValue("p_file_path", filePath);
+                        cmd.Parameters.AddWithValue("p_number_of_certificates", numberOfCertificates);
 
                         var p_status_code = new MySqlParameter("p_status_code", MySqlDbType.Int32) { Direction = ParameterDirection.Output };
                         var p_message = new MySqlParameter("p_message", MySqlDbType.VarChar, 255) { Direction = ParameterDirection.Output };
@@ -2705,7 +2551,7 @@ namespace DVDR_courses
                         cmd.Parameters.Add(p_status_code);
                         cmd.Parameters.Add(p_message);
 
-                        cmd.ExecuteNonQuery();
+                        await cmd.ExecuteNonQueryAsync();
 
                         return (Convert.ToInt32(p_status_code.Value), p_message.Value.ToString());
                     }
@@ -2716,6 +2562,7 @@ namespace DVDR_courses
                 return (-1, $"Error: {ex.Message}");
             }
         }
+
 
         public List<DiplomaCertificateRequestModel> GetRequestedDiplomaCertificates()
         {
@@ -3137,7 +2984,7 @@ namespace DVDR_courses
             return instructors;
         }
 
-        public (int statusCode, string message) ManageTemplate(
+        public async Task<(int statusCode, string message)> ManageTemplate(
             string action,
             int? templateId,
             string type,
@@ -3151,6 +2998,8 @@ namespace DVDR_courses
             {
                 using (var con = new MySqlConnection(_config.GetConnectionString("default")))
                 {
+                    await con.OpenAsync();
+
                     using (var cmd = new MySqlCommand("sp_manage_template", con))
                     {
                         cmd.CommandType = CommandType.StoredProcedure;
@@ -3163,36 +3012,41 @@ namespace DVDR_courses
                         cmd.Parameters.Add(new MySqlParameter("p_doc_type", MySqlDbType.VarChar) { Value = docType });
                         cmd.Parameters.Add(new MySqlParameter("p_required", MySqlDbType.Bit) { Value = required });
 
-                        if (modalities != null)
-                        {
-                            var modalitiesJson = JsonConvert.SerializeObject(modalities);
-                            cmd.Parameters.Add(new MySqlParameter("p_modalities", MySqlDbType.JSON) { Value = modalitiesJson });
-                        }
-                        else
+                        // Validar y convertir modalidades al formato correcto
+                        var allowedModalities = new HashSet<string> { "schooled", "non-schooled", "mixed" };
+                        var filteredModalities = modalities?.Where(m => allowedModalities.Contains(m.ToLower())).ToList();
+
+                        if (filteredModalities == null || !filteredModalities.Any())
                         {
                             cmd.Parameters.Add(new MySqlParameter("p_modalities", MySqlDbType.JSON) { Value = DBNull.Value });
                         }
+                        else
+                        {
+                            string modalitiesJson = JsonConvert.SerializeObject(filteredModalities);
+                            Console.WriteLine($"[DEBUG] JSON de modalidades enviadas: {modalitiesJson}");
+                            cmd.Parameters.Add(new MySqlParameter("p_modalities", MySqlDbType.JSON) { Value = modalitiesJson });
+                        }
 
-                        var statusCodeParam = new MySqlParameter("p_status_code", MySqlDbType.Int32)
-                        { Direction = ParameterDirection.Output };
-                        var messageParam = new MySqlParameter("p_message", MySqlDbType.VarChar, 255)
-                        { Direction = ParameterDirection.Output };
+                        var statusCodeParam = new MySqlParameter("p_status_code", MySqlDbType.Int32) { Direction = ParameterDirection.Output };
+                        var messageParam = new MySqlParameter("p_message", MySqlDbType.VarChar, 255) { Direction = ParameterDirection.Output };
 
                         cmd.Parameters.Add(statusCodeParam);
                         cmd.Parameters.Add(messageParam);
 
-                        con.Open();
-                        cmd.ExecuteNonQuery();
+                        await cmd.ExecuteNonQueryAsync();
 
-                        return (
-                            Convert.ToInt32(statusCodeParam.Value),
-                            messageParam.Value?.ToString() ?? "Operación completada exitosamente"
-                        );
+                        int statusCode = Convert.ToInt32(statusCodeParam.Value);
+                        string message = messageParam.Value?.ToString() ?? "Operación completada exitosamente";
+
+                        Console.WriteLine($"[DEBUG] Status Code: {statusCode}, Message: {message}");
+
+                        return (statusCode, message);
                     }
                 }
             }
             catch (Exception ex)
             {
+                Console.WriteLine($"[ERROR] Error en ManageTemplate: {ex.Message}");
                 return (-1, $"Error al gestionar plantilla: {ex.Message}");
             }
         }

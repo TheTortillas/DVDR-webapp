@@ -1,4 +1,5 @@
 ﻿using DVDR_courses.DTOs;
+using DVDR_courses.Helpers;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DVDR_courses.Controllers
@@ -7,42 +8,38 @@ namespace DVDR_courses.Controllers
     [ApiController]
     public class DiplomaController : Controller
     {
-        IConfiguration _config;
-        public DiplomaController(IConfiguration config)
+        private readonly IConfiguration _config;
+        private readonly FileStorageHelper _fileStorage;
+        private readonly DBManager _dbManager;
+
+
+        public DiplomaController(IConfiguration config, IWebHostEnvironment env)
         {
             _config = config;
+            _fileStorage = new FileStorageHelper(config, env);
+            _dbManager = new DBManager(_config);
+
         }
 
-        [HttpPost("RequestDiplomaRegistration", Name = "PostRequesDiplomaRegistration")]
+        [HttpPost("RequestDiplomaRegistration")]
         public async Task<IActionResult> RequestDiplomaRegistration([FromForm] DiplomaRegistrationRequest request)
         {
-            if (request == null || request.Documents == null)
-            {
-                return BadRequest(new { message = "La información proporcionada es inválida." });
-            }
+            if (request?.Documents == null) return BadRequest(new { message = "La información proporcionada es inválida." });
 
-            // Generar carpeta aleatoria
             var folderName = Guid.NewGuid().ToString();
             request.FolderName = folderName;
 
-            var baseFolderPath = Path.Combine("..", "..", "..", "Frontend", "public", "assets", "files", "diploma-documentation", folderName);
-
             try
             {
-                Directory.CreateDirectory(baseFolderPath);
-
                 foreach (var document in request.Documents)
                 {
                     if (document.File != null)
                     {
                         var fileName = document.File.FileName;
-                        var filePath = Path.Combine("assets", "files", "diploma-documentation", folderName, fileName);
-                        var physicalPath = Path.Combine("..", "..", "..", "Frontend", "public", filePath);
+                        var storagePath = _fileStorage.GetStoragePath("DiplomaDocumentation", folderName);
+                        var fullPath = Path.Combine(storagePath, fileName);
 
-                        using (var stream = new FileStream(physicalPath, FileMode.Create))
-                        {
-                            await document.File.CopyToAsync(stream);
-                        }
+                        await _fileStorage.SaveFileAsync(document.File, fullPath);
                     }
                 }
 
@@ -83,7 +80,7 @@ namespace DVDR_courses.Controllers
         }
 
         [HttpPost("ApproveDiplomaRequest", Name = "PostApproveDiplomaRequest")]
-        public IActionResult ApproveDiplomaRequest([FromBody] DiplomaApprovalRequest request)
+        public async Task<IActionResult> ApproveDiplomaRequest([FromBody] DiplomaApprovalRequest request)
         {
             if (request == null)
             {
@@ -92,12 +89,44 @@ namespace DVDR_courses.Controllers
 
             try
             {
-                var dbManager = new DBManager(_config);
-                var (statusCode, message) = dbManager.ApproveDiplomaRequest(request);
+                (int statusCode, string message) result;
 
-                return statusCode == 1 ?
-                    Ok(new { message }) :
-                    StatusCode(500, new { message });
+                if (request.ApprovalStatus == "rejected")
+                {
+                    // 1️ Obtener la carpeta del diplomado desde la BD
+                    var folderName = await _dbManager.GetDiplomaFolder(request.DiplomaId);
+
+                    // 2️ Si existe, eliminar archivos y la carpeta correspondiente
+                    if (!string.IsNullOrEmpty(folderName))
+                    {
+                        var folderPath = _fileStorage.GetStoragePath("DiplomaDocumentation", folderName);
+                        if (Directory.Exists(folderPath))
+                        {
+                            try
+                            {
+                                Directory.Delete(folderPath, true);
+                                Console.WriteLine($"Carpeta eliminada: {folderPath}");
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine($"No se pudo borrar la carpeta: {ex.Message}");
+                            }
+                        }
+                    }
+
+                    // 3️ Eliminar el diplomado en la BD
+                    result = await _dbManager.DeleteDiploma(request.DiplomaId);
+                }
+                else
+                {
+                    // Si no es rechazo, aprobar el diplomado
+                    result = await _dbManager.ApproveDiplomaRequest(request);
+                }
+
+                //  Comprobación de estado para evitar que se interprete como error
+                return result.statusCode == 1
+                    ? Ok(new { message = result.message }) // Se devuelve correctamente un 200 si el status es 1
+                    : StatusCode(500, new { message = result.message }); //  Si no es 1, se mantiene el error
             }
             catch (Exception ex)
             {
@@ -105,8 +134,10 @@ namespace DVDR_courses.Controllers
             }
         }
 
+
+
         [HttpPost("UpdateDiplomaVerificationStatus")]
-        public IActionResult UpdateDiplomaVerificationStatus([FromBody] DiplomaVerificationRequest request)
+        public async Task<IActionResult> UpdateDiplomaVerificationStatus([FromBody] DiplomaVerificationRequest request)
         {
             if (request == null)
             {
@@ -115,15 +146,52 @@ namespace DVDR_courses.Controllers
 
             try
             {
-                var dbManager = new DBManager(_config);
-                var (statusCode, message) = dbManager.UpdateDiplomaVerificationStatus(
-                    request.DiplomaId,
-                    request.VerificationStatus,
-                    request.VerificationNotes);
+                (int statusCode, string message) result;
 
-                return statusCode == 1
-                    ? Ok(new { message })
-                    : StatusCode(500, new { message });
+                if (request.VerificationStatus.Equals("rejected", StringComparison.OrdinalIgnoreCase))
+                {
+                    // 1️⃣ Obtener la carpeta del diplomado desde la BD
+                    var folderName = await _dbManager.GetDiplomaFolder(request.DiplomaId);
+
+                    // 2️⃣ Si existe, eliminar archivos y la carpeta correspondiente
+                    if (!string.IsNullOrEmpty(folderName))
+                    {
+                        var folderPath = _fileStorage.GetStoragePath("DiplomaDocumentation", folderName);
+                        if (Directory.Exists(folderPath))
+                        {
+                            try
+                            {
+                                Directory.Delete(folderPath, true);
+                                Console.WriteLine($"Carpeta eliminada: {folderPath}");
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine($"No se pudo borrar la carpeta: {ex.Message}");
+                            }
+                        }
+                    }
+
+                    // 3️ Eliminar el diplomado en la BD
+                    result = await _dbManager.DeleteDiploma(request.DiplomaId);
+                }
+                else if (request.VerificationStatus.Equals("approved", StringComparison.OrdinalIgnoreCase))
+                {
+                    //  Aprobar el estado de verificación en la BD
+                    result = await _dbManager.UpdateDiplomaVerificationStatus(
+                        request.DiplomaId,
+                        request.VerificationStatus,
+                        request.VerificationNotes
+                    );
+                }
+                else
+                {
+                    return BadRequest(new { message = "Estado de verificación no válido." });
+                }
+
+                //  Verifica el statusCode antes de responder
+                return result.statusCode == 1
+                    ? Ok(new { message = result.message }) // Si el statusCode es 1, respuesta 200
+                    : StatusCode(500, new { message = result.message }); //  Si no, error 500
             }
             catch (Exception ex)
             {
@@ -210,24 +278,18 @@ namespace DVDR_courses.Controllers
             // Generar carpeta aleatoria
             var folderName = Guid.NewGuid().ToString();
             request.FolderName = folderName;
-            //var basePath = Path.Combine(_config.GetSection("FileStorage").GetValue<string>("BaseFolderPath"), "files", "request-diploma-certificates-documentation", folderName);
-            var basePath = Path.Combine("..", "..", "..", "Frontend", "public", "assets", "files", "request-diploma-certificates-documentation", folderName);
 
             try
             {
-                // Crear directorio
-                Directory.CreateDirectory(basePath);
-
-                // Guardar los archivos
+                // Guardar los archivos usando FileStorageHelper
                 foreach (var doc in request.Documents)
                 {
                     if (doc.File != null)
                     {
-                        var filePath = Path.Combine(basePath, doc.File.FileName);
-                        using (var stream = new FileStream(filePath, FileMode.Create))
-                        {
-                            await doc.File.CopyToAsync(stream);
-                        }
+                        var storagePath = _fileStorage.GetStoragePath("DiplomaCertificates", folderName);
+                        var fullPath = Path.Combine(storagePath, doc.File.FileName);
+
+                        await _fileStorage.SaveFileAsync(doc.File, fullPath);
                     }
                 }
 
@@ -246,7 +308,7 @@ namespace DVDR_courses.Controllers
         }
 
         [HttpPost("UploadDiplomaDocument", Name = "PostUploadDiplomaDocument")]
-        public IActionResult UploadDiplomaDocument([FromForm] SingleDiplomaDocumentRequest request)
+        public async Task<IActionResult> UploadDiplomaDocument([FromForm] SingleDiplomaDocumentRequest request)
         {
             if (request == null || request.File == null)
             {
@@ -255,28 +317,30 @@ namespace DVDR_courses.Controllers
 
             try
             {
-                // Generar carpeta aleatoria o usa la ruta preferida
+                // Usar el folderName proporcionado en la solicitud
                 var folderName = request.FolderName;
-                var basePath = Path.Combine("..", "..", "..", "Frontend", "public", "assets", "files", "diploma-documentation", folderName);
-                Directory.CreateDirectory(basePath);
-
                 var fileName = request.File.FileName;
-                var physicalPath = Path.Combine(basePath, fileName);
 
-                using (var stream = new FileStream(physicalPath, FileMode.Create))
-                {
-                    request.File.CopyTo(stream);
-                }
+                // Usar FileStorageHelper para obtener y construir las rutas
+                var storagePath = _fileStorage.GetStoragePath("DiplomaDocumentation", folderName);
+                var fullPath = Path.Combine(storagePath, fileName);
+
+                // Guardar el archivo
+                await _fileStorage.SaveFileAsync(request.File, fullPath);
+
+                // Obtener la ruta relativa para guardar en la base de datos
+                var relativePath = _fileStorage.GetRelativePath("DiplomaDocumentation", folderName, fileName);
 
                 // Llamar a DBManager para invocar el SP
                 var dbManager = new DBManager(_config);
-                var relativePath = Path.Combine("assets", "files", "diploma-documentation", folderName, fileName);
-                var (statusCode, message) = dbManager.UploadDiplomaDocument(request.DiplomaId, request.DocumentId, relativePath);
+                var (statusCode, message) = dbManager.UploadDiplomaDocument(
+                    request.DiplomaId,
+                    request.DocumentId,
+                    relativePath);
 
-                if (statusCode == 1)
-                    return Ok(new { message });
-                else
-                    return StatusCode(500, new { message });
+                return statusCode == 1
+                    ? Ok(new { message })
+                    : StatusCode(500, new { message });
             }
             catch (Exception ex)
             {
@@ -293,21 +357,42 @@ namespace DVDR_courses.Controllers
         }
 
         [HttpPost("UploadDiplomaOfficialLetter")]
-        public IActionResult UploadDiplomaOfficialLetter([FromForm] UploadDiplomaOfficialLetterDTO request)
+        public async Task<IActionResult> UploadDiplomaOfficialLetter([FromForm] UploadDiplomaOfficialLetterDTO request)
         {
             if (request.File == null || request.File.Length == 0)
                 return BadRequest(new { message = "Archivo inválido." });
+
             if (request.NumberOfCertificates <= 0)
                 return BadRequest(new { message = "El número de certificados debe ser mayor a 0." });
 
-            var db = new DBManager(_config);
-            var result = db.UploadDiplomaOfficialLetter(request);
+            try
+            {
+                // 1️ Obtener la carpeta base desde FileStorageHelper
+                string folderName = Guid.NewGuid().ToString();
+                string storagePath = _fileStorage.GetStoragePath("DiplomaOfficialLetters", folderName);
+                Directory.CreateDirectory(storagePath);
 
-            if (result.statusCode == 1)
-                return Ok(new { message = result.message });
-            else
-                return StatusCode(500, new { message = result.message });
+                // 2️ Guardar el archivo en la carpeta
+                string filePath = Path.Combine(storagePath, request.File.FileName);
+                await _fileStorage.SaveFileAsync(request.File, filePath);
+
+                // 3️ Obtener la ruta relativa para la BD
+                string relativePath = _fileStorage.GetRelativePath("DiplomaOfficialLetters", folderName, request.File.FileName);
+
+                // 4️ Guardar en la base de datos
+                var result = await _dbManager.UploadDiplomaOfficialLetter(request.DiplomaId, relativePath, request.NumberOfCertificates);
+
+                //  Devolver respuesta basada en el status code
+                return result.statusCode == 1
+                    ? Ok(new { message = result.message })  // Respuesta 200 si se guarda correctamente
+                    : StatusCode(500, new { message = result.message }); // Error si el status code no es 1
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Error al subir el oficio del diplomado.", error = ex.Message });
+            }
         }
+
 
         [HttpGet("GetCertificateOfficialLetter/{diplomaId}")]
         public IActionResult GetCertificateOfficialLetter(int diplomaId)

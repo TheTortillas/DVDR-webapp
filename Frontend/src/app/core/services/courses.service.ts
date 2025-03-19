@@ -9,6 +9,7 @@ export interface Course {
   clave: string;
   status: string;
   approvalStatus: string;
+  verificationStatus: string;
   totalDuration: number;
   expirationDate: string;
   isRenewed: boolean;

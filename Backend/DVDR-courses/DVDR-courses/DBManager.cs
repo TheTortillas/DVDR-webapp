@@ -596,6 +596,7 @@ namespace DVDR_courses
                         c.course_key AS Clave,
                         c.status AS Status,
                         c.approval_status AS ApprovalStatus,
+                        c.verification_status AS VerificationStatus,
                         c.total_duration AS TotalDuration,
                         c.expiration_date AS ExpirationDate,
                         c.is_renewed AS IsRenewed
@@ -618,6 +619,7 @@ namespace DVDR_courses
                         Clave = reader.IsDBNull("Clave") ? null : reader.GetString("Clave"),
                         Status = reader.GetString("Status"),
                         ApprovalStatus = reader.GetString("ApprovalStatus"),
+                        VerificationStatus = reader.GetString("VerificationStatus"),
                         TotalDuration = reader.GetInt32("TotalDuration"),
                         ExpirationDate = reader.IsDBNull("ExpirationDate") ? (DateTime?)null : reader.GetDateTime("ExpirationDate"),
                         IsRenewed = reader.GetBoolean("IsRenewed")

@@ -32,10 +32,9 @@
               mat-button
               *ngIf="
                 !isCursoExpirado(course) &&
-                course.approvalStatus !== 'pending' &&
-                course.approvalStatus !== 'rejected'
+                course.approvalStatus === 'approved' &&
+                course.verificationStatus === 'approved'
               "
-              [disabled]="!isCursoAprobado(course)"
               (click)="solicitarApertura(course)"
             >
               Solicitar
@@ -45,10 +44,9 @@
               mat-button
               *ngIf="
                 isCursoExpirado(course) &&
-                course.approvalStatus !== 'pending' &&
-                course.approvalStatus !== 'rejected'
+                course.approvalStatus === 'approved' &&
+                course.verificationStatus === 'approved'
               "
-              [disabled]="!isCursoAprobado(course)"
               class="bg-red-500 text-white px-4 py-2 rounded"
               (click)="renovarCurso(course)"
             >
@@ -57,7 +55,10 @@
 
             <button
               mat-button
-              *ngIf="course.approvalStatus === 'pending'"
+              *ngIf="
+                course.approvalStatus === 'pending' ||
+                course.verificationStatus === 'pending'
+              "
               disabled
             >
               Curso en revisión
@@ -65,7 +66,10 @@
 
             <button
               mat-button
-              *ngIf="course.approvalStatus === 'rejected'"
+              *ngIf="
+                course.approvalStatus === 'rejected' ||
+                course.verificationStatus === 'rejected'
+              "
               disabled
             >
               Curso rechazado, revisar correcciones

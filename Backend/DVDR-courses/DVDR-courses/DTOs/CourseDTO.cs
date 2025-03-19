@@ -7,6 +7,7 @@
         public string Clave { get; set; }
         public string Status { get; set; }
         public string ApprovalStatus { get; set; }
+        public string VerificationStatus { get; set; }
         public int TotalDuration { get; set; }
         public DateTime? ExpirationDate { get; set; }
         public bool IsRenewed { get; set; }

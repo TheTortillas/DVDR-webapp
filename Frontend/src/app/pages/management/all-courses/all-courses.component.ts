@@ -21,6 +21,7 @@ import {
 } from '../../../core/services/courses.service';
 import { DataService } from '../../../core/services/data.service';
 import Swal from 'sweetalert2';
+import { ReportsService } from '../../../core/services/reports.service';
 
 @Component({
   selector: 'app-all-courses',
@@ -68,7 +69,8 @@ export class AllCoursesComponent implements OnInit {
   constructor(
     private coursesService: CoursesService,
     private dialog: MatDialog,
-    private dataService: DataService
+    private dataService: DataService,
+    private reportsService: ReportsService
   ) {}
 
   ngOnInit() {
@@ -270,5 +272,27 @@ export class AllCoursesComponent implements OnInit {
         },
       });
     }
+  }
+
+  generateCurrentCoursesReport() {
+    Swal.fire({
+      title: 'Descargando reporte...',
+      text: 'Se iniciará la descarga del reporte de cursos vigentes.',
+      icon: 'info',
+      showConfirmButton: false,
+      timer: 2000,
+    });
+    this.reportsService.downloadCurrentVigentCoursesReport();
+  }
+
+  generateCertificatesDeliveredReport() {
+    Swal.fire({
+      title: 'Descargando reporte...',
+      text: 'Se iniciará la descarga del reporte de constancias entregadas.',
+      icon: 'info',
+      showConfirmButton: false,
+      timer: 2000,
+    });
+    this.reportsService.downloadCertificatesDeliveredSessionsReport();
   }
 }

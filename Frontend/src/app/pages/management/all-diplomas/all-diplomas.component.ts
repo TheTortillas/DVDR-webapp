@@ -14,6 +14,8 @@ import { DiplomasService } from '../../../core/services/diplomas.service';
 import { DiplomaGeneralInfoDialogComponent } from '../../../shared/components/diplomas-data-dialogs/diploma-general-info-dialog/diploma-general-info-dialog.component';
 import { DiplomaActorsDialogComponent } from '../../../shared/components/diplomas-data-dialogs/diploma-actors-dialog/diploma-actors-dialog.component';
 import { DiplomaDocumentationDialogComponent } from '../../../shared/components/diplomas-data-dialogs/diploma-documentation-dialog/diploma-documentation-dialog.component';
+import { ReportsService } from '../../../core/services/reports.service';
+import Swal from 'sweetalert2';
 
 interface DiplomaActor {
   actorId: number;
@@ -88,7 +90,8 @@ export class AllDiplomasComponent implements OnInit {
 
   constructor(
     private diplomasService: DiplomasService,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private reportsService: ReportsService
   ) {}
 
   ngOnInit() {
@@ -219,5 +222,28 @@ export class AllDiplomasComponent implements OnInit {
         },
       });
     }
+  }
+
+  // Nuevo método para generar reporte de constancias entregadas
+  generateCurrentDiplomasReport() {
+    Swal.fire({
+      title: 'Descargando reporte...',
+      text: 'Se iniciará la descarga del reporte de diplomados vigentes.',
+      icon: 'info',
+      showConfirmButton: false,
+      timer: 2000,
+    });
+    this.reportsService.downloadCurrentVigentDiplomasReport();
+  }
+
+  generateCertificatesDeliveredReport() {
+    Swal.fire({
+      title: 'Descargando reporte...',
+      text: 'Se iniciará la descarga del reporte de constancias de diplomados entregadas.',
+      icon: 'info',
+      showConfirmButton: false,
+      timer: 2000,
+    });
+    this.reportsService.downloadCertificatesDeliveredDiplomasReport();
   }
 }

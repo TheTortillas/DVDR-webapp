@@ -3,6 +3,7 @@ using DVDR_courses.DTOs.Auth;
 using DVDR_courses.DTOs.Data;
 using DVDR_courses.DTOs.Instructor;
 using DVDR_courses.DTOs.Messages;
+using DVDR_courses.DTOs.Reports;
 using DVDR_courses.Services;
 using MySql.Data.MySqlClient;
 using Newtonsoft.Json;
@@ -3224,6 +3225,163 @@ namespace DVDR_courses
             }
 
             return videos;
+        }
+
+        // Agregue esto dentro de la clase DBManager
+
+        public List<ReportCurrentVigentCourses> GetCurrentVigentCourses()
+        {
+            var courses = new List<ReportCurrentVigentCourses>();
+            try
+            {
+                using (var con = new MySqlConnection(_config.GetConnectionString("default")))
+                {
+                    con.Open();
+                    using (var cmd = new MySqlCommand("sp_get_current_vigent_courses", con))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+                        using (var reader = cmd.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                courses.Add(new ReportCurrentVigentCourses
+                                {
+                                    ID = reader.GetInt32("ID"),
+                                    NombreDelCurso = reader.GetString("Nombre del curso"),
+                                    FechaDeRegistro = reader.GetString("Fecha de registro"),
+                                    Horas = reader.GetInt32("Horas"),
+                                    Modalidad = reader.GetString("Modalidad"),
+                                    Centro = reader.GetString("Centro"),
+                                    FechaExpiracion = reader.GetString("Fecha expiración")
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error en GetCurrentVigentCourses: {ex.Message}");
+            }
+            return courses;
+        }
+
+        public List<ReportCurrentVigentDiplomas> GetCurrentVigentDiplomas()
+        {
+            var diplomas = new List<ReportCurrentVigentDiplomas>();
+            try
+            {
+                using (var con = new MySqlConnection(_config.GetConnectionString("default")))
+                {
+                    con.Open();
+                    using (var cmd = new MySqlCommand("sp_get_current_vigent_diplomas", con))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+                        using (var reader = cmd.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                diplomas.Add(new ReportCurrentVigentDiplomas
+                                {
+                                    ID = reader.GetInt32("ID"),
+                                    NombreDelDiplomado = reader.GetString("Nombre del diplomado"),
+                                    FechaDeRegistro = reader.GetString("Fecha de registro"),
+                                    Horas = reader.GetInt32("Horas"),
+                                    Modalidad = reader.GetString("Modalidad"),
+                                    Centro = reader.GetString("Centro"),
+                                    FechaExpiracion = reader.GetString("Fecha expiración")
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error en GetCurrentVigentDiplomas: {ex.Message}");
+            }
+            return diplomas;
+        }
+
+        public List<ReportCertificatesDeliveredSessions> GetCertificatesDeliveredSessions()
+        {
+            var sessions = new List<ReportCertificatesDeliveredSessions>();
+            try
+            {
+                using (var con = new MySqlConnection(_config.GetConnectionString("default")))
+                {
+                    con.Open();
+                    using (var cmd = new MySqlCommand("sp_get_certificates_delivered_sessions", con))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+                        using (var reader = cmd.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                sessions.Add(new ReportCertificatesDeliveredSessions
+                                {
+                                    ID = reader.GetInt32("ID"),
+                                    ClaveDelCurso = reader.GetString("Clave del curso"),
+                                    NombreDelCurso = reader.GetString("Nombre del curso"),
+                                    Periodo = reader.GetString("Periodo"),
+                                    ParticipantesRegistrados = reader.GetInt32("Participantes registrados"),
+                                    ConstanciasEntregadas = reader.GetInt32("Constancias entregadas"),
+                                    Costo = reader.GetDecimal("Costo"),
+                                    FechaDeRegistro = reader.GetString("Fecha de registro"),
+                                    Centro = reader.GetString("Centro"),
+                                    RutaDelOficio = reader.GetString("Ruta del oficio")
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error en GetCertificatesDeliveredSessions: {ex.Message}");
+            }
+            return sessions;
+        }
+
+        public List<ReportCertificatesDeliveredDiplomas> GetCertificatesDeliveredDiplomas()
+        {
+            var diplomas = new List<ReportCertificatesDeliveredDiplomas>();
+            try
+            {
+                using (var con = new MySqlConnection(_config.GetConnectionString("default")))
+                {
+                    con.Open();
+                    using (var cmd = new MySqlCommand("sp_get_certificates_delivered_diplomas", con))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+                        using (var reader = cmd.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                diplomas.Add(new ReportCertificatesDeliveredDiplomas
+                                {
+                                    ID = reader.GetInt32("ID"),
+                                    NombreDelDiplomado = reader.GetString("Nombre del diplomado"),
+                                    Clave = reader.GetString("Clave"),
+                                    Horas = reader.GetInt32("Horas"),
+                                    Modalidad = reader.GetString("Modalidad"),
+                                    FechaInicio = reader.GetString("Fecha inicio"),
+                                    FechaFin = reader.GetString("Fecha fin"),
+                                    ParticipantesRegistrados = reader.GetInt32("Participantes registrados"),
+                                    ConstanciasEmitidas = reader.GetInt32("Constancias emitidas"),
+                                    Centro = reader.GetString("Centro"),
+                                    RutaDelOficio = reader.GetString("Ruta del oficio")
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error en GetCertificatesDeliveredDiplomas: {ex.Message}");
+            }
+            return diplomas;
         }
     }
 }

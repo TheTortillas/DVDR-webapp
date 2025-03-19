@@ -235,7 +235,7 @@ namespace DVDR_courses
             return templates;
         }
 
-        public List<DocumentTemplate> GetDiplomaeDocumentTemplates()
+        public List<DocumentTemplate> GetDiplomaDocumentTemplates()
         {
             var templates = new List<DocumentTemplate>();
             try
@@ -244,7 +244,7 @@ namespace DVDR_courses
                 {
                     string query = @"
                 SELECT id, name, filePath, type, required
-                FROM documents_templates_diplomae
+                FROM documents_templates_diploma
                 ORDER BY id";
 
                     MySqlCommand command = new MySqlCommand(query, con);
@@ -3098,7 +3098,7 @@ namespace DVDR_courses
                     }
 
                     // Obtener plantillas de diplomados
-                    using (var cmd = new MySqlCommand("SELECT * FROM documents_templates_diplomae", con))
+                    using (var cmd = new MySqlCommand("SELECT * FROM documents_templates_diploma", con))
                     {
                         using (var reader = cmd.ExecuteReader())
                         {

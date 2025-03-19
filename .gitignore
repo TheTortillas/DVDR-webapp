@@ -67,5 +67,7 @@ Thumbs.db
 !/Frontend/public/assets/files/certificate-official-letters/.gitkeep
 !/Frontend/public/assets/files/diploma-documentation/.gitkeep
 
+/Frontend/package-lock.json
+
 /Frontend/dist/**/*
 !/Frontend/dist/.gitkeep

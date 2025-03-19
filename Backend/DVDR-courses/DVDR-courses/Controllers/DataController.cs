@@ -44,12 +44,12 @@ namespace DVDR_courses.Controllers
             }
         }
 
-        [HttpGet("DiplomaeDocumentTemplates", Name = "GetDiplomaeDocumentTemplates")]
-        public JsonResult GetDiplomaeDocumentTemplates()
+        [HttpGet("DiplomaDocumentTemplates", Name = "GetDiplomaDocumentTemplates")]
+        public JsonResult GetDiplomaDocumentTemplates()
         {
             try
             {
-                var templates = new DBManager(_config).GetDiplomaeDocumentTemplates();
+                var templates = new DBManager(_config).GetDiplomaDocumentTemplates();
                 return new JsonResult(templates);
             }
             catch (Exception ex)

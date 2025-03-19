@@ -155,7 +155,7 @@ CREATE TABLE diplomas (
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
-CREATE TABLE documents_templates_diplomae (
+CREATE TABLE documents_templates_diploma (
     id INT PRIMARY KEY AUTO_INCREMENT,
     name VARCHAR(255),
     filePath VARCHAR(2083), 
@@ -179,7 +179,7 @@ CREATE TABLE diploma_documentation (
   filePath VARCHAR(255) NOT NULL,
   uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   FOREIGN KEY (diploma_id) REFERENCES diplomas(id) ON DELETE CASCADE,
-  FOREIGN KEY (document_id) REFERENCES documents_templates_diplomae(id) ON DELETE CASCADE
+  FOREIGN KEY (document_id) REFERENCES documents_templates_diploma(id) ON DELETE CASCADE
 );
 
 
@@ -1762,7 +1762,7 @@ BEGIN
         dd.filePath,
         dd.uploaded_at
     FROM diplomas d
-    CROSS JOIN documents_templates_diplomae dtd
+    CROSS JOIN documents_templates_diploma dtd
     LEFT JOIN diploma_documentation dd 
       ON dd.document_id = dtd.id 
       AND dd.diploma_id = d.id
@@ -1915,7 +1915,7 @@ BEGIN
         dd.filePath,
         dd.uploaded_at
     FROM diplomas d
-    CROSS JOIN documents_templates_diplomae dtd
+    CROSS JOIN documents_templates_diploma dtd
     LEFT JOIN diploma_documentation dd 
       ON dd.document_id = dtd.id 
       AND dd.diploma_id = d.id
@@ -2353,7 +2353,7 @@ BEGIN
                     END IF;
 
                 WHEN 'diploma' THEN
-                    INSERT INTO documents_templates_diplomae 
+                    INSERT INTO documents_templates_diploma 
                         (name, filePath, type, required)
                     VALUES 
                         (p_name, p_file_path, p_doc_type, p_required);
@@ -2397,7 +2397,7 @@ BEGIN
                     END IF;
 
                 WHEN 'diploma' THEN
-                    UPDATE documents_templates_diplomae 
+                    UPDATE documents_templates_diploma 
                     SET name = p_name,
                         filePath = CASE WHEN p_file_path != '' 
                                       THEN p_file_path 
@@ -2593,15 +2593,15 @@ INSERT INTO centers (name, type, identifier) VALUES
 ('Centro de Vinculación y Desarrollo Regional Unidad Tijuana', 'CVDR', 11),
 ('Centro de Vinculación y Desarrollo Regional Unidad Tampico', 'CVDR', 10);
 
-INSERT INTO documents_templates_diplomae (name, filePath, type, required) VALUES
-('Formato de oficio de solicitud', 'assets/diplomae_templates/oficio-de-solicitud.doc', 'file', true),							
-('Formato de solicitud de dictamen académico', 'assets/diplomae_templates/solicitud-de-registro-22.doc', 'file', true),
-('Formato de potesta de autoría', 'assets/diplomae_templates/protesta-de-autoría.docx', 'file', true),							
-('Síntesis del programa del diplomado', 'assets/diplomae_templates/síntesis-del-programa-del-diplomado.doc', 'file', true),
-('Cronograma de actividades', 'assets/diplomae_templates/cronograma-de-actividades.doc', 'file', true),
-('Currículum Vitae de Instructor y Aval', 'assets/diplomae_templates/formato-cv-instructor.docx', 'file', true),
-('Carta Aval', 'assets/diplomae_templates/ejemplo-carta-aval.pdf', 'file', true),
-('Lista inicial de participantes', 'assets/diplomae_templates/lista-inicial-de-participantes.doc', 'file', true);
+INSERT INTO documents_templates_diploma (name, filePath, type, required) VALUES
+('Formato de oficio de solicitud', 'assets/diploma_templates/oficio-de-solicitud.doc', 'file', true),							
+('Formato de solicitud de dictamen académico', 'assets/diploma_templates/solicitud-de-registro-22.doc', 'file', true),
+('Formato de potesta de autoría', 'assets/diploma_templates/protesta-de-autoría.docx', 'file', true),							
+('Síntesis del programa del diplomado', 'assets/diploma_templates/síntesis-del-programa-del-diplomado.doc', 'file', true),
+('Cronograma de actividades', 'assets/diploma_templates/cronograma-de-actividades.doc', 'file', true),
+('Currículum Vitae de Instructor y Aval', 'assets/diploma_templates/formato-cv-instructor.docx', 'file', true),
+('Carta Aval', 'assets/diploma_templates/ejemplo-carta-aval.pdf', 'file', true),
+('Lista inicial de participantes', 'assets/diploma_templates/lista-inicial-de-participantes.doc', 'file', true);
 
 INSERT INTO documents_templates (name, filePath, type) VALUES
 ('Formato de registro de cursos de formación a lo largo de la vida', 'assets/templates/01 FS20H 2024-2.docx', 'file'),

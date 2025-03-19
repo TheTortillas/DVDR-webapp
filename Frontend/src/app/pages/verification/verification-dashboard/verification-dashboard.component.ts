@@ -25,6 +25,8 @@ export class VerificationDashboardComponent implements OnInit {
   username: string = '';
   pendingCoursesCount: number = 0;
   pendingDiplomasCount: number = 0;
+  approvedCoursesCount: number = 0;
+  approvedDiplomasCount: number = 0;
 
   constructor(
     private storageService: StorageService,
@@ -52,6 +54,7 @@ export class VerificationDashboardComponent implements OnInit {
       next: (response: any) => {
         if (!response) {
           this.pendingCoursesCount = 0;
+          this.approvedCoursesCount = 0;
           return;
         }
 
@@ -59,23 +62,33 @@ export class VerificationDashboardComponent implements OnInit {
           ? response
           : response.data || [];
 
+        // Contar cursos pendientes
         this.pendingCoursesCount = courses.filter(
           (course: { status: string; verificationStatus: string }) =>
             course.status === 'submitted' &&
             course.verificationStatus === 'pending'
         ).length;
+
+        // Contar cursos aprobados
+        this.approvedCoursesCount = courses.filter(
+          (course: { status: string; approvalStatus: string }) =>
+            course.status === 'submitted' &&
+            course.approvalStatus === 'approved'
+        ).length;
       },
       error: (err) => {
         console.error('Error al cargar datos del dashboard:', err);
         this.pendingCoursesCount = 0;
+        this.approvedCoursesCount = 0;
       },
     });
 
-    // Contar diplomados pendientes de verificación
+    // Contar diplomados pendientes y aprobados
     this.diplomasService.getAllDiplomas().subscribe({
       next: (response: any) => {
         if (!response) {
           this.pendingDiplomasCount = 0;
+          this.approvedDiplomasCount = 0;
           return;
         }
 
@@ -83,15 +96,23 @@ export class VerificationDashboardComponent implements OnInit {
           ? response
           : response.data || [];
 
+        // Contar diplomados pendientes
         this.pendingDiplomasCount = diplomas.filter(
           (diploma: { status: string; verificationStatus: string }) =>
             diploma.status !== 'submitted' &&
             diploma.verificationStatus === 'pending'
         ).length;
+
+        // Contar diplomados aprobados
+        this.approvedDiplomasCount = diplomas.filter(
+          (diploma: { approvalStatus: string }) =>
+            diploma.approvalStatus === 'approved'
+        ).length;
       },
       error: (err) => {
         console.error('Error al cargar datos del dashboard (diplomas):', err);
         this.pendingDiplomasCount = 0;
+        this.approvedDiplomasCount = 0;
       },
     });
   }

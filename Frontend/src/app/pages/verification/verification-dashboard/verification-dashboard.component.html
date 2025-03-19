@@ -4,7 +4,7 @@
     <p class="text-gray-600">Panel de verificación de cursos y diplomados</p>
   </div>
 
-  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
     <!-- Tarjeta de cursos pendientes de verificación -->
     <mat-card
       class="bg-white rounded-lg shadow hover:shadow-lg transition-shadow relative"
@@ -65,25 +65,52 @@
       </mat-card-actions>
     </mat-card>
 
-    <!-- Tarjeta para estadísticas o resumen -->
-    <mat-card class="bg-white rounded-lg shadow">
+    <!-- NUEVA Tarjeta para todos los cursos -->
+    <mat-card
+      class="bg-white rounded-lg shadow hover:shadow-lg transition-shadow"
+    >
       <mat-card-header>
-        <mat-card-title>Actividad reciente</mat-card-title>
+        <mat-card-title>Todos los cursos</mat-card-title>
       </mat-card-header>
       <mat-card-content class="p-4">
-        <div class="flex items-center justify-center h-24">
-          <p class="text-center text-gray-600">
-            Para comenzar, revisa los cursos pendientes de verificación.
-          </p>
+        <div class="flex items-center justify-between">
+          <mat-icon class="text-green-500 text-5xl">view_list</mat-icon>
+          <span class="text-4xl font-bold">{{ approvedCoursesCount }}</span>
         </div>
+        <p class="text-gray-600 mt-2">Cursos aprobados en el sistema</p>
       </mat-card-content>
       <mat-card-actions class="p-4 pt-0">
         <button
           mat-button
           color="accent"
-          [routerLink]="['/verification/course-register-request']"
+          [routerLink]="['/verification/all-courses']"
         >
-          Ir a verificación
+          Ver todos los cursos
+        </button>
+      </mat-card-actions>
+    </mat-card>
+
+    <!-- NUEVA Tarjeta para todos los diplomados -->
+    <mat-card
+      class="bg-white rounded-lg shadow hover:shadow-lg transition-shadow"
+    >
+      <mat-card-header>
+        <mat-card-title>Todos los diplomados</mat-card-title>
+      </mat-card-header>
+      <mat-card-content class="p-4">
+        <div class="flex items-center justify-between">
+          <mat-icon class="text-amber-500 text-5xl">view_module</mat-icon>
+          <span class="text-4xl font-bold">{{ approvedDiplomasCount }}</span>
+        </div>
+        <p class="text-gray-600 mt-2">Diplomados aprobados en el sistema</p>
+      </mat-card-content>
+      <mat-card-actions class="p-4 pt-0">
+        <button
+          mat-button
+          color="accent"
+          [routerLink]="['/verification/all-diplomas']"
+        >
+          Ver todos los diplomados
         </button>
       </mat-card-actions>
     </mat-card>

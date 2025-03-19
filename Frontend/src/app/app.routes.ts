@@ -230,6 +230,14 @@ export const routes: Routes = [
         component: DiplomaRegisterVerificationComponent,
       },
       {
+        path: 'all-courses',
+        component: AllCoursesComponent,
+      },
+      {
+        path: 'all-diplomas',
+        component: AllDiplomasComponent,
+      },
+      {
         path: '',
         redirectTo: 'dashboard', // Ahora redirigimos al dashboard
         pathMatch: 'full',

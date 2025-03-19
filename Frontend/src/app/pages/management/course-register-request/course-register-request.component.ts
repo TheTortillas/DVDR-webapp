@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { MatTableModule } from '@angular/material/table';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatTableDataSource } from '@angular/material/table';
-import { MatIconModule } from '@angular/material/icon';
+import { MatIcon, MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialog } from '@angular/material/dialog';
 import { DocumentationDialogComponent } from '../../../shared/components/course-data-dialogs/documentation-dialog/documentation-dialog.component';
@@ -25,6 +25,7 @@ import Swal from 'sweetalert2';
     MatIconModule,
     MatTooltipModule,
     MatPaginatorModule,
+    MatIcon,
   ],
   templateUrl: './course-register-request.component.html',
   styleUrl: './course-register-request.component.scss',
@@ -55,10 +56,20 @@ export class CourseRegisterRequestComponent implements OnInit {
 
   loadPendingCourses() {
     this.coursesService.getAllCourses().subscribe({
-      next: (response) => {
+      next: (response: any) => {
+        // Verificar si la respuesta es undefined o null
+        if (!response) {
+          this.dataSource = new MatTableDataSource<CourseFullData>([]);
+          this.dataSource.paginator = this.paginator;
+          return;
+        }
+
+        // Manejar tanto arrays como objetos con propiedad data
+        let courses = Array.isArray(response) ? response : response.data || [];
+
         // Filtra cursos con status 'submitted' y que no tengan 'approved' ni 'rejected'
-        const filteredCourses = response.filter(
-          (course) =>
+        const filteredCourses = courses.filter(
+          (course: CourseFullData) =>
             course.approvalStatus !== 'approved' ||
             course.verificationStatus !== 'approved'
         );
@@ -70,6 +81,9 @@ export class CourseRegisterRequestComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error al cargar los cursos:', error);
+        // En caso de error, inicializar con array vacío
+        this.dataSource = new MatTableDataSource<CourseFullData>([]);
+        this.dataSource.paginator = this.paginator;
       },
     });
   }

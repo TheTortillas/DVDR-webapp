@@ -4,10 +4,9 @@
     padding: 0 6px;
     font-size: 12px;
     line-height: 22px;
-  }
+}
 
-
-  .mat-badge-content {
+.mat-badge-content {
     width: auto;
     display: grid;
     min-width: 32px;
@@ -17,4 +16,207 @@
     padding: 5px 3px;
     top: -20px;
     right: -22px;
+}
+
+// Pulsing animation for button with pending items
+@keyframes pulse-button {
+  0% {
+    box-shadow: 0 0 0 0 rgba(233, 30, 99, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(233, 30, 99, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(233, 30, 99, 0);
+  }
+}
+
+// Apply to pending courses
+.pending-courses {
+  animation: pulse-button 2s infinite;
+  border: 1px solid #e91e63;
+  position: relative;
+}
+
+// Apply to pending diplomas
+.pending-diplomas {
+  animation: pulse-button-purple 2s infinite;
+  border: 1px solid #9c27b0;
+  position: relative;
+}
+
+@keyframes pulse-button-purple {
+  0% {
+    box-shadow: 0 0 0 0 rgba(156, 39, 176, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(156, 39, 176, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(156, 39, 176, 0);
+  }
+}
+
+// Apply to pending certificates
+.pending-certificates {
+  animation: pulse-button-blue 2s infinite;
+  border: 1px solid #2196F3;
+  position: relative;
+}
+
+@keyframes pulse-button-blue {
+  0% {
+    box-shadow: 0 0 0 0 rgba(33, 150, 243, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(33, 150, 243, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(33, 150, 243, 0);
+  }
+}
+
+// Apply to pending apertures
+.pending-apertures {
+  animation: pulse-button-amber 2s infinite;
+  border: 1px solid #FFC107;
+  position: relative;
+}
+
+@keyframes pulse-button-amber {
+  0% {
+    box-shadow: 0 0 0 0 rgba(255, 193, 7, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(255, 193, 7, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(255, 193, 7, 0);
+  }
+}
+
+// Improved panel with pending items animation
+.panel-has-pending {
+  position: relative;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border: 2px solid transparent;
+    border-image: linear-gradient(45deg, #e91e63, #9c27b0, #2196F3) 1;
+    pointer-events: none;
+    z-index: 10;
+    animation: pulse-panel 2s infinite;
+  }
+}
+
+@keyframes pulse-panel {
+  0% {
+    box-shadow: 0 0 0 0 rgba(233, 30, 99, 0.3);
+  }
+  70% {
+    box-shadow: 0 0 0 8px rgba(233, 30, 99, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(233, 30, 99, 0);
+  }
+}
+
+// Enhancement for the cards
+.card {
+  transition: all 0.3s ease;
+  
+  &:hover {
+    transform: translateY(-5px);
+  }
+}
+
+// Pulse animation for card containers with pending items
+.card-pending-courses {
+  position: relative;
+  animation: pulse-card-pink 2s infinite;
+  border: 2px solid #e91e63;
+  border-radius: 8px;
+}
+
+.card-pending-diplomas {
+  position: relative;
+  animation: pulse-card-purple 2s infinite;
+  border: 2px solid #9c27b0;
+  border-radius: 8px;
+}
+
+.card-pending-certificates {
+  position: relative;
+  animation: pulse-card-blue 2s infinite;
+  border: 2px solid #2196F3;
+  border-radius: 8px;
+}
+
+.card-pending-apertures {
+  position: relative;
+  animation: pulse-card-amber 2s infinite;
+  border: 2px solid #FFC107;
+  border-radius: 8px;
+}
+
+@keyframes pulse-card-pink {
+  0% {
+    box-shadow: 0 0 0 0 rgba(233, 30, 99, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(233, 30, 99, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(233, 30, 99, 0);
+  }
+}
+
+@keyframes pulse-card-purple {
+  0% {
+    box-shadow: 0 0 0 0 rgba(156, 39, 176, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(156, 39, 176, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(156, 39, 176, 0);
+  }
+}
+
+@keyframes pulse-card-blue {
+  0% {
+    box-shadow: 0 0 0 0 rgba(33, 150, 243, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(33, 150, 243, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(33, 150, 243, 0);
+  }
+}
+
+@keyframes pulse-card-amber {
+  0% {
+    box-shadow: 0 0 0 0 rgba(255, 193, 7, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(255, 193, 7, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(255, 193, 7, 0);
+  }
+}
+
+// Special styles for expansion panel header with pending items
+.mat-expansion-panel.panel-has-pending .mat-expansion-panel-header {
+  background-color: rgba(233, 30, 99, 0.04);
+}
+
+.mat-expansion-panel.panel-has-pending-diplomas .mat-expansion-panel-header {
+  background-color: rgba(156, 39, 176, 0.04);
 }

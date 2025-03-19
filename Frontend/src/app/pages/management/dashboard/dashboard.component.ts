@@ -13,6 +13,7 @@ import { RouterLink } from '@angular/router';
 import { StorageService } from '../../../core/services/storage.service';
 import { DiplomasService } from '../../../core/services/diplomas.service';
 import { ApertureCoursesSessionsService } from '../../../core/services/apertute-courses-sessions.service';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-dashboard',
@@ -27,6 +28,7 @@ import { ApertureCoursesSessionsService } from '../../../core/services/apertute-
     MatExpansionModule,
     RouterLink,
     MatBadgeModule,
+    CommonModule,
   ],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss',

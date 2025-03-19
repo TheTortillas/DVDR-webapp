@@ -7,8 +7,12 @@
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
     <!-- Tarjeta de cursos pendientes de verificación -->
     <mat-card
-      class="bg-white rounded-lg shadow hover:shadow-lg transition-shadow"
+      class="bg-white rounded-lg shadow hover:shadow-lg transition-shadow relative"
+      [ngClass]="{ 'has-pending-items': pendingCoursesCount > 0 }"
     >
+      <div *ngIf="pendingCoursesCount > 0" class="notification-badge">
+        {{ pendingCoursesCount }}
+      </div>
       <mat-card-header>
         <mat-card-title>Cursos pendientes</mat-card-title>
       </mat-card-header>
@@ -30,11 +34,16 @@
       </mat-card-actions>
     </mat-card>
 
-    <!-- Espacio para futuras tarjetas -->
-    <!-- Tarjeta para diplomados pendientes cuando se implemente -->
+    <!-- Tarjeta para diplomados pendientes -->
     <mat-card
-      class="bg-white rounded-lg shadow hover:shadow-lg transition-shadow"
+      class="bg-white rounded-lg shadow hover:shadow-lg transition-shadow relative"
+      [ngClass]="{
+        'has-pending-items has-pending-diplomas': pendingDiplomasCount > 0
+      }"
     >
+      <div *ngIf="pendingDiplomasCount > 0" class="notification-badge">
+        {{ pendingDiplomasCount }}
+      </div>
       <mat-card-header>
         <mat-card-title>Diplomados pendientes</mat-card-title>
       </mat-card-header>

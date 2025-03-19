@@ -123,7 +123,6 @@
                 element === expandedElement ? 'expanded' : 'collapsed'
               "
             >
-              <
               <!-- Reemplazar la sección de documentación actual con esto: -->
               <div class="p-4 bg-gray-50" *ngIf="element === expandedElement">
                 <h3 class="text-lg font-semibold mb-3">
@@ -178,6 +177,16 @@
           [@detailExpand]="row === expandedElement ? 'expanded' : 'collapsed'"
         ></tr>
       </table>
+
+      <div
+        *ngIf="diplomasData.data.length === 0"
+        class="text-center py-8 border border-gray-200 rounded-lg"
+      >
+        <mat-icon class="text-gray-400 mb-4">inbox</mat-icon>
+        <p class="text-gray-900 text-lg">
+          No hay diplomados pendientes de verificación
+        </p>
+      </div>
     </div>
   </div>
 </main>

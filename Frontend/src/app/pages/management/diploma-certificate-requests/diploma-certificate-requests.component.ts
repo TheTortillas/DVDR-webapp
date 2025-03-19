@@ -58,12 +58,23 @@ export class DiplomaCertificateRequestsComponent implements OnInit {
 
   loadDiplomaRequests() {
     this.diplomasService.getRequestedDiplomaCertificates().subscribe({
-      next: (requests) => {
+      next: (response: any) => {
+        if (!response) {
+          this.dataSource.data = [];
+          this.dataSource.paginator = this.paginator;
+          return;
+        }
+
+        const requests = Array.isArray(response)
+          ? response
+          : response.data || [];
         this.dataSource.data = requests;
         this.dataSource.paginator = this.paginator;
-        console.log(requests);
       },
-      error: () => {
+      error: (error) => {
+        console.error('Error al cargar las solicitudes:', error);
+        this.dataSource.data = [];
+        this.dataSource.paginator = this.paginator;
         Swal.fire('Error', 'No se pudieron cargar las solicitudes', 'error');
       },
     });

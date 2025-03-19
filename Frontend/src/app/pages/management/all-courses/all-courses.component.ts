@@ -79,24 +79,33 @@ export class AllCoursesComponent implements OnInit {
 
   loadAllCourses() {
     this.coursesService.getAllCourses().subscribe({
-      next: (response) => {
-        // Filtrar los cursos según status y approvalStatus
-        const filteredCourses = response.filter(
-          (course) =>
+      next: (response: any) => {
+        if (!response) {
+          this.dataSource = new MatTableDataSource<CourseFullData>([]);
+          this.dataSource.paginator = this.paginator;
+          return;
+        }
+
+        const courses = Array.isArray(response)
+          ? response
+          : response.data || [];
+
+        // Added type annotation to the filter callback parameter
+        const filteredCourses = courses.filter(
+          (course: CourseFullData) =>
             course.status === 'submitted' &&
             course.approvalStatus === 'approved'
         );
 
-        // Cargar dataSource con los cursos filtrados
         this.dataSource = new MatTableDataSource<CourseFullData>(
           filteredCourses
         );
-        // Asignar paginador
         this.dataSource.paginator = this.paginator;
-        console.log('Cursos filtrados cargados:', filteredCourses);
       },
       error: (error) => {
         console.error('Error al cargar los cursos:', error);
+        this.dataSource = new MatTableDataSource<CourseFullData>([]);
+        this.dataSource.paginator = this.paginator;
       },
     });
   }

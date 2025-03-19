@@ -241,7 +241,6 @@ namespace DVDR_courses.Controllers
                 return StatusCode(500, new { message = "Error al obtener los diplomados.", error = ex.Message });
             }
         }
-
         [HttpGet("GetCompletedDiplomas")]
         public IActionResult GetCompletedDiplomas([FromQuery] string username)
         {
@@ -257,7 +256,11 @@ namespace DVDR_courses.Controllers
 
                 if (diplomas == null || !diplomas.Any())
                 {
-                    return NotFound(new { message = "No se encontraron diplomados completados para este usuario." });
+                    return Ok(new
+                    {
+                        message = "No se encontraron diplomados completados para este usuario.",
+                        data = new List<object>()
+                    });
                 }
 
                 return Ok(diplomas);

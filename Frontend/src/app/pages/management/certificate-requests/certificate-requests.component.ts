@@ -51,17 +51,23 @@ export class CertificateRequestsComponent implements OnInit {
 
   loadCertificateRequests() {
     this.coursesService.GetRequestedCertificatesSessions().subscribe({
-      next: (requests) => {
+      next: (response: any) => {
+        if (!response) {
+          this.dataSource.data = [];
+          this.dataSource.paginator = this.paginator;
+          return;
+        }
+
+        const requests = Array.isArray(response)
+          ? response
+          : response.data || [];
         this.dataSource.data = requests;
         this.dataSource.paginator = this.paginator;
       },
       error: (error) => {
         console.error('Error al cargar las solicitudes:', error);
-        Swal.fire({
-          title: 'Error',
-          text: 'No se pudieron cargar las solicitudes',
-          icon: 'error',
-        });
+        this.dataSource.data = [];
+        this.dataSource.paginator = this.paginator;
       },
     });
   }

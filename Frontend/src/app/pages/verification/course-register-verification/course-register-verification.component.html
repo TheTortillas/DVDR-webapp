@@ -127,8 +127,14 @@
         <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
       </table>
 
-      <div *ngIf="dataSource.data.length === 0" class="text-center py-8">
-        No hay cursos pendientes de verificación
+      <div
+        *ngIf="dataSource.data.length === 0"
+        class="text-center py-8 border border-gray-200 rounded-lg"
+      >
+        <mat-icon class="text-gray-400 mb-4">inbox</mat-icon>
+        <p class="text-gray-900 text-lg">
+          No hay cursos pendientes de verificación
+        </p>
       </div>
 
       <mat-paginator

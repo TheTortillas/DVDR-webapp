@@ -61,11 +61,28 @@ export class DiplomaRegisterRequestComponent implements OnInit {
 
   loadPendingDiplomas(): void {
     this.diplomasService.getAllDiplomas().subscribe({
-      next: (diplomas: DiplomaDTO[]) => {
-        const pending = diplomas.filter((d) => d.approvalStatus === 'pending');
+      next: (response: any) => {
+        // Handle undefined or null response
+        if (!response) {
+          this.diplomasData.data = [];
+          return;
+        }
+
+        // Handle both array and object with data property
+        const diplomas = Array.isArray(response)
+          ? response
+          : response.data || [];
+
+        // Filter pending diplomas
+        const pending = diplomas.filter(
+          (d: DiplomaDTO) => d.approvalStatus === 'pending'
+        );
         this.diplomasData.data = pending;
       },
-      error: (err) => console.error('Error al cargar diplomados:', err),
+      error: (err) => {
+        console.error('Error al cargar diplomados:', err);
+        this.diplomasData.data = [];
+      },
     });
   }
 

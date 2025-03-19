@@ -98,9 +98,21 @@ export class AllDiplomasComponent implements OnInit {
 
   loadAllDiplomas() {
     this.diplomasService.getAllDiplomas().subscribe({
-      next: (response) => {
-        // Filtrar solo diplomados aprobados
-        const filteredDiplomas = response.filter(
+      next: (response: any) => {
+        // Handle undefined or null response
+        if (!response) {
+          this.dataSource = new MatTableDataSource<DiplomaData>([]);
+          this.dataSource.paginator = this.paginator;
+          return;
+        }
+
+        // Handle both array and object with data property
+        const diplomas = Array.isArray(response)
+          ? response
+          : response.data || [];
+
+        // Filter approved diplomas
+        const filteredDiplomas = diplomas.filter(
           (diploma: DiplomaData) => diploma.approvalStatus === 'approved'
         );
 
@@ -110,6 +122,8 @@ export class AllDiplomasComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error al cargar diplomados:', error);
+        this.dataSource = new MatTableDataSource<DiplomaData>([]);
+        this.dataSource.paginator = this.paginator;
       },
     });
   }

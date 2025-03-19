@@ -66,8 +66,14 @@
           <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
           <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
         </table>
-        <div *ngIf="!completedDiplomas?.length" class="text-center py-8">
-          <p>No tienes diplomados completados para solicitar constancias</p>
+        <div
+          *ngIf="!completedDiplomas?.length"
+          class="text-center py-8 border border-gray-200 rounded-lg"
+        >
+          <mat-icon class="text-gray-400 mb-4">inbox</mat-icon>
+          <p class="text-gray-900 text-lg">
+            No tienes diplomados completados para solicitar constancias
+          </p>
         </div>
       </div>
     </div>

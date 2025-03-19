@@ -54,10 +54,22 @@ export class CourseRegisterVerificationComponent implements OnInit {
 
   loadPendingCourses() {
     this.coursesService.getAllCourses().subscribe({
-      next: (response) => {
-        // Filtra cursos con status 'submitted' y verification_status 'pending'
-        const filteredCourses = response.filter(
-          (course) =>
+      next: (response: any) => {
+        // Handle undefined or null response
+        if (!response) {
+          this.dataSource = new MatTableDataSource<CourseFullData>([]);
+          this.dataSource.paginator = this.paginator;
+          return;
+        }
+
+        // Handle both array and object with data property
+        const courses = Array.isArray(response)
+          ? response
+          : response.data || [];
+
+        // Filter courses
+        const filteredCourses = courses.filter(
+          (course: CourseFullData) =>
             course.approvalStatus !== 'approved' ||
             course.verificationStatus !== 'approved'
         );
@@ -69,6 +81,8 @@ export class CourseRegisterVerificationComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error al cargar los cursos:', error);
+        this.dataSource = new MatTableDataSource<CourseFullData>([]);
+        this.dataSource.paginator = this.paginator;
       },
     });
   }

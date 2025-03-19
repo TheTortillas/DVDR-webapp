@@ -7,11 +7,12 @@ import { Router } from '@angular/router';
 import { StorageService } from '../../../core/services/storage.service';
 import { DiplomasService } from '../../../core/services/diplomas.service';
 import { UploadDiplomaCertificatesDialogComponent } from './upload-diploma-certificates-dialog/upload-diploma-certificates-dialog.component';
+import { MatIcon } from '@angular/material/icon';
 
 @Component({
   selector: 'app-request-diploma-certificates',
   standalone: true,
-  imports: [CommonModule, MatTableModule, MatButtonModule],
+  imports: [CommonModule, MatTableModule, MatButtonModule, MatIcon],
   templateUrl: './request-diploma-certificates.component.html',
   styleUrls: ['./request-diploma-certificates.component.scss'],
 })
@@ -44,22 +45,30 @@ export class RequestDiplomaCertificatesComponent implements OnInit {
     }
   }
 
-  // ...existing code...
-
   loadCompletedDiplomas() {
     if (this.username) {
       this.diplomasService.getCompletedDiplomas(this.username).subscribe({
         next: (response: any) => {
-          // Procesar las fechas antes de asignarlas
-          this.completedDiplomas = response.map((diploma: any) => {
-            return {
-              ...diploma,
-              // No aplicamos transformación aquí, usamos las fechas como vienen
-            };
-          });
+          // Handle undefined or null response
+          if (!response) {
+            this.completedDiplomas = [];
+            return;
+          }
+
+          // Handle both array and object with data property
+          const diplomas = Array.isArray(response)
+            ? response
+            : response.data || [];
+
+          // Process the diplomas
+          this.completedDiplomas = diplomas.map((diploma: any) => ({
+            ...diploma,
+            // Keep original date format as is
+          }));
         },
-        error: (err) => {
-          console.error('Error al obtener diplomados:', err);
+        error: (error) => {
+          console.error('Error al obtener diplomados:', error);
+          this.completedDiplomas = [];
         },
       });
     }

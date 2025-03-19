@@ -339,18 +339,29 @@ namespace DVDR_courses.Controllers
                 return StatusCode(500, new { message = "Error al procesar la solicitud", error = ex.Message });
             }
         }
-
         [HttpGet("UserCoursesWithSessions", Name = "GetUserCoursesWithSessions")]
         public IActionResult GetUserCoursesWithSessions([FromQuery] string username)
         {
+            try
+            {
+                var dbManager = new DBManager(_config);
+                var courses = dbManager.GetCoursesWithSessions(username);
 
-            var dbManager = new DBManager(_config);
-            var courses = dbManager.GetCoursesWithSessions(username);
+                if (courses == null || !courses.Any())
+                {
+                    return Ok(new
+                    {
+                        message = "No se encontraron cursos registrados para este usuario.",
+                        data = new List<object>()
+                    });
+                }
 
-            if (courses == null || !courses.Any())
-                return NotFound(new { message = "No se encontraron cursos registrados para este usuario." });
-
-            return Ok(courses);
+                return Ok(courses);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Error al obtener los cursos.", error = ex.Message });
+            }
         }
 
         [HttpPost("RequestCertificates", Name = "PostRequestCertificates")]

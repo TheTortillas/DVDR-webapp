@@ -54,16 +54,31 @@ export class DiplomaRegisterVerificationComponent implements OnInit {
 
   loadPendingDiplomas(): void {
     this.diplomasService.getAllDiplomas().subscribe({
-      next: (diplomas: DiplomaDTO[]) => {
-        // Filtramos diplomas que necesitan verificación o fueron recientemente verificados
+      next: (response: any) => {
+        // Handle undefined or null response
+        if (!response) {
+          this.diplomasData.data = [];
+          return;
+        }
+
+        // Handle both array and object with data property
+        const diplomas = Array.isArray(response)
+          ? response
+          : response.data || [];
+
+        // Filter diplomas that need verification
         const filteredDiplomas = diplomas.filter(
-          (d) =>
+          (d: DiplomaDTO) =>
             d.verificationStatus !== 'approved' ||
             d.approvalStatus !== 'approved'
         );
+
         this.diplomasData.data = filteredDiplomas;
       },
-      error: (err) => console.error('Error al cargar diplomados:', err),
+      error: (err) => {
+        console.error('Error al cargar diplomados:', err);
+        this.diplomasData.data = [];
+      },
     });
   }
 

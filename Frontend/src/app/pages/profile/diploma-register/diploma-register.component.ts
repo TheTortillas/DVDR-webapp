@@ -50,11 +50,11 @@ export class DiplomaRegisterComponent implements OnInit {
 
   ngOnInit(): void {
     // Cargar plantillas al iniciar
-    this.loadDiplomaeDocumentTemplates();
+    this.loadDiplomaDocumentTemplates();
   }
 
-  loadDiplomaeDocumentTemplates(): void {
-    this.dataService.getDiplomaeDocumentTemplates().subscribe({
+  loadDiplomaDocumentTemplates(): void {
+    this.dataService.getDiplomaDocumentTemplates().subscribe({
       next: (data: DiplomaDocumentRow[]) => {
         // Filtrar sólo los documentos que tienen required = true
         const requiredDocs = data.filter((doc) => doc.required);

@@ -51,26 +51,41 @@ export class RequestCertificatesComponent implements OnInit {
     if (this.username) {
       this.coursesService.getUserCoursesWithSessions(this.username).subscribe({
         next: (response: any) => {
+          // Handle undefined or null response
+          if (!response) {
+            this.completedSessions = [];
+            return;
+          }
+
+          // Handle both array and object with data property
+          const courses = Array.isArray(response)
+            ? response
+            : response.data || [];
+
           let sessions: any[] = [];
-          response.forEach((course: any) => {
-            course.sessions.forEach((session: any) => {
-              if (session.estatus === 'completed') {
-                sessions.push({
-                  title: course.title,
-                  clave: session.clave,
-                  periodo: session.periodo,
-                  session: session,
-                  sessionId: session.id,
-                  certificatesRequested: session.certificatesRequested,
-                  certificatesDelivered: session.certificatesDelivered,
-                });
-              }
-            });
+          courses.forEach((course: any) => {
+            if (course.sessions && Array.isArray(course.sessions)) {
+              course.sessions.forEach((session: any) => {
+                if (session.estatus === 'completed') {
+                  sessions.push({
+                    title: course.title,
+                    clave: session.clave,
+                    periodo: session.periodo,
+                    session: session,
+                    sessionId: session.id,
+                    certificatesRequested: session.certificatesRequested,
+                    certificatesDelivered: session.certificatesDelivered,
+                  });
+                }
+              });
+            }
           });
+
           this.completedSessions = sessions;
         },
-        error: (err) => {
-          console.error('Error al obtener cursos:', err);
+        error: (error) => {
+          console.error('Error al obtener cursos:', error);
+          this.completedSessions = [];
         },
       });
     }

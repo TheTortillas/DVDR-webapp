@@ -149,6 +149,16 @@
           class="example-detail-row"
         ></tr>
       </table>
+
+      <div
+        *ngIf="diplomasData.data.length === 0"
+        class="text-center py-8 border border-gray-200 rounded-lg"
+      >
+        <mat-icon class="text-gray-400 mb-4">inbox</mat-icon>
+        <p class="text-gray-900 text-lg">
+          Ninguna solicitud de diplomado pendiente
+        </p>
+      </div>
     </div>
   </div>
 </main>

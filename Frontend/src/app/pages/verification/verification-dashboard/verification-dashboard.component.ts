@@ -49,21 +49,40 @@ export class VerificationDashboardComponent implements OnInit {
   loadDashboardData() {
     // Contar cursos pendientes de verificación
     this.coursesService.getAllCourses().subscribe({
-      next: (courses) => {
+      next: (response: any) => {
+        if (!response) {
+          this.pendingCoursesCount = 0;
+          return;
+        }
+
+        const courses = Array.isArray(response)
+          ? response
+          : response.data || [];
+
         this.pendingCoursesCount = courses.filter(
-          (course) =>
+          (course: { status: string; verificationStatus: string }) =>
             course.status === 'submitted' &&
             course.verificationStatus === 'pending'
         ).length;
       },
       error: (err) => {
         console.error('Error al cargar datos del dashboard:', err);
+        this.pendingCoursesCount = 0;
       },
     });
 
     // Contar diplomados pendientes de verificación
     this.diplomasService.getAllDiplomas().subscribe({
-      next: (diplomas: { status: string; verificationStatus: string }[]) => {
+      next: (response: any) => {
+        if (!response) {
+          this.pendingDiplomasCount = 0;
+          return;
+        }
+
+        const diplomas = Array.isArray(response)
+          ? response
+          : response.data || [];
+
         this.pendingDiplomasCount = diplomas.filter(
           (diploma: { status: string; verificationStatus: string }) =>
             diploma.status !== 'submitted' &&
@@ -72,6 +91,7 @@ export class VerificationDashboardComponent implements OnInit {
       },
       error: (err) => {
         console.error('Error al cargar datos del dashboard (diplomas):', err);
+        this.pendingDiplomasCount = 0;
       },
     });
   }

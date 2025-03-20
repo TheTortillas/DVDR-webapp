@@ -10,21 +10,21 @@ INSERT INTO academic_categories (name) VALUES
 ('TIC');
 
 -- Insertar centros con información de directores 
-CALL sp_add_center('Centro de Innovación e Integración de Tecnologías Avanzadas Chihuahua', 'CITTA', 2, 'Roberto Sánchez Méndez', 'Dr.', 'H', @status_code, @message);
-CALL sp_add_center('Centro de Innovación e Integración de Tecnologías Avanzadas Puebla', 'CITTA', 3, 'María Elena Vázquez Torres', 'Dra.', 'M', @status_code, @message);
-CALL sp_add_center('Centro de Innovación e Integración de Tecnologías Avanzadas Veracruz', 'CITTA', 1, 'Javier Ramírez Hernández', 'Dr.', 'H', @status_code, @message);
-CALL sp_add_center('Centro de Vinculación y Desarrollo Regional Unidad Cajeme', 'CVDR', 1, 'Patricia González Rodríguez', 'M.C.', 'M', @status_code, @message);
-CALL sp_add_center('Centro de Vinculación y Desarrollo Regional Unidad Campeche', 'CVDR', 2, 'Carlos Alberto Martínez Ruiz', 'Dr.', 'H', @status_code, @message);
-CALL sp_add_center('Centro de Vinculación y Desarrollo Regional Unidad Cancún', 'CVDR', 3, 'Sofía Ortega Jiménez', 'Dra.', 'M', @status_code, @message);
-CALL sp_add_center('Centro de Vinculación y Desarrollo Regional Culiacán', 'CVDR', 4, 'Fernando López Castillo', 'M.I.', 'H', @status_code, @message);
-CALL sp_add_center('Centro de Vinculación y Desarrollo Regional Durango', 'CVDR', 5, 'Miguel Ángel Torres Vega', 'Ing.', 'H', @status_code, @message);
-CALL sp_add_center('Centro de Vinculación y Desarrollo Regional Unidad Los Mochis', 'CVDR', 6, 'Laura Estrada Guzmán', 'M.A.', 'M', @status_code, @message);
-CALL sp_add_center('Centro de Desarrollo y Vinculación Regional Unidad Mazatlán', 'CVDR', 7, 'Héctor Ramírez Soto', 'Dr.', 'H', @status_code, @message);
-CALL sp_add_center('Centro de Vinculación y Desarrollo Regional Unidad Morelia', 'CVDR', 8, 'Verónica Villaseñor López', 'Dra.', 'M', @status_code, @message);
-CALL sp_add_center('Centro de Vinculación y Desarrollo Regional Unidad Tlaxcala', 'CVDR', 12, 'Eduardo Delgado Méndez', 'M.C.', 'H', @status_code, @message);
-CALL sp_add_center('Centro de Vinculación y Desarrollo Regional Unidad Oaxaca', 'CVDR', 9, 'Gabriela Herrera Campos', 'Dra.', 'M', @status_code, @message);
-CALL sp_add_center('Centro de Vinculación y Desarrollo Regional Unidad Tijuana', 'CVDR', 11, 'Alejandro Navarro Peña', 'Dr.', 'H', @status_code, @message);
-CALL sp_add_center('Centro de Vinculación y Desarrollo Regional Unidad Tampico', 'CVDR', 10, 'Carmen Rojas Valencia', 'M.I.', 'M', @status_code, @message);
+CALL sp_add_center('Centro de Innovación e Integración de Tecnologías Avanzadas Chihuahua', 'CITTA', 2, 'Elizabeth Burrola Meléndez', 'C.P.', 'M', @status_code, @message);
+CALL sp_add_center('Centro de Innovación e Integración de Tecnologías Avanzadas Puebla', 'CITTA', 3, 'María Angélica Hernandéz Ávila', 'Mtra.', 'M', @status_code, @message);
+CALL sp_add_center('Centro de Innovación e Integración de Tecnologías Avanzadas Veracruz', 'CITTA', 1, 'Francisco Javier Picaso Castañeda', 'Mtro.', 'H', @status_code, @message);
+CALL sp_add_center('Centro de Vinculación y Desarrollo Regional Unidad Cajeme', 'CVDR', 1, 'Fidel Cienfuegos Valencia', 'Q.F.B.', 'H', @status_code, @message);
+CALL sp_add_center('Centro de Vinculación y Desarrollo Regional Unidad Campeche', 'CVDR', 2, 'Guillermo Aid Jimenez Falcón', 'Mtro.', 'H', @status_code, @message);
+CALL sp_add_center('Centro de Vinculación y Desarrollo Regional Unidad Cancún', 'CVDR', 3, 'Euridice Arlae Iturbe Rogel', 'L.C.', 'M', @status_code, @message);
+CALL sp_add_center('Centro de Vinculación y Desarrollo Regional Culiacán', 'CVDR', 4, 'Carlos Alberto Camarillo Castro', 'Lic.', 'H', @status_code, @message);
+CALL sp_add_center('Centro de Vinculación y Desarrollo Regional Durango', 'CVDR', 5, 'Ma. del Carmen Aguilar Avalos', 'M.A.P.', 'M', @status_code, @message);
+CALL sp_add_center('Centro de Vinculación y Desarrollo Regional Unidad Los Mochis', 'CVDR', 6, 'Jesús Irán Grageda Arellano', 'M. en C.', 'H', @status_code, @message);
+CALL sp_add_center('Centro de Desarrollo y Vinculación Regional Unidad Mazatlán', 'CVDR', 7, 'Adela Leonor Rendón Ramírez', 'Lic.', 'M', @status_code, @message);
+CALL sp_add_center('Centro de Vinculación y Desarrollo Regional Unidad Morelia', 'CVDR', 8, 'Anitzel Ramos Velázquez', 'Dra.', 'M', @status_code, @message);
+CALL sp_add_center('Centro de Vinculación y Desarrollo Regional Unidad Tlaxcala', 'CVDR', 12, 'Victor Oswaldo Rodríguez Arreola', 'Mtro.', 'H', @status_code, @message);
+CALL sp_add_center('Centro de Vinculación y Desarrollo Regional Unidad Oaxaca', 'CVDR', 9, 'Jusey Martínez Carrasco', 'Lic.', 'M', @status_code, @message);
+CALL sp_add_center('Centro de Vinculación y Desarrollo Regional Unidad Tijuana', 'CVDR', 11, 'Carlos Dante Caballero', 'Ing.', 'H', @status_code, @message);
+CALL sp_add_center('Centro de Vinculación y Desarrollo Regional Unidad Tampico', 'CVDR', 10, 'Isidro Papalotzi Cruz', 'Lic.', 'H', @status_code, @message);
 
 INSERT INTO documents_templates_diploma (name, filePath, type, required) VALUES
 ('Formato de oficio de solicitud', 'assets/diploma_templates/oficio-de-solicitud.doc', 'file', true),							

@@ -1097,6 +1097,9 @@ CREATE PROCEDURE sp_add_center(
     IN p_name VARCHAR(255),
     IN p_type ENUM('CITTA', 'CVDR', 'UA'),
     IN p_identifier INT,
+    IN p_director_full_name VARCHAR(50),
+    IN p_academic_title VARCHAR(50),
+    IN p_gender ENUM('H', 'M'),
     OUT p_status_code INT,
     OUT p_message VARCHAR(255)
 )
@@ -1132,12 +1135,87 @@ BEGIN
         SET p_status_code = -3;
         SET p_message = 'Error: Ya existe un centro con ese nombre.';
     ELSE
-        -- Insertar el nuevo centro
-        INSERT INTO centers (name, type, identifier)
-        VALUES (p_name, p_type, p_identifier);
+        -- Insertar el nuevo centro con los datos del director
+        INSERT INTO centers (name, type, identifier, director_full_name, academic_title, gender)
+        VALUES (p_name, p_type, p_identifier, p_director_full_name, p_academic_title, p_gender);
 
         SET p_status_code = 1;
         SET p_message = 'Centro registrado exitosamente.';
+    END IF;
+
+    COMMIT;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE PROCEDURE sp_update_center(
+    IN p_center_id INT,
+    IN p_name VARCHAR(255),
+    IN p_type ENUM('CITTA', 'CVDR', 'UA'),
+    IN p_identifier INT,
+    IN p_director_full_name VARCHAR(50),
+    IN p_academic_title VARCHAR(50),
+    IN p_gender ENUM('H', 'M'),
+    OUT p_status_code INT,
+    OUT p_message VARCHAR(255)
+)
+BEGIN
+    DECLARE existing_center_type INT;
+    DECLARE existing_center_name INT;
+    DECLARE center_exists INT;
+
+    -- Manejo de errores
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION 
+    BEGIN
+        ROLLBACK;
+        SET p_status_code = -1;
+        SET p_message = 'Error: No se pudo actualizar el centro.';
+    END;
+
+    START TRANSACTION;
+
+    -- Verificar si el centro existe
+    SELECT COUNT(*) INTO center_exists
+    FROM centers 
+    WHERE id = p_center_id;
+
+    IF center_exists = 0 THEN
+        SET p_status_code = -2;
+        SET p_message = 'Error: El centro no existe.';
+        ROLLBACK;
+        LEAVE sp_update_center;
+    END IF;
+
+    -- Verificar si ya existe un centro con el mismo tipo e identificador (excluyendo el propio centro)
+    SELECT COUNT(*) INTO existing_center_type
+    FROM centers 
+    WHERE type = p_type AND identifier = p_identifier AND id != p_center_id;
+
+    -- Verificar si ya existe un centro con el mismo nombre (excluyendo el propio centro)
+    SELECT COUNT(*) INTO existing_center_name
+    FROM centers 
+    WHERE name = p_name AND id != p_center_id;
+
+    -- Validaciones
+    IF existing_center_type > 0 THEN
+        SET p_status_code = -3;
+        SET p_message = 'Error: Ya existe un centro con ese tipo e identificador.';
+    ELSEIF existing_center_name > 0 THEN
+        SET p_status_code = -4;
+        SET p_message = 'Error: Ya existe un centro con ese nombre.';
+    ELSE
+        -- Actualizar el centro
+        UPDATE centers 
+        SET name = p_name,
+            type = p_type,
+            identifier = p_identifier,
+            director_full_name = p_director_full_name,
+            academic_title = p_academic_title,
+            gender = p_gender
+        WHERE id = p_center_id;
+
+        SET p_status_code = 1;
+        SET p_message = 'Centro actualizado exitosamente.';
     END IF;
 
     COMMIT;
@@ -1151,41 +1229,11 @@ BEGIN
         id,
         name,
         type,
-        identifier
+        identifier,
+        director_full_name,
+        academic_title,
+        gender
     FROM centers;
-END$$
-DELIMITER ;
-
-DELIMITER $$
-CREATE PROCEDURE sp_update_user_password(
-    IN p_username VARCHAR(50),
-    IN p_new_password VARCHAR(255),
-    OUT p_status_code INT,
-    OUT p_message VARCHAR(255)
-)
-BEGIN
-    DECLARE user_count INT;
-
-    -- Verificar si el usuario existe
-    SELECT COUNT(*) INTO user_count
-    FROM users
-    WHERE username = p_username;
-
-    IF user_count = 0 THEN
-        SET p_status_code = -1;
-        SET p_message = 'Error: El usuario no existe.';
-    ELSE
-        -- Hashear la nueva contraseña usando SHA256
-        SET @hashed_password = SHA2(p_new_password, 256);
-
-        -- Actualizar la contraseña con el hash
-        UPDATE users
-        SET password = @hashed_password
-        WHERE username = p_username;
-
-        SET p_status_code = 1;
-        SET p_message = 'La contraseña se actualizó correctamente.';
-    END IF;
 END$$
 DELIMITER ;
 

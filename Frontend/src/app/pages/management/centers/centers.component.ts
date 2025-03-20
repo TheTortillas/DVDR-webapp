@@ -12,6 +12,7 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { DataService, Center } from '../../../core/services/data.service';
 import { AddCenterDialogComponent } from './add-center-dialog/add-center-dialog.component';
+import { EditCenterDialogComponent } from './edit-center-dialog/edit-center-dialog.component';
 
 @Component({
   selector: 'app-centers',
@@ -34,7 +35,17 @@ import { AddCenterDialogComponent } from './add-center-dialog/add-center-dialog.
   styleUrls: ['./centers.component.scss'],
 })
 export class CentersComponent implements OnInit {
-  displayedColumns: string[] = ['id', 'name', 'type', 'identifier'];
+  // Actualizar columnas para incluir información del director
+  displayedColumns: string[] = [
+    'id',
+    'name',
+    'type',
+    'identifier',
+    'directorFullName',
+    'academicTitle',
+    'gender',
+    'actions',
+  ];
   dataSource: MatTableDataSource<Center>;
   centerTypes = ['CITTA', 'CVDR', 'UA'];
   selectedType: string = '';
@@ -94,7 +105,8 @@ export class CentersComponent implements OnInit {
   openAddDialog(): void {
     const dialogRef = this.dialog.open(AddCenterDialogComponent, {
       width: '40%',
-      height: '60%',
+      // Aumentamos el alto para los nuevos campos
+      height: '80%',
       maxWidth: '100vw',
       maxHeight: '100vh',
       autoFocus: false,
@@ -105,5 +117,28 @@ export class CentersComponent implements OnInit {
         this.loadCenters();
       }
     });
+  }
+
+  openEditDialog(center: Center): void {
+    const dialogRef = this.dialog.open(EditCenterDialogComponent, {
+      width: '40%',
+      height: '80%',
+      maxWidth: '100vw',
+      maxHeight: '100vh',
+      autoFocus: false,
+      data: { ...center }, // Pasar una copia del objeto center
+    });
+
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result) {
+        this.loadCenters(); // Recargar la lista si hubo cambios
+      }
+    });
+  }
+
+  // Método para formatear el género
+  getGenderLabel(gender: string | undefined): string {
+    if (!gender) return 'No especificado';
+    return gender === 'H' ? 'Hombre' : 'Mujer';
   }
 }

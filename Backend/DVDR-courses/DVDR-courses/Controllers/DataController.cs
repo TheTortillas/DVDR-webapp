@@ -80,6 +80,19 @@ namespace DVDR_courses.Controllers
             return new JsonResult(new { statusCode, message });
         }
 
+        [HttpPut("UpdateCenter", Name = "PostUpdateCenter")]
+        public IActionResult UpdateCenter([FromBody] CenterDTO centerToUpdate)
+        {
+            if (centerToUpdate == null || centerToUpdate.Id <= 0)
+            {
+                return BadRequest(new { statusCode = -1, message = "ID de centro no válido o datos incompletos." });
+            }
+
+            var db = new DBManager(_config);
+            var (statusCode, message) = db.UpdateCenter(centerToUpdate);
+            return new JsonResult(new { statusCode, message });
+        }
+
         [HttpGet("AllCenters", Name = "GetAllCenters")]
         public JsonResult GetAllCenters()
         {

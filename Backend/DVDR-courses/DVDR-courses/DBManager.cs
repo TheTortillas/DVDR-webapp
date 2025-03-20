@@ -1962,6 +1962,12 @@ namespace DVDR_courses
                     cmd.Parameters.AddWithValue("p_name", dto.Name);
                     cmd.Parameters.AddWithValue("p_type", dto.Type);
                     cmd.Parameters.AddWithValue("p_identifier", dto.Identifier);
+                    cmd.Parameters.AddWithValue("p_director_full_name",
+                        !string.IsNullOrEmpty(dto.DirectorFullName) ? dto.DirectorFullName : DBNull.Value);
+                    cmd.Parameters.AddWithValue("p_academic_title",
+                        !string.IsNullOrEmpty(dto.AcademicTitle) ? dto.AcademicTitle : DBNull.Value);
+                    cmd.Parameters.AddWithValue("p_gender",
+                        !string.IsNullOrEmpty(dto.Gender) ? dto.Gender : DBNull.Value);
 
                     var statusCodeParam = new MySqlParameter("p_status_code", MySqlDbType.Int32)
                     {
@@ -1983,7 +1989,54 @@ namespace DVDR_courses
             catch (Exception ex)
             {
                 // Manejo de la excepción
-                return (-1, "Error interno del servidor");
+                return (-1, $"Error interno del servidor: {ex.Message}");
+            }
+        }
+
+        public (int statusCode, string message) UpdateCenter(CenterDTO dto)
+        {
+            try
+            {
+                using (var con = new MySqlConnection(_config.GetConnectionString("default")))
+                {
+                    con.Open();
+                    var cmd = new MySqlCommand("sp_update_center", con)
+                    {
+                        CommandType = CommandType.StoredProcedure
+                    };
+
+                    cmd.Parameters.AddWithValue("p_center_id", dto.Id);
+                    cmd.Parameters.AddWithValue("p_name", dto.Name);
+                    cmd.Parameters.AddWithValue("p_type", dto.Type);
+                    cmd.Parameters.AddWithValue("p_identifier", dto.Identifier);
+                    cmd.Parameters.AddWithValue("p_director_full_name",
+                        !string.IsNullOrEmpty(dto.DirectorFullName) ? dto.DirectorFullName : DBNull.Value);
+                    cmd.Parameters.AddWithValue("p_academic_title",
+                        !string.IsNullOrEmpty(dto.AcademicTitle) ? dto.AcademicTitle : DBNull.Value);
+                    cmd.Parameters.AddWithValue("p_gender",
+                        !string.IsNullOrEmpty(dto.Gender) ? dto.Gender : DBNull.Value);
+
+                    var statusCodeParam = new MySqlParameter("p_status_code", MySqlDbType.Int32)
+                    {
+                        Direction = ParameterDirection.Output
+                    };
+                    var messageParam = new MySqlParameter("p_message", MySqlDbType.VarChar, 255)
+                    {
+                        Direction = ParameterDirection.Output
+                    };
+
+                    cmd.Parameters.Add(statusCodeParam);
+                    cmd.Parameters.Add(messageParam);
+
+                    cmd.ExecuteNonQuery();
+
+                    return (Convert.ToInt32(statusCodeParam.Value), messageParam.Value.ToString());
+                }
+            }
+            catch (Exception ex)
+            {
+                // Manejo de la excepción
+                return (-1, $"Error interno del servidor: {ex.Message}");
             }
         }
 
@@ -2002,13 +2055,24 @@ namespace DVDR_courses
                         {
                             while (reader.Read())
                             {
-                                centers.Add(new CenterDTO
+                                var center = new CenterDTO
                                 {
                                     Id = reader.GetInt32("id"),
                                     Name = reader.GetString("name"),
                                     Type = reader.GetString("type"),
                                     Identifier = reader.GetInt32("identifier")
-                                });
+                                };
+
+                                if (!reader.IsDBNull(reader.GetOrdinal("director_full_name")))
+                                    center.DirectorFullName = reader.GetString("director_full_name");
+
+                                if (!reader.IsDBNull(reader.GetOrdinal("academic_title")))
+                                    center.AcademicTitle = reader.GetString("academic_title");
+
+                                if (!reader.IsDBNull(reader.GetOrdinal("gender")))
+                                    center.Gender = reader.GetString("gender");
+
+                                centers.Add(center);
                             }
                         }
                     }
@@ -2021,7 +2085,6 @@ namespace DVDR_courses
             }
             return centers;
         }
-
         public (int statusCode, string message) RequestDiplomaRegistration(DiplomaRegistrationRequest request)
         {
             try

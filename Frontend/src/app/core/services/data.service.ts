@@ -15,6 +15,9 @@ export interface Center {
   name: string;
   type: string;
   identifier: number;
+  directorFullName?: string;
+  academicTitle?: string;
+  gender?: string;
 }
 
 export interface TutorialVideo {
@@ -87,6 +90,11 @@ export class DataService {
   public getCentersList = (): Observable<Center[]> => {
     const url = this.URLBase + '/api/Data/AllCenters';
     return this.httpClient.get<Center[]>(url, HttpOptions);
+  };
+
+  public updateCenter = (center: Center): Observable<any> => {
+    const url = this.URLBase + '/api/Data/UpdateCenter';
+    return this.httpClient.put(url, center, HttpOptions);
   };
 
   public getTutorialVideos(): Observable<TutorialVideo[]> {

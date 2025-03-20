@@ -34,7 +34,7 @@
         </mat-form-field>
       </div>
 
-      <div class="">
+      <div class="overflow-x-auto">
         <table mat-table [dataSource]="dataSource" matSort>
           <ng-container matColumnDef="id">
             <th mat-header-cell *matHeaderCellDef mat-sort-header>ID</th>
@@ -56,6 +56,42 @@
               Identificador
             </th>
             <td mat-cell *matCellDef="let row">{{ row.identifier }}</td>
+          </ng-container>
+
+          <!-- Nuevas columnas para información del director -->
+          <ng-container matColumnDef="directorFullName">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Director</th>
+            <td mat-cell *matCellDef="let row">
+              {{ row.directorFullName || "No especificado" }}
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="academicTitle">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Título</th>
+            <td mat-cell *matCellDef="let row">
+              {{ row.academicTitle || "No especificado" }}
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="gender">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Género</th>
+            <td mat-cell *matCellDef="let row">
+              {{ getGenderLabel(row.gender) }}
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef>Acciones</th>
+            <td mat-cell *matCellDef="let row">
+              <button
+                mat-icon-button
+                color="primary"
+                matTooltip="Editar centro"
+                (click)="openEditDialog(row)"
+              >
+                <mat-icon>edit</mat-icon>
+              </button>
+            </td>
           </ng-container>
 
           <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>

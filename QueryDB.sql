@@ -1434,6 +1434,9 @@ CREATE PROCEDURE sp_add_center(
     IN p_name VARCHAR(255),
     IN p_type ENUM('CITTA', 'CVDR', 'UA'),
     IN p_identifier INT,
+    IN p_director_full_name VARCHAR(50),
+    IN p_academic_title VARCHAR(50),
+    IN p_gender ENUM('H', 'M'),
     OUT p_status_code INT,
     OUT p_message VARCHAR(255)
 )
@@ -1469,12 +1472,86 @@ BEGIN
         SET p_status_code = -3;
         SET p_message = 'Error: Ya existe un centro con ese nombre.';
     ELSE
-        -- Insertar el nuevo centro
-        INSERT INTO centers (name, type, identifier)
-        VALUES (p_name, p_type, p_identifier);
+        -- Insertar el nuevo centro con los datos del director
+        INSERT INTO centers (name, type, identifier, director_full_name, academic_title, gender)
+        VALUES (p_name, p_type, p_identifier, p_director_full_name, p_academic_title, p_gender);
 
         SET p_status_code = 1;
         SET p_message = 'Centro registrado exitosamente.';
+    END IF;
+
+    COMMIT;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE PROCEDURE sp_update_center(
+    IN p_center_id INT,
+    IN p_name VARCHAR(255),
+    IN p_type ENUM('CITTA', 'CVDR', 'UA'),
+    IN p_identifier INT,
+    IN p_director_full_name VARCHAR(50),
+    IN p_academic_title VARCHAR(50),
+    IN p_gender ENUM('H', 'M'),
+    OUT p_status_code INT,
+    OUT p_message VARCHAR(255)
+)
+BEGIN
+    DECLARE existing_center_type INT;
+    DECLARE existing_center_name INT;
+    DECLARE center_exists INT;
+
+    -- Manejo de errores
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION 
+    BEGIN
+        ROLLBACK;
+        SET p_status_code = -1;
+        SET p_message = 'Error: No se pudo actualizar el centro.';
+    END;
+
+    START TRANSACTION;
+
+    -- Verificar si el centro existe
+    SELECT COUNT(*) INTO center_exists
+    FROM centers 
+    WHERE id = p_center_id;
+
+    IF center_exists = 0 THEN
+        SET p_status_code = -2;
+        SET p_message = 'Error: El centro no existe.';
+        ROLLBACK;
+    END IF;
+
+    -- Verificar si ya existe un centro con el mismo tipo e identificador (excluyendo el propio centro)
+    SELECT COUNT(*) INTO existing_center_type
+    FROM centers 
+    WHERE type = p_type AND identifier = p_identifier AND id != p_center_id;
+
+    -- Verificar si ya existe un centro con el mismo nombre (excluyendo el propio centro)
+    SELECT COUNT(*) INTO existing_center_name
+    FROM centers 
+    WHERE name = p_name AND id != p_center_id;
+
+    -- Validaciones
+    IF existing_center_type > 0 THEN
+        SET p_status_code = -3;
+        SET p_message = 'Error: Ya existe un centro con ese tipo e identificador.';
+    ELSEIF existing_center_name > 0 THEN
+        SET p_status_code = -4;
+        SET p_message = 'Error: Ya existe un centro con ese nombre.';
+    ELSE
+        -- Actualizar el centro
+        UPDATE centers 
+        SET name = p_name,
+            type = p_type,
+            identifier = p_identifier,
+            director_full_name = p_director_full_name,
+            academic_title = p_academic_title,
+            gender = p_gender
+        WHERE id = p_center_id;
+
+        SET p_status_code = 1;
+        SET p_message = 'Centro actualizado exitosamente.';
     END IF;
 
     COMMIT;
@@ -1488,7 +1565,10 @@ BEGIN
         id,
         name,
         type,
-        identifier
+        identifier,
+        director_full_name,
+        academic_title,
+        gender
     FROM centers;
 END$$
 DELIMITER ;
@@ -2576,22 +2656,22 @@ INSERT INTO academic_categories (name) VALUES
 ('Educación'),
 ('TIC');
 
-INSERT INTO centers (name, type, identifier) VALUES
-('Centro de Innovación e Integración de Tecnologías Avanzadas Chihuahua', 'CITTA', 2),
-('Centro de Innovación e Integración de Tecnologías Avanzadas Puebla', 'CITTA', 3),
-('Centro de Innovación e Integración de Tecnologías Avanzadas Veracruz', 'CITTA', 1),
-('Centro de Vinculación y Desarrollo Regional Unidad Cajeme', 'CVDR', 1),
-('Centro de Vinculación y Desarrollo Regional Unidad Campeche', 'CVDR', 2),
-('Centro de Vinculación y Desarrollo Regional Unidad Cancún', 'CVDR', 3),
-('Centro de Vinculación y Desarrollo Regional Culiacán', 'CVDR', 4),
-('Centro de Vinculación y Desarrollo Regional Durango', 'CVDR', 5),
-('Centro de Vinculación y Desarrollo Regional Unidad Los Mochis', 'CVDR', 6),
-('Centro de Desarrollo y Vinculación Regional Unidad Mazatlán', 'CVDR', 7),
-('Centro de Vinculación y Desarrollo Regional Unidad Morelia', 'CVDR', 8),
-('Centro de Vinculación y Desarrollo Regional Unidad Tlaxcala', 'CVDR', 12),
-('Centro de Vinculación y Desarrollo Regional Unidad Oaxaca', 'CVDR', 9),
-('Centro de Vinculación y Desarrollo Regional Unidad Tijuana', 'CVDR', 11),
-('Centro de Vinculación y Desarrollo Regional Unidad Tampico', 'CVDR', 10);
+-- Insertar centros con información de directores 
+CALL sp_add_center('Centro de Innovación e Integración de Tecnologías Avanzadas Chihuahua', 'CITTA', 2, 'Roberto Sánchez Méndez', 'Dr.', 'H', @status_code, @message);
+CALL sp_add_center('Centro de Innovación e Integración de Tecnologías Avanzadas Puebla', 'CITTA', 3, 'María Elena Vázquez Torres', 'Dra.', 'M', @status_code, @message);
+CALL sp_add_center('Centro de Innovación e Integración de Tecnologías Avanzadas Veracruz', 'CITTA', 1, 'Javier Ramírez Hernández', 'Dr.', 'H', @status_code, @message);
+CALL sp_add_center('Centro de Vinculación y Desarrollo Regional Unidad Cajeme', 'CVDR', 1, 'Patricia González Rodríguez', 'M.C.', 'M', @status_code, @message);
+CALL sp_add_center('Centro de Vinculación y Desarrollo Regional Unidad Campeche', 'CVDR', 2, 'Carlos Alberto Martínez Ruiz', 'Dr.', 'H', @status_code, @message);
+CALL sp_add_center('Centro de Vinculación y Desarrollo Regional Unidad Cancún', 'CVDR', 3, 'Sofía Ortega Jiménez', 'Dra.', 'M', @status_code, @message);
+CALL sp_add_center('Centro de Vinculación y Desarrollo Regional Culiacán', 'CVDR', 4, 'Fernando López Castillo', 'M.I.', 'H', @status_code, @message);
+CALL sp_add_center('Centro de Vinculación y Desarrollo Regional Durango', 'CVDR', 5, 'Miguel Ángel Torres Vega', 'Ing.', 'H', @status_code, @message);
+CALL sp_add_center('Centro de Vinculación y Desarrollo Regional Unidad Los Mochis', 'CVDR', 6, 'Laura Estrada Guzmán', 'M.A.', 'M', @status_code, @message);
+CALL sp_add_center('Centro de Desarrollo y Vinculación Regional Unidad Mazatlán', 'CVDR', 7, 'Héctor Ramírez Soto', 'Dr.', 'H', @status_code, @message);
+CALL sp_add_center('Centro de Vinculación y Desarrollo Regional Unidad Morelia', 'CVDR', 8, 'Verónica Villaseñor López', 'Dra.', 'M', @status_code, @message);
+CALL sp_add_center('Centro de Vinculación y Desarrollo Regional Unidad Tlaxcala', 'CVDR', 12, 'Eduardo Delgado Méndez', 'M.C.', 'H', @status_code, @message);
+CALL sp_add_center('Centro de Vinculación y Desarrollo Regional Unidad Oaxaca', 'CVDR', 9, 'Gabriela Herrera Campos', 'Dra.', 'M', @status_code, @message);
+CALL sp_add_center('Centro de Vinculación y Desarrollo Regional Unidad Tijuana', 'CVDR', 11, 'Alejandro Navarro Peña', 'Dr.', 'H', @status_code, @message);
+CALL sp_add_center('Centro de Vinculación y Desarrollo Regional Unidad Tampico', 'CVDR', 10, 'Carmen Rojas Valencia', 'M.I.', 'M', @status_code, @message);
 
 INSERT INTO documents_templates_diploma (name, filePath, type, required) VALUES
 ('Formato de oficio de solicitud', 'assets/diploma_templates/oficio-de-solicitud.doc', 'file', true),							
@@ -2943,12 +3023,12 @@ WHERE id = 5;*/
 
 /*
 UPDATE courses 
-SET approval_status = 'pending' 
-WHERE id = 2;
-
+SET approval_status = 'approved' 
+WHERE id = 1;
+select * from diplomas;
 UPDATE courses 
-SET verification_status = 'pending' 
-WHERE id = 2;
+SET verification_status = 'approved' 
+WHERE id = 1;
 */
 /*
 UPDATE course_sessions
@@ -2962,7 +3042,7 @@ WHERE id = 15;*/
 
 /*
 UPDATE diplomas 
-SET verification_status = 'pending' 
+SET approval_status = 'approved' 
 WHERE id = 1;
 select *from diploma_actor_roles;
 */

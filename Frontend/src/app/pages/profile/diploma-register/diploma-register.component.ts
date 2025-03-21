@@ -49,6 +49,7 @@ export class DiplomaRegisterComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    this.showInitialNotice();
     // Cargar plantillas al iniciar
     this.loadDiplomaDocumentTemplates();
   }
@@ -169,13 +170,12 @@ export class DiplomaRegisterComponent implements OnInit {
         });
 
         formData.append('FolderName', '0000'); // Cambiado a 'Username' con mayúscula
-
         // Enviar solicitud
         this.diplomasService.requestDiplomaRegistration(formData).subscribe({
           next: (response) => {
             Swal.fire({
-              title: '¡Éxito!',
-              text: 'Se ha enviado la solicitud correctamente.',
+              title: 'Aviso Final',
+              text: 'Gracias por su registro. Esté será validado, de no cumplir con los requisitos establecidos, se le notificará en el buzón de este sistema para su corrección y registro nuevamente.',
               icon: 'success',
               confirmButtonColor: '#3085d6',
             }).then(() => {
@@ -192,6 +192,17 @@ export class DiplomaRegisterComponent implements OnInit {
           },
         });
       }
+    });
+  }
+
+  showInitialNotice(): void {
+    Swal.fire({
+      title: 'AVISO IMPORTANTE',
+      html: `Le informamos que su registro será validado por la Lic. Nancy Dalia Parra Mejía, Titular de la Dirección de Vinculación y Desarrollo Regional. En caso de que el registro no cumpla con la normatividad vigente, será rechazado.<br><br>
+      De ser así, se le notificará sobre las observaciones correspondientes, las cuales deberá solventar y cargar nuevamente en la plataforma para su revisión.`,
+      icon: 'info',
+      confirmButtonColor: '#3085d6',
+      confirmButtonText: 'Entendido',
     });
   }
 }

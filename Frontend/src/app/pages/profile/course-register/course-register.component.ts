@@ -117,13 +117,14 @@ export class CourseRegisterComponent implements OnInit {
   isLinear = false;
 
   ngOnInit() {
+    this.showInitialNotice();
     this.route.queryParams.subscribe((params) => {
       if (params['renewal']) {
         this.isRenewal = true;
         this.parentCourseId = params['parentCourseId'];
 
         if (this.parentCourseId) {
-          // ✅ Hacer la petición al backend para obtener los datos completos
+          // Hacer la petición al backend para obtener los datos completos
           this.coursesService.getCourseById(this.parentCourseId).subscribe({
             next: (courseInfo) => {
               this.loadCourseData(courseInfo);
@@ -138,13 +139,13 @@ export class CourseRegisterComponent implements OnInit {
   }
 
   private loadCourseData(courseInfo: any) {
-    // ✅ Convertir el tipo de servicio en un string (Curso, Diplomado, Otro)
+    //  Convertir el tipo de servicio en un string (Curso, Diplomado, Otro)
     let serviceTypeValue = 'Curso'; // Por defecto "Curso"
     if (courseInfo.courseInfo.serviceType === 'Diplomado')
       serviceTypeValue = 'Diplomado';
     if (courseInfo.courseInfo.serviceType === 'Otro') serviceTypeValue = 'Otro';
 
-    // ✅ Convertir plataformas en array (para el multi-select)
+    // Convertir plataformas en array (para el multi-select)
     let platforms: string[] = [];
 
     if (typeof courseInfo.courseInfo.educationalPlatform === 'string') {
@@ -156,7 +157,7 @@ export class CourseRegisterComponent implements OnInit {
     }
     console.log('Plataformas cargadas:', platforms); // 🔍 Verificar en consola
 
-    // ✅ Verificar si "Otro" está seleccionado
+    //  Verificar si "Otro" está seleccionado
     const customPlatformUsed = platforms.includes('Otro');
     const customPlatformValue = customPlatformUsed
       ? courseInfo.courseInfo.customPlatform
@@ -195,7 +196,7 @@ export class CourseRegisterComponent implements OnInit {
       this.firstFormGroup.get('educational_platform')?.updateValueAndValidity();
     }, 0);
 
-    // ✅ Deshabilitar campos que no pueden modificarse
+    //  Deshabilitar campos que no pueden modificarse
     this.firstFormGroup.controls['course_name'].disable();
     this.firstFormGroup.controls['service_type'].disable();
     this.firstFormGroup.controls['category'].disable();
@@ -402,11 +403,12 @@ export class CourseRegisterComponent implements OnInit {
     // Enviar los datos al servicio
     this.coursesService.registerCourse(formData).subscribe({
       next: (response) => {
-        Swal.fire(
-          'Éxito',
-          'El curso se ha registrado exitosamente',
-          'success'
-        ).then(() => {
+        Swal.fire({
+          title: 'Aviso Final',
+          text: 'Gracias por su registro. Esté será validado, de no cumplir con los requisitos establecidos, se le notificará en el buzón de este sistema para su corrección y registro nuevamente.',
+          icon: 'success',
+          confirmButtonColor: '#3085d6',
+        }).then(() => {
           this.router.navigate(['/profile/my-courses']);
         });
       },
@@ -418,6 +420,17 @@ export class CourseRegisterComponent implements OnInit {
           text: 'Hubo un error al registrar el curso. Verifica los datos e intenta nuevamente.',
         });
       },
+    });
+  }
+
+  showInitialNotice(): void {
+    Swal.fire({
+      title: 'AVISO IMPORTANTE',
+      html: `Le informamos que su registro será validado por la Lic. Nancy Dalia Parra Mejía, Titular de la Dirección de Vinculación y Desarrollo Regional. En caso de que el registro no cumpla con la normatividad vigente, será rechazado.<br><br>
+      De ser así, se le notificará sobre las observaciones correspondientes, las cuales deberá solventar y cargar nuevamente en la plataforma para su revisión.`,
+      icon: 'info',
+      confirmButtonColor: '#3085d6',
+      confirmButtonText: 'Entendido',
     });
   }
 }

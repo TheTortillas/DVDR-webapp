@@ -69,8 +69,8 @@ export class DiplomaRegisterVerificationComponent implements OnInit {
         // Filter diplomas that need verification
         const filteredDiplomas = diplomas.filter(
           (d: DiplomaDTO) =>
-            d.verificationStatus !== 'approved' ||
-            d.approvalStatus !== 'approved'
+            d.verificationStatus === 'pending' &&
+            d.approvalStatus === 'approved'
         );
 
         this.diplomasData.data = filteredDiplomas;

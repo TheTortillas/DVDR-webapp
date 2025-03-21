@@ -108,8 +108,13 @@ export class VerificationDashboardComponent implements OnInit {
 
         // Contar diplomados pendientes
         this.pendingDiplomasCount = diplomas.filter(
-          (diploma: { status: string; verificationStatus: string }) =>
+          (diploma: {
+            status: string;
+            approvalStatus: string;
+            verificationStatus: string;
+          }) =>
             diploma.status !== 'submitted' &&
+            diploma.approvalStatus === 'approved' &&
             diploma.verificationStatus === 'pending'
         ).length;
 

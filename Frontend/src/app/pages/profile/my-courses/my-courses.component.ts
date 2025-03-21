@@ -49,6 +49,7 @@ interface Diploma {
   educationalOffer: string;
   status: string;
   approvalStatus: string;
+  verificationStatus: string;
   cost: number;
   participants: number;
   startDate: Date;
@@ -177,6 +178,7 @@ export class MyCoursesComponent implements OnInit {
               educationalOffer: diploma.educationalOffer,
               status: diploma.status,
               approvalStatus: diploma.approvalStatus,
+              verificationStatus: diploma.verificationStatus,
               cost: diploma.cost,
               participants: diploma.participants,
               startDate: new Date(diploma.startDate),

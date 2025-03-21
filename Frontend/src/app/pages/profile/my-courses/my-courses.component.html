@@ -108,11 +108,15 @@
         <mat-accordion>
           <mat-expansion-panel
             *ngFor="let diploma of diplomas"
-            [disabled]="diploma.approvalStatus !== 'approved'"
+            [disabled]="
+              diploma.approvalStatus !== 'approved' ||
+              diploma.verificationStatus !== 'approved'
+            "
           >
             <mat-expansion-panel-header>
               <mat-panel-title>
-                {{ diploma.name }} ({{ diploma.approvalStatus }})
+                {{ diploma.name }}
+                <!-- ({{ diploma.approvalStatus }}) -->
               </mat-panel-title>
             </mat-expansion-panel-header>
 

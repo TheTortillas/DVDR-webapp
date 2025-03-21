@@ -1,0 +1,91 @@
+<div class="p-4">
+  <div class="mb-4 flex justify-between items-center">
+    <h1 class="text-2xl font-bold text-gray-800">Buzón de Notificaciones</h1>
+    <button
+      mat-icon-button
+      color="primary"
+      (click)="refreshMessages()"
+      matTooltip="Actualizar"
+    >
+      <mat-icon>refresh</mat-icon>
+    </button>
+  </div>
+
+  <mat-card class="mb-4">
+    <mat-card-content>
+      <div *ngIf="loading" class="flex justify-center my-4">
+        <p>Cargando mensajes...</p>
+      </div>
+
+      <div *ngIf="error" class="flex justify-center my-4 text-red-500">
+        <p>Error al cargar los mensajes. Intente nuevamente.</p>
+      </div>
+
+      <div
+        *ngIf="!loading && !error && messages.length === 0"
+        class="flex flex-col items-center my-8 text-gray-500"
+      >
+        <mat-icon class="text-5xl mb-2">notifications_off</mat-icon>
+        <p>No tienes notificaciones</p>
+      </div>
+
+      <div *ngIf="!loading && !error && messages.length > 0">
+        <mat-accordion>
+          <mat-expansion-panel
+            *ngFor="let message of messages"
+            (opened)="markAsRead(message)"
+            class="mb-3"
+            [ngClass]="{ 'border-l-4 border-red-500': !message.readStatus }"
+          >
+            <mat-expansion-panel-header>
+              <mat-panel-title class="flex items-center">
+                <span [ngClass]="{ 'font-semibold': !message.readStatus }">
+                  {{ message.subject }}
+                </span>
+                <span
+                  *ngIf="!message.readStatus"
+                  class="ml-2 flex-shrink-0 w-2 h-2 rounded-full bg-red-500"
+                  matTooltip="No leído"
+                ></span>
+              </mat-panel-title>
+              <mat-panel-description class="flex justify-end">
+                <span class="text-sm text-gray-500">
+                  {{ message.createdAt | date : "dd/MM/yyyy HH:mm" }}
+                </span>
+              </mat-panel-description>
+            </mat-expansion-panel-header>
+
+            <div class="bg-gray-50 p-4 rounded-md">
+              <p class="text-sm mb-1">
+                <strong>Tipo:</strong>
+                {{ getRejectionTypeLabel(message.rejectionType) }}
+              </p>
+
+              <div *ngIf="message.adminNotes" class="mt-4">
+                <p class="text-sm font-semibold text-gray-700">
+                  Notas del Administrador:
+                </p>
+                <div class="bg-white p-3 rounded border border-gray-200 mt-1">
+                  <p class="text-sm whitespace-pre-line">
+                    {{ message.adminNotes }}
+                  </p>
+                </div>
+              </div>
+
+              <div *ngIf="message.verificationNotes" class="mt-4">
+                <p class="text-sm font-semibold text-gray-700">
+                  Notas del Verificador:
+                </p>
+                <div class="bg-white p-3 rounded border border-gray-200 mt-1">
+                  <p class="text-sm whitespace-pre-line">
+                    {{ message.verificationNotes }}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </mat-expansion-panel>
+        </mat-accordion>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>

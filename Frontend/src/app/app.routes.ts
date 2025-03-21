@@ -38,6 +38,7 @@ import { CourseRegisterVerificationComponent } from './pages/verification/course
 import { VerificationComponent } from './pages/verification/verification.component';
 import { VerificationDashboardComponent } from './pages/verification/verification-dashboard/verification-dashboard.component';
 import { DiplomaRegisterVerificationComponent } from './pages/verification/diploma-register-verification/diploma-register-verification.component';
+import { RejectionInboxComponent } from './pages/profile/rejection-inbox/rejection-inbox.component';
 
 export const routes: Routes = [
   {
@@ -198,6 +199,10 @@ export const routes: Routes = [
       {
         path: 'request-diploma-certificates',
         component: RequestDiplomaCertificatesComponent,
+      },
+      {
+        path: 'inbox',
+        component: RejectionInboxComponent,
       },
       {
         path: '',

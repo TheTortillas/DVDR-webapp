@@ -3618,5 +3618,124 @@ namespace DVDR_courses
             }
             return diplomas;
         }
+
+        // Métodos para el DBManager
+        public List<RejectionMessageDTO> GetUserRejectionMessages(string username)
+        {
+            var messages = new List<RejectionMessageDTO>();
+            try
+            {
+                using (var con = new MySqlConnection(_config.GetConnectionString("default")))
+                {
+                    con.Open();
+
+                    var sql = @"
+                SELECT 
+                    rm.*, 
+                    u.id AS user_id
+                FROM 
+                    rejection_messages rm
+                    JOIN users u ON rm.user_name = u.username
+                WHERE 
+                    rm.user_name = @username
+                ORDER BY 
+                    rm.created_at DESC";
+
+                    using (var cmd = new MySqlCommand(sql, con))
+                    {
+                        cmd.Parameters.AddWithValue("@username", username);
+                        using (var reader = cmd.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                messages.Add(new RejectionMessageDTO
+                                {
+                                    Id = reader.GetInt32("id"),
+                                    UserName = reader.GetString("user_name"),
+                                    UserId = reader.GetInt32("user_id"),
+                                    CenterName = reader.GetString("center_name"),
+                                    RejectionType = reader.GetString("rejection_type"),
+                                    Subject = reader.GetString("subject"),
+                                    AdminNotes = reader.IsDBNull(reader.GetOrdinal("admin_notes")) ? null : reader.GetString("admin_notes"),
+                                    VerificationNotes = reader.IsDBNull(reader.GetOrdinal("verification_notes")) ? null : reader.GetString("verification_notes"),
+                                    CreatedAt = reader.GetDateTime("created_at"),
+                                    ReadStatus = reader.GetBoolean("read_status"),
+                                    ReadAt = reader.IsDBNull(reader.GetOrdinal("read_at")) ? null : reader.GetDateTime("read_at")
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error al obtener mensajes de rechazo: {ex.Message}");
+            }
+            return messages;
+        }
+
+        public (int statusCode, string message) MarkRejectionMessageAsRead(int messageId)
+        {
+            try
+            {
+                using (var con = new MySqlConnection(_config.GetConnectionString("default")))
+                {
+                    con.Open();
+
+                    using (var cmd = new MySqlCommand("sp_mark_rejection_message_as_read", con))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+
+                        // Parámetros de entrada
+                        cmd.Parameters.AddWithValue("p_message_id", messageId);
+
+                        // Parámetros de salida
+                        var statusCodeParam = new MySqlParameter("p_status_code", MySqlDbType.Int32)
+                        { Direction = ParameterDirection.Output };
+                        var messageParam = new MySqlParameter("p_message", MySqlDbType.VarChar, 255)
+                        { Direction = ParameterDirection.Output };
+
+                        cmd.Parameters.Add(statusCodeParam);
+                        cmd.Parameters.Add(messageParam);
+
+                        cmd.ExecuteNonQuery();
+
+                        return (
+                            Convert.ToInt32(statusCodeParam.Value),
+                            messageParam.Value?.ToString() ?? "Mensaje marcado como leído exitosamente"
+                        );
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error al marcar mensaje como leído: {ex.Message}");
+                return (-1, "Error al marcar el mensaje como leído");
+            }
+        }
+
+        public int GetUnreadRejectionMessagesCount(string username)
+        {
+            try
+            {
+                using (var con = new MySqlConnection(_config.GetConnectionString("default")))
+                {
+                    con.Open();
+
+                    var sql = "SELECT COUNT(*) FROM rejection_messages WHERE user_name = @username AND read_status = FALSE";
+
+                    using (var cmd = new MySqlCommand(sql, con))
+                    {
+                        cmd.Parameters.AddWithValue("@username", username);
+                        return Convert.ToInt32(cmd.ExecuteScalar());
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error al obtener conteo de mensajes no leídos: {ex.Message}");
+                return 0;
+            }
+        }
     }
 }

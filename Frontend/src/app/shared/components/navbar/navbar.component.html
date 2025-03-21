@@ -53,6 +53,21 @@
               </mat-menu>
             </a>
           </li>
+
+          <li>
+            <button
+              mat-icon-button
+              (click)="goToRejectionMessages()"
+              class="navbar-button"
+              [matBadge]="unreadRejectionMessages"
+              [matBadgeHidden]="unreadRejectionMessages === 0"
+              matBadgeColor="warn"
+              [style.--mdc-badge-size]="'22px'"
+              style="--mat-badge-font-size: 12px"
+            >
+              <mat-icon>notifications</mat-icon>
+            </button>
+          </li>
           <li>
             <a>
               <button

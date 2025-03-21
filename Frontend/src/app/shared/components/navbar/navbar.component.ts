@@ -12,6 +12,7 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
 import { MessagesService } from '../../../core/services/messages.service';
+import { RejectionMessagesService } from '../../../core/services/rejection-messages.service';
 import { MatBadgeModule } from '@angular/material/badge';
 
 import Swal from 'sweetalert2';
@@ -35,16 +36,22 @@ export class NavbarComponent implements OnInit, OnDestroy {
   unattendMessages: number = 0;
   private subscription: Subscription | null = null;
 
+  // Añadir a las propiedades de la clase:
+  unreadRejectionMessages: number = 0;
+  private rejectionSubscription: Subscription | null = null;
+
   constructor(
     private router: Router,
     private storageService: StorageService,
     private messagesService: MessagesService,
+    private rejectionMessagesService: RejectionMessagesService,
     @Inject(PLATFORM_ID) private platformId: Object
   ) {}
 
   ngOnInit() {
     if (isPlatformBrowser(this.platformId)) {
       this.loadUnreadMessages();
+      this.loadUnreadRejectionMessages();
 
       // Suscribirse a cambios en el estado de los mensajes
       this.subscription = this.messagesService.messageStatusChanged$.subscribe(
@@ -52,13 +59,22 @@ export class NavbarComponent implements OnInit, OnDestroy {
           this.loadUnreadMessages();
         }
       );
+
+      // Suscribirse a cambios en el estado de los mensajes de rechazo
+      this.rejectionSubscription =
+        this.rejectionMessagesService.messageStatusChanged$.subscribe(() => {
+          this.loadUnreadRejectionMessages();
+        });
     }
   }
 
   ngOnDestroy() {
-    // Limpiar la suscripción al destruir el componente
+    // Limpiar las suscripciones al destruir el componente
     if (this.subscription) {
       this.subscription.unsubscribe();
+    }
+    if (this.rejectionSubscription) {
+      this.rejectionSubscription.unsubscribe();
     }
   }
 
@@ -112,6 +128,31 @@ export class NavbarComponent implements OnInit, OnDestroy {
       this.router.url.includes('/verification') &&
       claims.role === 'verifier'
     );
+  }
+
+  // Añadir el método para cargar los mensajes de rechazo no leídos:
+  private loadUnreadRejectionMessages() {
+    const token = this.storageService.getItem('token');
+    if (token) {
+      const claims = this.storageService.getTokenClaims(token);
+      if (claims && claims.username) {
+        this.rejectionMessagesService
+          .getUnreadMessagesCount(claims.username)
+          .subscribe({
+            next: (count) => {
+              this.unreadRejectionMessages = count;
+            },
+            error: (error) => {
+              console.error('Error loading unread rejection messages:', error);
+            },
+          });
+      }
+    }
+  }
+
+  // Añadir método para ir al buzón de rechazos:
+  goToRejectionMessages() {
+    this.router.navigate(['/profile/inbox']);
   }
 
   private loadUnreadMessages() {

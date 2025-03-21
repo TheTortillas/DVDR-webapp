@@ -1,0 +1,15 @@
+::ng-deep .mat-expansion-panel-header {
+  height: auto !important;
+  min-height: 48px !important;
+  padding: 12px 24px !important;
+}
+
+::ng-deep .mat-expansion-panel-body {
+  padding: 0 !important;
+}
+
+:host ::ng-deep .mat-expansion-panel:not(.mat-expanded) {
+  &.border-l-4 {
+    background-color: rgba(254, 242, 242, 0.5);
+  }
+}

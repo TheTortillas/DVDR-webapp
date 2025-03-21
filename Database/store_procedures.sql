@@ -1183,7 +1183,6 @@ BEGIN
         SET p_status_code = -2;
         SET p_message = 'Error: El centro no existe.';
         ROLLBACK;
-        LEAVE sp_update_center;
     END IF;
 
     -- Verificar si ya existe un centro con el mismo tipo e identificador (excluyendo el propio centro)
@@ -1589,6 +1588,7 @@ BEGIN
         d.educational_offer,
         d.status,
         d.approval_status,
+        d.verification_status,
         d.cost,
         d.participants,
         d.start_date,
@@ -2204,6 +2204,212 @@ BEGIN
             SET p_response_message = 'Mensaje actualizado exitosamente';
             COMMIT;
         END IF;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE PROCEDURE sp_delete_course(
+    IN p_course_id INT,
+    IN p_admin_notes TEXT,
+    IN p_verification_notes TEXT,
+    OUT p_status_code INT,
+    OUT p_message VARCHAR(255)
+)
+BEGIN
+    DECLARE v_course_name VARCHAR(255);
+    DECLARE v_user_id INT;
+    DECLARE v_username VARCHAR(50);  -- Cambiado de v_user_name a v_username
+    DECLARE v_center_name VARCHAR(255);
+    DECLARE v_parent_course_id INT;
+    DECLARE v_error_message TEXT;
+    
+    -- Manejo de errores
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        GET DIAGNOSTICS CONDITION 1
+            v_error_message = MESSAGE_TEXT;
+        
+        ROLLBACK;
+        SET p_status_code = -1;
+        SET p_message = CONCAT('Error SQL: ', v_error_message);
+    END;
+    
+    START TRANSACTION;
+    
+    -- Desactivar temporalmente el modo seguro
+    SET SQL_SAFE_UPDATES = 0;
+    
+    -- Obtener información del curso antes de eliminarlo
+    SELECT 
+        c.course_name, 
+        c.user_id, 
+        u.username,  -- Cambiado para obtener el username en lugar del nombre completo
+        ctr.name AS center_name,
+        c.parent_course_id
+    INTO 
+        v_course_name, 
+        v_user_id, 
+        v_username,  -- Guardado en v_username
+        v_center_name,
+        v_parent_course_id
+    FROM courses c
+    JOIN users u ON c.user_id = u.id
+    LEFT JOIN centers ctr ON u.center_id = ctr.id
+    WHERE c.id = p_course_id;
+    
+    -- Verificar que el curso existe
+    IF v_course_name IS NULL THEN
+        ROLLBACK;
+        SET p_status_code = -2;
+        SET p_message = 'Error: El curso no existe.';
+        -- Reactivar el modo seguro antes de salir
+        SET SQL_SAFE_UPDATES = 1;
+    END IF;
+    
+    -- Registrar en el buzón de rechazos
+    INSERT INTO rejection_messages (
+        user_name,  -- Ahora contiene el username real
+        user_id,
+        center_name,
+        rejection_type,
+        subject,
+        admin_notes,
+        verification_notes
+    ) VALUES (
+        v_username,  -- Usar el username
+        v_user_id,
+        v_center_name,
+        'course_registration',
+        v_course_name,
+        p_admin_notes,
+        p_verification_notes
+    );
+    
+    -- Si este curso es una renovación, actualizar el curso padre
+    IF v_parent_course_id IS NOT NULL THEN
+        UPDATE courses 
+        SET is_renewed = 0
+        WHERE id = v_parent_course_id;
+    END IF;
+    
+    -- Eliminar documentación del curso
+    DELETE FROM course_documentation WHERE course_id = p_course_id;
+    
+    -- Eliminar roles de actores asociados al curso
+    DELETE FROM course_actor_roles WHERE course_id = p_course_id;
+    
+    -- Eliminar cronogramas de sesiones del curso
+    DELETE cs_schedule FROM course_schedules cs_schedule
+    JOIN course_sessions cs ON cs_schedule.session_id = cs.id
+    WHERE cs.course_id = p_course_id;
+    
+    -- Eliminar documentación de solicitudes de certificados
+    DELETE scrd FROM session_certificates_request_documentation scrd
+    JOIN course_sessions cs ON scrd.session_id = cs.id
+    WHERE cs.course_id = p_course_id;
+    
+    -- Eliminar oficios de certificados
+    DELETE scol FROM session_certificate_official_letter scol
+    JOIN course_sessions cs ON scol.session_id = cs.id
+    WHERE cs.course_id = p_course_id;
+    
+    -- Eliminar certificados
+    DELETE sc FROM session_certificate sc
+    JOIN course_sessions cs ON sc.session_id = cs.id
+    WHERE cs.course_id = p_course_id;
+    
+    -- Eliminar sesiones del curso
+    DELETE FROM course_sessions WHERE course_id = p_course_id;
+    
+    -- Eliminar cursos que tengan a este como padre
+    -- Primero hay que eliminar sus relaciones
+    DELETE cd FROM course_documentation cd
+    JOIN courses c ON cd.course_id = c.id
+    WHERE c.parent_course_id = p_course_id;
+    
+    DELETE car FROM course_actor_roles car
+    JOIN courses c ON car.course_id = c.id
+    WHERE c.parent_course_id = p_course_id;
+    
+    DELETE FROM courses WHERE parent_course_id = p_course_id;
+    
+    -- Finalmente eliminar el curso
+    DELETE FROM courses WHERE id = p_course_id;
+    
+    -- Reactivar el modo seguro
+    SET SQL_SAFE_UPDATES = 1;
+    
+    COMMIT;
+    
+    SET p_status_code = 1;
+    SET p_message = 'Curso eliminado exitosamente.';
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE PROCEDURE sp_mark_rejection_message_as_read(
+    IN p_message_id INT,
+    OUT p_status_code INT,
+    OUT p_message VARCHAR(255)
+)
+BEGIN
+    DECLARE v_count INT;
+    
+    -- Manejo de errores
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        SET p_status_code = -1;
+        SET p_message = 'Error: No se pudo marcar el mensaje como leído.';
+    END;
+     
+    -- Verificar que el mensaje existe
+    SELECT COUNT(*) INTO v_count
+    FROM rejection_messages
+    WHERE id = p_message_id;
+    
+    IF v_count = 0 THEN
+        SET p_status_code = -2;
+        SET p_message = 'Error: El mensaje no existe.';
+    END IF;
+    
+    -- Marcar el mensaje como leído
+    UPDATE rejection_messages
+    SET 
+        read_status = TRUE,
+        read_at = CURRENT_TIMESTAMP
+    WHERE id = p_message_id;
+    
+    SET p_status_code = 1;
+    SET p_message = 'Mensaje marcado como leído exitosamente.';
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE PROCEDURE sp_get_all_rejection_messages_by_center(
+    IN p_center_name VARCHAR(255)
+)
+BEGIN
+    SELECT 
+        id,
+        user_name,
+        user_id,
+        rejection_type,
+        CASE rejection_type
+            WHEN 'course_registration' THEN 'Registro de Curso'
+            WHEN 'diploma_registration' THEN 'Registro de Diplomado'
+            WHEN 'course_opening' THEN 'Apertura de Curso'
+            WHEN 'course_certificates' THEN 'Constancias de Curso'
+            WHEN 'diploma_certificates' THEN 'Constancias de Diplomado'
+        END AS rejection_type_desc,
+        subject,
+        admin_notes,
+        verification_notes,
+        created_at,
+        read_status,
+        read_at
+    FROM rejection_messages
+    WHERE center_name = p_center_name
+    ORDER BY created_at DESC;
 END$$
 DELIMITER ;
 

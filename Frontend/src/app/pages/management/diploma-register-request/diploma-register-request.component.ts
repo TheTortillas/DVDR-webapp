@@ -110,16 +110,71 @@ export class DiplomaRegisterRequestComponent implements OnInit {
 
   rejectDiploma(diplomaId: number) {
     Swal.fire({
-      title: '¿Estás seguro?',
-      text: '¿Quieres rechazar este diploma?',
-      icon: 'warning',
+      title: 'Rechazar diplomado',
+      text: 'Por favor, ingresa las notas para la corrección del diplomado:',
+      input: 'textarea',
       showCancelButton: true,
-      confirmButtonText: 'Sí',
-      cancelButtonText: 'No',
+      confirmButtonText: 'Rechazar',
+      cancelButtonText: 'Cancelar',
+      inputValidator: (value) => {
+        if (!value) {
+          return 'Debes escribir un mensaje de retroalimentación';
+        }
+        return null;
+      },
     }).then((result) => {
-      if (result.isConfirmed) {
-        // tu lógica de rechazo
-        console.log('Rechazar diploma:', diplomaId);
+      if (result.isConfirmed && result.value) {
+        const rejectionMessage: string = result.value;
+        const diploma = this.diplomasData.data.find(
+          (d) => d.diplomaId === diplomaId
+        );
+
+        // Usar PascalCase para las propiedades (primera letra en mayúscula)
+        const request = {
+          DiplomaId: diplomaId, // ¡Cambiado a PascalCase!
+          ApprovalStatus: 'rejected', // ¡Cambiado a PascalCase!
+          AdminNotes: rejectionMessage, // ¡Cambiado a PascalCase!
+          Username: diploma?.registeredBy || '', // ¡Cambiado a PascalCase!
+
+          // Campos adicionales también en PascalCase
+          Name: '',
+          TotalDuration: 0,
+          DiplomaKey: '',
+          ServiceType: 'Diplomado',
+          Modality: '',
+          EducationalOffer: '',
+          Cost: 0,
+          Participants: 0,
+          StartDate: new Date(),
+          EndDate: new Date(),
+          ExpirationDate: new Date(),
+          ActorRoles: [],
+        };
+
+        console.log(
+          'Enviando solicitud de rechazo:',
+          JSON.stringify(request, null, 2)
+        );
+
+        // Llamar al servicio para rechazar el diplomado
+        this.diplomasService.approveDiplomaRequest(request).subscribe({
+          next: (response) => {
+            Swal.fire(
+              'Rechazado',
+              'El diplomado ha sido rechazado y se ha enviado la retroalimentación',
+              'info'
+            );
+            this.loadPendingDiplomas();
+          },
+          error: (error) => {
+            console.error('Error al rechazar diplomado:', error);
+            Swal.fire(
+              'Error',
+              'No se pudo rechazar el diplomado. Por favor, intenta de nuevo más tarde.',
+              'error'
+            );
+          },
+        });
       }
     });
   }

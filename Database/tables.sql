@@ -145,7 +145,10 @@ CREATE TABLE diplomas (
   certificates_delivered TINYINT(1) DEFAULT 0,
   official_letter_path VARCHAR(255) DEFAULT NULL,
   documentation_folder VARCHAR (255) DEFAULT NULL,
+  
+  admin_notes TEXT,
   verification_notes TEXT,
+
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
@@ -329,4 +332,19 @@ CREATE TABLE tutorial_videos (
     video_url VARCHAR(2083) NOT NULL,
     thumbnail_url VARCHAR(2083) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE rejection_messages (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_name VARCHAR(100) NOT NULL,        -- Nombre del usuario que registró la acción
+    user_id INT NOT NULL,                   -- Referencia al ID del usuario
+    center_name VARCHAR(255) NOT NULL,      -- Centro al que pertenece
+    rejection_type ENUM('course_registration', 'diploma_registration', 'course_opening', 'course_certificates', 'diploma_certificates') NOT NULL,
+    subject VARCHAR(255) NOT NULL,          -- Tema del rechazo (por ejemplo, nombre del curso)
+    admin_notes TEXT,                       -- Notas del administrador
+    verification_notes TEXT,                -- Notas del verificador
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    read_status BOOLEAN DEFAULT FALSE,      -- Indica si el mensaje ha sido leído
+    read_at TIMESTAMP NULL,                 -- Cuándo fue leído el mensaje
+    FOREIGN KEY (user_id) REFERENCES users(id)
 );

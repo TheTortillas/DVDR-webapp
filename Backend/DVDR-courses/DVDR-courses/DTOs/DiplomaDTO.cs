@@ -64,20 +64,21 @@
     public class DiplomaApprovalRequest
     {
         public int DiplomaId { get; set; }
-        public string Name { get; set; }
-        public int TotalDuration { get; set; }
-        public string DiplomaKey { get; set; }
-        public string ServiceType { get; set; }
-        public string Modality { get; set; }
-        public string EducationalOffer { get; set; }
-        public decimal Cost { get; set; }
-        public int Participants { get; set; }
-        public DateTime StartDate { get; set; }
-        public DateTime EndDate { get; set; }
-        public DateTime ExpirationDate { get; set; }
-        public string Username { get; set; }
-        public List<ActorRoleDTO> ActorRoles { get; set; }
+        public string? Name { get; set; }
+        public int? TotalDuration { get; set; }
+        public string? DiplomaKey { get; set; }
+        public string? ServiceType { get; set; }
+        public string? Modality { get; set; }
+        public string? EducationalOffer { get; set; }
+        public decimal? Cost { get; set; }
+        public int? Participants { get; set; }
+        public DateTime? StartDate { get; set; }
+        public DateTime? EndDate { get; set; }
+        public DateTime? ExpirationDate { get; set; }
+        public string? Username { get; set; }
+        public List<ActorRoleDTO>? ActorRoles { get; set; }
         public string? ApprovalStatus { get; set; }
+        public string? AdminNotes { get; set; }
 
     }
     public class DiplomaActorDTO
@@ -124,7 +125,7 @@
     public class DiplomaVerificationRequest
     {
         public int DiplomaId { get; set; }
-        public string VerificationStatus { get; set; } // "approved" o "rejected"
+        public string VerificationStatus { get; set; } 
         public string? VerificationNotes { get; set; }
     }
 }

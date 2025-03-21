@@ -541,6 +541,7 @@ namespace DVDR_courses
                         cmd.Parameters.AddWithValue("p_other_educationals_platforms", string.IsNullOrEmpty(courseInfo.CustomPlatform) ? DBNull.Value : courseInfo.CustomPlatform);
                         cmd.Parameters.AddWithValue("p_course_key", DBNull.Value);
                         cmd.Parameters.AddWithValue("p_username", username);
+                        cmd.Parameters.AddWithValue("p_documentation_folder", request.FolderName);
                         cmd.Parameters.AddWithValue("p_expiration_date", DBNull.Value);
                         cmd.Parameters.AddWithValue("p_renewal_count", renewalCount);
                         cmd.Parameters.AddWithValue("p_parent_course_id", parentCourseId ?? (object)DBNull.Value);
@@ -1526,6 +1527,75 @@ namespace DVDR_courses
             }
         }
 
+        public async Task<string> GetCourseFolder(int courseId)
+        {
+            using (var con = new MySqlConnection(_config.GetConnectionString("default")))
+            {
+                await con.OpenAsync();
+                string query = "SELECT documentation_folder FROM courses WHERE id = @courseId";
+                using (var cmd = new MySqlCommand(query, con))
+                {
+                    cmd.Parameters.AddWithValue("@courseId", courseId);
+                    return (await cmd.ExecuteScalarAsync())?.ToString();
+                }
+            }
+        }
+
+        public (int statusCode, string message) RejectCourse(int courseId, string rejectionNotes, string rejectionType)
+        {
+            try
+            {
+                string adminNotes = null;
+                string verificationNotes = null;
+
+                // Determinar qué tipo de notas son según quién realiza el rechazo
+                if (rejectionType.Equals("admin", StringComparison.OrdinalIgnoreCase))
+                {
+                    adminNotes = rejectionNotes;
+                }
+                else if (rejectionType.Equals("verifier", StringComparison.OrdinalIgnoreCase))
+                {
+                    verificationNotes = rejectionNotes;
+                }
+
+                using (var con = new MySqlConnection(_config.GetConnectionString("default")))
+                {
+                    con.Open();
+
+                    // Llamar al SP para eliminar el curso y registrar el rechazo
+                    using (var cmd = new MySqlCommand("sp_delete_course", con))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+
+                        cmd.Parameters.AddWithValue("p_course_id", courseId);
+                        cmd.Parameters.AddWithValue("p_admin_notes", adminNotes ?? (object)DBNull.Value);
+                        cmd.Parameters.AddWithValue("p_verification_notes", verificationNotes ?? (object)DBNull.Value);
+
+                        var statusCodeParam = new MySqlParameter("p_status_code", MySqlDbType.Int32)
+                        {
+                            Direction = ParameterDirection.Output
+                        };
+                        var messageParam = new MySqlParameter("p_message", MySqlDbType.VarChar, 255)
+                        {
+                            Direction = ParameterDirection.Output
+                        };
+
+                        cmd.Parameters.Add(statusCodeParam);
+                        cmd.Parameters.Add(messageParam);
+
+                        cmd.ExecuteNonQuery();
+
+                        return (Convert.ToInt32(statusCodeParam.Value), messageParam.Value.ToString());
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error en RejectCourse: {ex.Message}");
+                return (-1, $"Error al rechazar el curso: {ex.Message}");
+            }
+        }
+
         public (int statusCode, string message) UpdateCourseApprovalStatus(int courseId, string approvalStatus, string? adminNotes = null)
         {
             try
@@ -1566,34 +1636,19 @@ namespace DVDR_courses
                         // Si el curso es rechazado, solo actualiza estado y admin_notes
                         if (approvalStatus.Equals("rejected", StringComparison.OrdinalIgnoreCase))
                         {
-                            var sqlReject = @"
-                                UPDATE courses
-                                SET approval_status = @approvalStatus,
-                                    admin_notes = @adminNotes
-                                WHERE id = @courseId;
-                            ";
-                            using (var cmdReject = new MySqlCommand(sqlReject, con))
-                            {
-                                cmdReject.Parameters.AddWithValue("@approvalStatus", approvalStatus);
-                                cmdReject.Parameters.AddWithValue("@adminNotes", adminNotes ?? (object)DBNull.Value);
-                                cmdReject.Parameters.AddWithValue("@courseId", courseId);
-
-                                var rows = cmdReject.ExecuteNonQuery();
-                                return rows > 0
-                                    ? (1, "Curso rechazado exitosamente.")
-                                    : (0, "No se pudo actualizar el curso como rechazado.");
-                            }
+                            return RejectCourse(courseId, adminNotes, "admin");
                         }
 
                         // Si el curso es aprobado, verificamos si ambos estados son "approved"
                         bool shouldGenerateKey = approvalStatus.Equals("approved", StringComparison.OrdinalIgnoreCase) &&
-                                                verificationStatus.Equals("approved", StringComparison.OrdinalIgnoreCase) &&
-                                                string.IsNullOrEmpty(existingCourseKey);
+                                                 verificationStatus.Equals("approved", StringComparison.OrdinalIgnoreCase) &&
+                                                 string.IsNullOrEmpty(existingCourseKey);
 
                         // Variables para la clave y fecha
                         string courseKey = null;
                         DateTime expirationDate = DateTime.Now.AddYears(2);
                         string sqlApprove;
+
                         // Solo generamos la clave si ambos estados son "approved" y aún no tiene clave
                         if (shouldGenerateKey)
                         {
@@ -1647,10 +1702,12 @@ namespace DVDR_courses
                         }
                         else
                         {
-                            // SQL para actualizar sólo el estado de aprobación sin generar clave
+                            // Si el administrador aprueba, también actualizar el estado de verificación a "approved"
+                            // Este es el cambio clave para que ambos estados se actualicen
                             sqlApprove = @"
                                 UPDATE courses
                                 SET approval_status = @approvalStatus,
+                                    verification_status = 'approved',
                                     admin_notes = @adminNotes
                                 WHERE id = @courseId;
                             ";
@@ -1676,13 +1733,9 @@ namespace DVDR_courses
                             {
                                 successMessage = $"Curso aprobado exitosamente. Clave generada: {courseKey}";
                             }
-                            else if (verificationStatus.Equals("approved", StringComparison.OrdinalIgnoreCase))
-                            {
-                                successMessage = "Curso aprobado exitosamente. La clave se generará automáticamente.";
-                            }
                             else
                             {
-                                successMessage = "Curso aprobado exitosamente. La clave se generará cuando sea verificado.";
+                                successMessage = "Curso aprobado exitosamente y marcado como verificado. La clave se generará automáticamente.";
                             }
 
                             return rows > 0
@@ -1734,20 +1787,9 @@ namespace DVDR_courses
                         var centerIdentifier = reader.GetInt32("centerIdentifier").ToString("D2");
                         reader.Close();
 
-                        // Primero, actualizar el estado de verificación
-                        var sqlUpdate = @"
-                            UPDATE courses
-                            SET verification_status = @verificationStatus,
-                                verification_notes = @verificationNotes
-                            WHERE id = @courseId;
-                        ";
-
-                        using (var cmd = new MySqlCommand(sqlUpdate, con))
+                        if (verificationStatus.Equals("rejected", StringComparison.OrdinalIgnoreCase))
                         {
-                            cmd.Parameters.AddWithValue("@verificationStatus", verificationStatus);
-                            cmd.Parameters.AddWithValue("@verificationNotes", verificationNotes ?? (object)DBNull.Value);
-                            cmd.Parameters.AddWithValue("@courseId", courseId);
-                            cmd.ExecuteNonQuery();
+                            return RejectCourse(courseId, verificationNotes, "verifier");
                         }
 
                         // Si el curso ya está aprobado administrativamente, verificado ahora, y no tiene clave, generar la clave
@@ -1802,13 +1844,17 @@ namespace DVDR_courses
                             // Actualizar el curso con la clave generada y fecha de expiración
                             var sqlUpdateKey = @"
                                 UPDATE courses
-                                SET course_key = @courseKey,
+                                SET verification_status = @verificationStatus,
+                                    verification_notes = @verificationNotes,
+                                    course_key = @courseKey,
                                     expiration_date = @expirationDate
                                 WHERE id = @courseId;
                             ";
 
                             using (var updateCmd = new MySqlCommand(sqlUpdateKey, con))
                             {
+                                updateCmd.Parameters.AddWithValue("@verificationStatus", verificationStatus);
+                                updateCmd.Parameters.AddWithValue("@verificationNotes", verificationNotes ?? (object)DBNull.Value);
                                 updateCmd.Parameters.AddWithValue("@courseKey", courseKeyGenerated);
                                 updateCmd.Parameters.AddWithValue("@expirationDate", expirationDate);
                                 updateCmd.Parameters.AddWithValue("@courseId", courseId);
@@ -1817,13 +1863,27 @@ namespace DVDR_courses
 
                             return (1, $"Curso verificado y clave generada exitosamente: {courseKeyGenerated}");
                         }
+                        else
+                        {
+                            // Si no se genera clave pero hay que actualizar el estado de verificación
+                            var updateStatusCmd = new MySqlCommand(@"
+                                UPDATE courses
+                                SET verification_status = @verificationStatus,
+                                    verification_notes = @verificationNotes
+                                WHERE id = @courseId", con);
 
-                        // Mensaje estándar si no se generó clave
-                        string statusMessage = verificationStatus.Equals("approved", StringComparison.OrdinalIgnoreCase)
-                            ? "Curso verificado exitosamente."
-                            : "Curso rechazado en verificación.";
+                            updateStatusCmd.Parameters.AddWithValue("@verificationStatus", verificationStatus);
+                            updateStatusCmd.Parameters.AddWithValue("@verificationNotes", verificationNotes ?? (object)DBNull.Value);
+                            updateStatusCmd.Parameters.AddWithValue("@courseId", courseId);
+                            updateStatusCmd.ExecuteNonQuery();
 
-                        return (1, statusMessage);
+                            // Mensaje estándar si no se generó clave
+                            string statusMessage = verificationStatus.Equals("approved", StringComparison.OrdinalIgnoreCase)
+                                ? "Curso verificado exitosamente."
+                                : "Curso rechazado en verificación.";
+
+                            return (1, statusMessage);
+                        }
                     }
                 }
             }
@@ -2271,6 +2331,80 @@ namespace DVDR_courses
             return diplomas;
         }
 
+        public async Task<(int statusCode, string message)> RegisterDiplomaRejectionMessage(
+            int diplomaId,
+            string username,
+            string center,
+            string rejectionType,
+            string subject,
+            string adminNotes = null,
+            string verificationNotes = null)
+        {
+            try
+            {
+                using (var con = new MySqlConnection(_config.GetConnectionString("default")))
+                {
+                    await con.OpenAsync();
+
+                    // Primero, obtener el user_id
+                    int userId = 0;
+                    var userQuery = "SELECT id FROM users WHERE username = @username LIMIT 1";
+                    using (var userCmd = new MySqlCommand(userQuery, con))
+                    {
+                        userCmd.Parameters.AddWithValue("@username", username);
+                        var result = await userCmd.ExecuteScalarAsync();
+                        if (result != null)
+                        {
+                            userId = Convert.ToInt32(result);
+                        }
+                        else
+                        {
+                            return (0, "Usuario no encontrado");
+                        }
+                    }
+
+                    // Ahora insertar el mensaje de rechazo
+                    var query = @"
+                INSERT INTO rejection_messages (
+                    user_name, 
+                    user_id, 
+                    center_name, 
+                    rejection_type, 
+                    subject, 
+                    admin_notes, 
+                    verification_notes
+                ) VALUES (
+                    @userName,
+                    @userId,
+                    @centerName,
+                    @rejectionType,
+                    @subject,
+                    @adminNotes,
+                    @verificationNotes
+                )";
+
+                    using (var cmd = new MySqlCommand(query, con))
+                    {
+                        cmd.Parameters.AddWithValue("@userName", username);
+                        cmd.Parameters.AddWithValue("@userId", userId);
+                        cmd.Parameters.AddWithValue("@centerName", center);
+                        cmd.Parameters.AddWithValue("@rejectionType", rejectionType);
+                        cmd.Parameters.AddWithValue("@subject", subject);
+                        cmd.Parameters.AddWithValue("@adminNotes", adminNotes ?? (object)DBNull.Value);
+                        cmd.Parameters.AddWithValue("@verificationNotes", verificationNotes ?? (object)DBNull.Value);
+
+                        await cmd.ExecuteNonQueryAsync();
+                        return (1, "Mensaje de rechazo registrado exitosamente");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error en RegisterDiplomaRejectionMessage: {ex.Message}");
+                return (0, $"Error al registrar mensaje de rechazo: {ex.Message}");
+            }
+        }
+
         public async Task<string> GetDiplomaFolder(int diplomaId)
         {
             using (var con = new MySqlConnection(_config.GetConnectionString("default")))
@@ -2285,15 +2419,52 @@ namespace DVDR_courses
             }
         }
 
-        public async Task<(int statusCode, string message)> DeleteDiploma(int diplomaId)
+        public async Task<(int statusCode, string message)> DeleteDiploma(
+     int diplomaId,
+     string username = null,
+     string center = null,
+     string rejectionType = null,
+     string subject = null,
+     string adminNotes = null,
+     string verificationNotes = null)
         {
             using (var con = new MySqlConnection(_config.GetConnectionString("default")))
             {
                 await con.OpenAsync();
+
+                // Primero, obtener información del diplomado antes de eliminarlo (si es necesario)
+                string diplomaName = "";
+                if (!string.IsNullOrEmpty(username) && string.IsNullOrEmpty(subject))
+                {
+                    var getNameCmd = new MySqlCommand("SELECT name FROM diplomas WHERE id = @diplomaId", con);
+                    getNameCmd.Parameters.AddWithValue("@diplomaId", diplomaId);
+                    var nameResult = await getNameCmd.ExecuteScalarAsync();
+                    if (nameResult != null)
+                    {
+                        diplomaName = nameResult.ToString();
+                    }
+                }
+
+                // Eliminar el diplomado
                 using (var cmd = new MySqlCommand("DELETE FROM diplomas WHERE id = @diplomaId", con))
                 {
                     cmd.Parameters.AddWithValue("@diplomaId", diplomaId);
                     await cmd.ExecuteNonQueryAsync();
+
+                    // Si se proporcionaron datos para el mensaje de rechazo, registrarlo
+                    if (!string.IsNullOrEmpty(username) && !string.IsNullOrEmpty(center) && !string.IsNullOrEmpty(rejectionType))
+                    {
+                        await RegisterDiplomaRejectionMessage(
+                            diplomaId,
+                            username,
+                            center,
+                            rejectionType,
+                            subject ?? diplomaName,
+                            adminNotes,
+                            verificationNotes
+                        );
+                    }
+
                     return (1, "Solicitud de diplomado rechazada y eliminada exitosamente.");
                 }
             }
@@ -2381,6 +2552,7 @@ namespace DVDR_courses
                                     EducationalOffer = reader.IsDBNull("educational_offer") ? null : reader.GetString("educational_offer"),
                                     Status = reader.IsDBNull("status") ? null : reader.GetString("status"),
                                     ApprovalStatus = reader.IsDBNull("approval_status") ? null : reader.GetString("approval_status"),
+                                    VerificationStatus = reader.IsDBNull("verification_status") ? null : reader.GetString("verification_status"),
                                     Cost = reader.IsDBNull("cost") ? null : reader.GetDecimal("cost"),
                                     Participants = reader.IsDBNull("participants") ? (int?)null : reader.GetInt32("participants"),
                                     StartDate = reader.IsDBNull("start_date") ? null : reader.GetDateTime("start_date"),

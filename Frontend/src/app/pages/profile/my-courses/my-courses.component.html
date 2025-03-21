@@ -109,6 +109,7 @@
           <mat-expansion-panel
             *ngFor="let diploma of diplomas"
             [disabled]="
+              diploma.status !== 'active' ||
               diploma.approvalStatus !== 'approved' ||
               diploma.verificationStatus !== 'approved'
             "

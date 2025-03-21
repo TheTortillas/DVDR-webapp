@@ -443,17 +443,45 @@ namespace DVDR_courses.Controllers
         }
 
         [HttpPatch("ApproveOrRejectCourse")]
-        public IActionResult ApproveOrRejectCourse([FromBody] ApproveRejectDTO request)
+        public async Task<IActionResult> ApproveOrRejectCourse([FromBody] ApproveRejectDTO request)
         {
             if (request == null || request.CourseId <= 0 || string.IsNullOrEmpty(request.ApprovalStatus))
                 return BadRequest(new { message = "Datos inválidos en la solicitud." });
 
-            var dbManager = new DBManager(_config);
-            var (statusCode, message) = dbManager.UpdateCourseApprovalStatus(
+            // Si es rechazo, obtener la carpeta primero, antes de borrar en la BD
+            string folderName = null;
+            if (request.ApprovalStatus.Equals("rejected", StringComparison.OrdinalIgnoreCase))
+            {
+                folderName = await _dbManager.GetCourseFolder(request.CourseId);
+            }
+
+            // Llamamos al método de actualización/rechazo de la base de datos
+            var (statusCode, message) = _dbManager.UpdateCourseApprovalStatus(
                 request.CourseId,
                 request.ApprovalStatus,
                 request.AdminNotes
             );
+
+            // Solo si la operación de BD fue exitosa y era un rechazo, borramos los archivos
+            if (statusCode == 1 &&
+                request.ApprovalStatus.Equals("rejected", StringComparison.OrdinalIgnoreCase) &&
+                !string.IsNullOrEmpty(folderName))
+            {
+                var folderPath = _fileStorage.GetStoragePath("CoursesDocumentation", folderName);
+                if (Directory.Exists(folderPath))
+                {
+                    try
+                    {
+                        Directory.Delete(folderPath, true);
+                        Console.WriteLine($"Carpeta eliminada: {folderPath}");
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"No se pudo borrar la carpeta: {ex.Message}");
+                        // Consideramos una advertencia, no un error crítico
+                    }
+                }
+            }
 
             if (statusCode == 1)
                 return Ok(new { message });
@@ -462,17 +490,45 @@ namespace DVDR_courses.Controllers
         }
 
         [HttpPatch("VerifyOrRejectCourse")]
-        public IActionResult VerifyOrRejectCourse([FromBody] VerifyRejectDTO request)
+        public async Task<IActionResult> VerifyOrRejectCourse([FromBody] VerifyRejectDTO request)
         {
             if (request == null || request.CourseId <= 0 || string.IsNullOrEmpty(request.VerificationStatus))
                 return BadRequest(new { message = "Datos inválidos en la solicitud." });
 
-            var dbManager = new DBManager(_config);
-            var (statusCode, message) = dbManager.UpdateCourseVerificationStatus(
+            // Si es rechazo, obtener la carpeta primero, antes de borrar en la BD
+            string folderName = null;
+            if (request.VerificationStatus.Equals("rejected", StringComparison.OrdinalIgnoreCase))
+            {
+                folderName = await _dbManager.GetCourseFolder(request.CourseId);
+            }
+
+            // Llamamos al método de actualización/rechazo de la base de datos
+            var (statusCode, message) = _dbManager.UpdateCourseVerificationStatus(
                 request.CourseId,
                 request.VerificationStatus,
                 request.VerificationNotes
             );
+
+            // Solo si la operación de BD fue exitosa y era un rechazo, borramos los archivos
+            if (statusCode == 1 &&
+                request.VerificationStatus.Equals("rejected", StringComparison.OrdinalIgnoreCase) &&
+                !string.IsNullOrEmpty(folderName))
+            {
+                var folderPath = _fileStorage.GetStoragePath("CoursesDocumentation", folderName);
+                if (Directory.Exists(folderPath))
+                {
+                    try
+                    {
+                        Directory.Delete(folderPath, true);
+                        Console.WriteLine($"Carpeta eliminada: {folderPath}");
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"No se pudo borrar la carpeta: {ex.Message}");
+                        // Consideramos una advertencia, no un error crítico
+                    }
+                }
+            }
 
             if (statusCode == 1)
                 return Ok(new { message });

@@ -96,6 +96,12 @@ namespace DVDR_courses.Controllers
                     // 1️ Obtener la carpeta del diplomado desde la BD
                     var folderName = await _dbManager.GetDiplomaFolder(request.DiplomaId);
 
+                    // Obtener información adicional del diploma para el registro de rechazo
+                    var allDiplomas = _dbManager.GetAllDiplomas();
+                    var diploma = allDiplomas.FirstOrDefault(d => d.DiplomaId == request.DiplomaId);
+                    string diplomaName = diploma?.Name ?? "Diplomado sin nombre";
+                    string center = diploma?.Center ?? "Centro desconocido";
+
                     // 2️ Si existe, eliminar archivos y la carpeta correspondiente
                     if (!string.IsNullOrEmpty(folderName))
                     {
@@ -114,8 +120,16 @@ namespace DVDR_courses.Controllers
                         }
                     }
 
-                    // 3️ Eliminar el diplomado en la BD
-                    result = await _dbManager.DeleteDiploma(request.DiplomaId);
+                    // 3️ Eliminar el diplomado en la BD y registrar el rechazo
+                    result = await _dbManager.DeleteDiploma(
+                        request.DiplomaId,
+                        request.Username,
+                        center,
+                        "diploma_registration",
+                        diplomaName,
+                        request.AdminNotes,
+                        null  // No hay notas de verificación en rechazo administrativo
+                    );
                 }
                 else
                 {
@@ -134,8 +148,6 @@ namespace DVDR_courses.Controllers
             }
         }
 
-
-
         [HttpPost("UpdateDiplomaVerificationStatus")]
         public async Task<IActionResult> UpdateDiplomaVerificationStatus([FromBody] DiplomaVerificationRequest request)
         {
@@ -150,10 +162,17 @@ namespace DVDR_courses.Controllers
 
                 if (request.VerificationStatus.Equals("rejected", StringComparison.OrdinalIgnoreCase))
                 {
-                    // 1️⃣ Obtener la carpeta del diplomado desde la BD
+                    // 1️ Obtener la carpeta del diplomado desde la BD
                     var folderName = await _dbManager.GetDiplomaFolder(request.DiplomaId);
 
-                    // 2️⃣ Si existe, eliminar archivos y la carpeta correspondiente
+                    // Obtener información adicional del diploma para el registro de rechazo
+                    var allDiplomas = _dbManager.GetAllDiplomas();
+                    var diploma = allDiplomas.FirstOrDefault(d => d.DiplomaId == request.DiplomaId);
+                    string diplomaName = diploma?.Name ?? "Diplomado sin nombre";
+                    string center = diploma?.Center ?? "Centro desconocido";
+                    string username = diploma?.RegisteredBy ?? "Usuario desconocido";
+
+                    // 2️ Si existe, eliminar archivos y la carpeta correspondiente
                     if (!string.IsNullOrEmpty(folderName))
                     {
                         var folderPath = _fileStorage.GetStoragePath("DiplomaDocumentation", folderName);
@@ -171,8 +190,16 @@ namespace DVDR_courses.Controllers
                         }
                     }
 
-                    // 3️ Eliminar el diplomado en la BD
-                    result = await _dbManager.DeleteDiploma(request.DiplomaId);
+                    // 3️ Eliminar el diplomado en la BD y registrar mensaje de rechazo
+                    result = await _dbManager.DeleteDiploma(
+                        request.DiplomaId,
+                        username,
+                        center,
+                        "diploma_registration",
+                        diplomaName,
+                        null,  // No hay notas de administrador en rechazo de verificación
+                        request.VerificationNotes
+                    );
                 }
                 else if (request.VerificationStatus.Equals("approved", StringComparison.OrdinalIgnoreCase))
                 {

@@ -85,7 +85,7 @@ import Swal from 'sweetalert2';
 })
 export class ScheduleDialogComponent implements OnInit {
   @Input() totalDuration: number = 0;
-  @Input() enableDateFilter: boolean = true;
+  @Input() enableDateFilter: boolean = false;
 
   @ViewChild(PeriodicScheduleComponent)
   periodicScheduleComponent!: PeriodicScheduleComponent;

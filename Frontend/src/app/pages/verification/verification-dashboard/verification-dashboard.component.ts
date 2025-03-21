@@ -64,16 +64,26 @@ export class VerificationDashboardComponent implements OnInit {
 
         // Contar cursos pendientes
         this.pendingCoursesCount = courses.filter(
-          (course: { status: string; verificationStatus: string }) =>
+          (course: {
+            status: string;
+            approvalStatus: string;
+            verificationStatus: string;
+          }) =>
             course.status === 'submitted' &&
+            course.approvalStatus === 'approved' &&
             course.verificationStatus === 'pending'
         ).length;
 
         // Contar cursos aprobados
         this.approvedCoursesCount = courses.filter(
-          (course: { status: string; approvalStatus: string }) =>
+          (course: {
+            status: string;
+            approvalStatus: string;
+            verificationStatus: string;
+          }) =>
             course.status === 'submitted' &&
-            course.approvalStatus === 'approved'
+            course.approvalStatus === 'approved' &&
+            course.verificationStatus === 'pending'
         ).length;
       },
       error: (err) => {

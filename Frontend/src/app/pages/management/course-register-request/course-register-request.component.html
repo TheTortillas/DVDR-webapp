@@ -101,8 +101,22 @@
               <span>Aprobado</span>
             </div>
 
-            <!-- Si el curso no ha sido aprobado, mostrar botones de acción -->
-            <div *ngIf="row.approvalStatus !== 'approved'">
+            <!-- Si el curso fue rechazado, mostrar mensaje de rechazo -->
+            <div
+              *ngIf="row.approvalStatus === 'rejected'"
+              class="flex items-center justify-center text-red-600"
+            >
+              <mat-icon class="mr-1">cancel</mat-icon>
+              <span>Rechazado</span>
+            </div>
+
+            <!-- Si el curso no ha sido aprobado ni rechazado, mostrar botones de acción -->
+            <div
+              *ngIf="
+                row.approvalStatus !== 'approved' &&
+                row.approvalStatus !== 'rejected'
+              "
+            >
               <button
                 mat-icon-button
                 (click)="approveCourse(row.courseId)"
@@ -120,6 +134,7 @@
             </div>
           </td>
         </ng-container>
+        <!-- ...existing code... -->
 
         <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
         <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>

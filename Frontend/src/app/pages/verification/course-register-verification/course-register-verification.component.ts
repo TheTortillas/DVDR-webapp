@@ -70,8 +70,9 @@ export class CourseRegisterVerificationComponent implements OnInit {
         // Filter courses
         const filteredCourses = courses.filter(
           (course: CourseFullData) =>
-            course.approvalStatus !== 'approved' ||
-            course.verificationStatus !== 'approved'
+            course.status === 'submitted' &&
+            course.approvalStatus === 'approved' &&
+            course.verificationStatus === 'pending'
         );
 
         this.dataSource = new MatTableDataSource<CourseFullData>(

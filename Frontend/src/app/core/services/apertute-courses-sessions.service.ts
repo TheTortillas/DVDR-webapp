@@ -46,7 +46,7 @@ interface ScheduleEntry {
 }
 
 interface CourseSessionRequest {
-  courseKey: string; // 🔍Enviamos la clave del curso
+  courseKey: string; // Enviamos la clave del curso
   period: string;
   numberOfParticipants: number;
   numberOfCertificates: number;

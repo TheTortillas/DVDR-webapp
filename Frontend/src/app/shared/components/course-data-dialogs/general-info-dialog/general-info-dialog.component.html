@@ -1,16 +1,18 @@
-<div class="dialog-container p-4 flex flex-col h-full">
+<div class="dialog-container flex flex-col h-full">
   <div class="text-center">
-    <h2 mat-dialog-title class="text-2xl font-bold text-black-800">
-      <span class="font-bold">Información General del Curso</span><br />
-      <span class="font-medium text-rose-700">{{ data.courseKey }}</span>
+    <h2 mat-dialog-title>
+      <div class="course-title text-2xl font-bold">
+        Información General del Curso
+      </div>
+      <div class="course-key text-xl">{{ data.courseKey }}</div>
     </h2>
   </div>
 
-  <mat-dialog-content class="mt-4">
-    <div class="grid grid-cols-2 gap-4">
+  <mat-dialog-content class="mt-4 flex-grow">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
       <!-- Información del Curso -->
       <div class="info-group">
-        <h3 class="text-lg font-semibold mb-2">Datos del Curso</h3>
+        <h3 class="text-lg font-bold">Datos del Curso</h3>
         <p><strong>Nombre:</strong> {{ data.courseInfo.courseName }}</p>
         <p>
           <strong>Tipo de Servicio:</strong> {{ data.courseInfo.serviceType }}
@@ -21,15 +23,30 @@
           {{ data.courseInfo.totalDuration }} horas
         </p>
         <p><strong>Modalidad:</strong> {{ data.courseInfo.modality }}</p>
+
+        <div *ngIf="formattedPlatforms && formattedPlatforms.length > 0">
+          <p><strong>Plataformas Educativas:</strong></p>
+          <div class="platform-list">
+            <ul>
+              <li *ngFor="let platform of formattedPlatforms">
+                {{ platform }}
+              </li>
+            </ul>
+          </div>
+        </div>
       </div>
 
       <!-- Información Adicional -->
       <div class="info-group">
-        <h3 class="text-lg font-semibold mb-2">Detalles Adicionales</h3>
+        <h3 class="text-lg font-bold">Detalles Adicionales</h3>
         <p><strong>Creado por:</strong> {{ data.createdBy }}</p>
-        <p><strong>Fecha de Creación:</strong> {{ data.createdAt | date }}</p>
         <p>
-          <strong>Fecha de Expiración:</strong> {{ data.expirationDate | date }}
+          <strong>Fecha de Creación:</strong>
+          {{ data.createdAt | date : "dd/MM/yyyy" }}
+        </p>
+        <p>
+          <strong>Fecha de Expiración:</strong>
+          {{ data.expirationDate | date : "dd/MM/yyyy" }}
         </p>
         <p>
           <strong>Oferta Educativa:</strong>
@@ -41,32 +58,17 @@
         </p>
         <p><strong>Número de Renovaciones:</strong> {{ data.renewalCount }}</p>
       </div>
-      <!-- Plataformas Educativas -->
-      <div class="info-group col-span-2">
-        <h3 class="text-lg font-semibold mb-2">Plataformas Educativas</h3>
-        <div class="flex flex-wrap gap-2">
-          <span
-            *ngFor="let platform of data.courseInfo.educationalPlatform"
-            class="bg-blue-100 text-blue-800 px-2 py-1 rounded"
-          >
-            {{ platform }}
-          </span>
-          <span
-            *ngIf="data.courseInfo.customPlatform"
-            class="bg-green-100 text-green-800 px-2 py-1 rounded"
-          >
-            {{ data.courseInfo.customPlatform }}
-          </span>
-        </div>
-      </div>
     </div>
   </mat-dialog-content>
 
-  <div class="mb-2">
-    <mat-dialog-actions class="mt-4 pb-2 w-full flex justify-end">
-      <button mat-flat-button color="primary" mat-dialog-close class="w-full">
-        Cerrar
-      </button>
-    </mat-dialog-actions>
-  </div>
+  <mat-dialog-actions class="mt-4 pb-2 w-full flex justify-end">
+    <button
+      mat-flat-button
+      color="primary"
+      mat-dialog-close
+      class="w-full py-2"
+    >
+      Cerrar
+    </button>
+  </mat-dialog-actions>
 </div>

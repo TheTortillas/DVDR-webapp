@@ -92,7 +92,8 @@ export interface SessionResponse {
   periodo: string; // Periodo de la sesión (Ene 2025 - Mar 2025)
   participantes: number; // Número de participantes en la sesión
   constancias: number; // Número de constancias entregadas
-  estatus: string; // Estatus de la sesión (waiting, opened, concluded)
+  sessionStatus: string; // Estatus de la sesión (waiting, opened, concluded)
+  sessionApprovalStatus: string; // Estatus de aprobación de la sesión
   certificatesRequested: boolean; // Estatus de la solicitud de certificados (waiting, opened, concluded)
   certificatesDelivered: boolean; // Estatus de la entrega de certificados (waiting, opened, concluded)
 }

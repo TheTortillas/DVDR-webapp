@@ -14,6 +14,7 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import Swal from 'sweetalert2';
 import { MatIcon } from '@angular/material/icon';
+import { MatTooltip } from '@angular/material/tooltip';
 
 declare module 'jspdf' {
   interface jsPDF {
@@ -46,6 +47,7 @@ interface Course {
     MatButtonModule,
     MatSnackBarModule,
     MatIcon,
+    MatTooltip,
   ],
   templateUrl: './request-aperture.component.html',
   styleUrls: ['./request-aperture.component.scss'],
@@ -186,31 +188,56 @@ export class RequestApertureComponent implements OnInit {
       const file = target.files?.[0];
 
       if (file) {
-        this.apertureCoursesService
-          .uploadSignedRequestLetter(sessionId, file)
-          .subscribe({
-            next: () => {
-              this.snackBar.open(
-                'Documento firmado enviado correctamente',
-                'Cerrar',
-                {
-                  duration: 3000,
-                }
-              );
-              this.loadUserPendingApertures();
+        // Crear una URL para previsualizar el archivo
+        const fileURL = URL.createObjectURL(file);
 
-              Swal.fire({
-                icon: 'success',
-                title: 'Solicitud enviada',
-                text: 'Tu solicitud ha sido enviada para aprobación',
+        // Mostrar SweetAlert con vista previa del documento
+        Swal.fire({
+          title: '¿Confirmar documento firmado?',
+          html: `
+            ${
+              file.type === 'application/pdf'
+                ? `<embed src="${fileURL}" type="application/pdf" width="100%" height="400px">`
+                : `<div class="p-4 bg-gray-100 rounded">
+                  <p class="text-center">Vista previa no disponible para ${file.type}</p>
+                  <p class="text-center font-semibold mt-2">${file.name}</p>
+                 </div>`
+            }
+          `,
+          showCancelButton: true,
+          confirmButtonText: 'Enviar documento',
+          cancelButtonText: 'Cancelar',
+          width: '600px',
+        }).then((result) => {
+          if (result.isConfirmed) {
+            this.apertureCoursesService
+              .uploadSignedRequestLetter(sessionId, file)
+              .subscribe({
+                next: () => {
+                  this.snackBar.open(
+                    'Documento firmado enviado correctamente',
+                    'Cerrar',
+                    { duration: 3000 }
+                  );
+                  this.loadUserPendingApertures();
+
+                  Swal.fire({
+                    icon: 'success',
+                    title: 'Solicitud enviada',
+                    text: 'Tu solicitud ha sido enviada para aprobación',
+                  });
+                },
+                error: () => {
+                  this.snackBar.open('Error al enviar el documento', 'Cerrar', {
+                    duration: 3000,
+                  });
+                },
               });
-            },
-            error: () => {
-              this.snackBar.open('Error al enviar el documento', 'Cerrar', {
-                duration: 3000,
-              });
-            },
-          });
+          }
+
+          // Liberar la URL creada para prevenir fugas de memoria
+          URL.revokeObjectURL(fileURL);
+        });
       }
     };
 

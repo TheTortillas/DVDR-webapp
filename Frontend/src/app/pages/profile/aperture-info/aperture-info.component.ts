@@ -107,7 +107,7 @@ export class ApertureInfoComponent {
     exitAnimationDuration: string
   ): void {
     const dialogRef = this.dialog.open(ScheduleDialogComponent, {
-      data: { totalDuration: this.totalDuration, enableDateFilter: true },
+      data: { totalDuration: this.totalDuration, enableDateFilter: false },
       autoFocus: false,
       maxWidth: '100vh',
       maxHeight: '100vh',

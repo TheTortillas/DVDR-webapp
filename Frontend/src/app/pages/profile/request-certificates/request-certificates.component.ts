@@ -66,7 +66,7 @@ export class RequestCertificatesComponent implements OnInit {
           courses.forEach((course: any) => {
             if (course.sessions && Array.isArray(course.sessions)) {
               course.sessions.forEach((session: any) => {
-                if (session.estatus === 'completed') {
+                if (session.sessionStatus === 'completed') {
                   sessions.push({
                     title: course.title,
                     clave: session.clave,

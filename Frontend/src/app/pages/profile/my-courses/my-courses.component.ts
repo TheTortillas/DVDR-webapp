@@ -16,7 +16,8 @@ interface Session {
   periodo: string;
   participantes: number;
   constancias: number;
-  estatus: string;
+  SessionStatus: string;
+  SessionApprovalStatus: string;
 }
 
 interface Course {
@@ -135,22 +136,52 @@ export class MyCoursesComponent implements OnInit {
                 periodo: session.periodo,
                 participantes: session.participantes,
                 constancias: session.constancias,
-                estatus:
-                  session.estatus === 'pending'
-                    ? 'En espera'
-                    : session.estatus === 'opened'
-                    ? 'Aperturado'
-                    : 'Concluido',
+                certificatesDelivered: session.certificatesDelivered,
+                estatus: this.getSessionStatus(
+                  session.sessionStatus,
+                  session.sessionApprovalStatus,
+                  session.certificatesDelivered
+                ),
               })),
-              approvalStatus: course.approvalStatus, // Map the property
+              approvalStatus: course.approvalStatus,
             }));
           }
+          console.log('Cursos cargados:', this.courses);
         },
         error: (err) => {
           console.error('Error al obtener los cursos:', err);
         },
       });
     }
+  }
+
+  getSessionStatus(
+    sessionStatus: string,
+    approvalStatus: string,
+    certificatesDelivered: string
+  ): string {
+    // Si certificatesDelivered es true, mostrar "Constancias Entregadas"
+    if (certificatesDelivered) {
+      return 'Constancias Entregadas';
+    }
+
+    // Show "En revisión" if either status is pending
+    if (sessionStatus === 'pending' || approvalStatus === 'pending') {
+      return 'En revisión';
+    }
+
+    // Show "Aperturado" if both statuses are approved and opened respectively
+    if (approvalStatus === 'approved' && sessionStatus === 'opened') {
+      return 'Aperturado';
+    }
+
+    // Show "Completado" if session status is completed
+    if (sessionStatus === 'completed') {
+      return 'Completado';
+    }
+
+    // Default fallback (though this shouldn't happen with proper data)
+    return 'Estado desconocido';
   }
 
   onAttendCorrections(courseId: number, event: Event) {

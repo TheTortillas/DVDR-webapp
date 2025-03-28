@@ -70,7 +70,10 @@ export class UploadFileCertificateDialogComponent {
     if (this.isValid()) {
       const formData = new FormData();
       formData.append('sessionId', this.data.sessionId.toString());
-      formData.append('certificatesCount', this.certificatesCount.toString());
+      formData.append(
+        'numberOfCertificates',
+        this.certificatesCount.toString()
+      );
       formData.append('file', this.uploadedFile!);
 
       this.coursesService.UploadCertificateOfficialLetter(formData).subscribe({

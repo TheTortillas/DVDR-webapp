@@ -83,7 +83,7 @@ export class VerificationDashboardComponent implements OnInit {
           }) =>
             course.status === 'submitted' &&
             course.approvalStatus === 'approved' &&
-            course.verificationStatus === 'pending'
+            course.verificationStatus === 'approved'
         ).length;
       },
       error: (err) => {

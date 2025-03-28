@@ -79,7 +79,23 @@
                 <ng-container matColumnDef="estatus">
                   <th mat-header-cell *matHeaderCellDef>Estatus</th>
                   <td mat-cell *matCellDef="let element">
-                    {{ element.estatus }}
+                    <span
+                      [ngClass]="{
+                        'px-2 py-1 rounded-full text-xs font-medium': true,
+                        'bg-yellow-100 text-yellow-800':
+                          element.estatus === 'En revisión',
+                        'bg-green-100 text-green-800':
+                          element.estatus === 'Aperturado',
+                        'bg-blue-100 text-blue-800':
+                          element.estatus === 'Completado',
+                        'bg-purple-100 text-purple-800':
+                          element.estatus === 'Constancias Entregadas',
+                        'bg-gray-100 text-gray-800':
+                          element.estatus === 'Estado desconocido'
+                      }"
+                    >
+                      {{ element.estatus }}
+                    </span>
                   </td>
                 </ng-container>
 
@@ -109,9 +125,9 @@
           <mat-expansion-panel
             *ngFor="let diploma of diplomas"
             [disabled]="
-              diploma.status !== 'active' ||
-              diploma.approvalStatus !== 'approved' ||
-              diploma.verificationStatus !== 'approved'
+              diploma.status === 'pending' ||
+              diploma.approvalStatus === 'pending' ||
+              diploma.verificationStatus === 'pending'
             "
           >
             <mat-expansion-panel-header>

@@ -260,6 +260,7 @@ export class AllCoursesComponent implements OnInit {
               sessions: sessions,
             },
           });
+          // console.log('Sesiones cargadas:', sessions);
         },
         error: (error) => {
           // console.error('Error al cargar sesiones:', error);

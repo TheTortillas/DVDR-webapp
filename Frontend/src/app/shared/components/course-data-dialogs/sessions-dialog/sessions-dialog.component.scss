@@ -5,3 +5,32 @@ tr.example-element-row:not(.expanded-row):hover {
 tr.example-element-row:not(.expanded-row):active {
   background: #efefef;
 }
+
+.hidden-row {
+  display: none;
+}
+
+/* Estilos para los estados */
+.status-pending {
+  color: #f59e0b;
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background-color: rgba(245, 158, 11, 0.1);
+}
+
+.status-opened {
+  color: #10b981;
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background-color: rgba(16, 185, 129, 0.1);
+}
+
+.status-completed {
+  color: #3b82f6;
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background-color: rgba(59, 130, 246, 0.1);
+}

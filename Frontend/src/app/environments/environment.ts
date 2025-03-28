@@ -1,3 +1,3 @@
 export const environment = {
-  apiUrl: 'https://www.repositorio.dvdr.ipn.mx/',
+  apiUrl: 'https://www.repositorio.dvdr.ipn.mx',
 };

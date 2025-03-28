@@ -125,53 +125,79 @@
         <ng-container matColumnDef="status">
           <th mat-header-cell *matHeaderCellDef>Estado</th>
           <td mat-cell *matCellDef="let element">
+            <!-- Status badge -->
             <span
-              *ngIf="element.approvalStatus === 'pending'"
-              class="badge bg-warning"
-              >Pendiente</span
+              [ngClass]="{
+                'px-2 py-1 rounded-full text-xs font-medium mr-2': true,
+                'bg-yellow-100 text-yellow-800':
+                  element.approvalStatus === 'pending',
+                'bg-green-100 text-green-800':
+                  element.approvalStatus === 'approved',
+                'bg-red-100 text-red-800': element.approvalStatus === 'rejected'
+              }"
             >
+              {{
+                element.approvalStatus === "pending"
+                  ? "Pendiente"
+                  : element.approvalStatus === "approved"
+                  ? "Aprobado"
+                  : "Rechazado"
+              }}
+            </span>
+
+            <!-- Signature badge -->
             <span
-              *ngIf="element.approvalStatus === 'approved'"
-              class="badge bg-success"
-              >Aprobado</span
+              [ngClass]="{
+                'px-2 py-1 rounded-full text-xs font-medium': true,
+                'bg-blue-100 text-blue-800': !element.signed,
+                'bg-purple-100 text-purple-800': element.signed
+              }"
             >
-            <span
-              *ngIf="element.approvalStatus === 'rejected'"
-              class="badge bg-danger"
-              >Rechazado</span
-            >
-            <span *ngIf="!element.signed" class="badge bg-info ml-2"
-              >Requiere firma</span
-            >
-            <span *ngIf="element.signed" class="badge bg-primary ml-2"
-              >Firmado</span
-            >
+              {{ element.signed ? "Firmado" : "Requiere firma" }}
+            </span>
           </td>
         </ng-container>
 
         <ng-container matColumnDef="actions">
           <th mat-header-cell *matHeaderCellDef>Acciones</th>
           <td mat-cell *matCellDef="let element">
-            <button
-              mat-icon-button
-              color="primary"
-              (click)="generatePDF(element)"
+            <!-- Solo icono para descargar formato -->
+            <mat-icon
+              class="cursor-pointer text-blue-600"
               matTooltip="Descargar formato"
+              (click)="generatePDF(element)"
             >
-              <mat-icon>picture_as_pdf</mat-icon>
-            </button>
+              picture_as_pdf
+            </mat-icon>
 
+            <!-- Botón de subir firmado si no está firmado aún -->
             <button
+              *ngIf="!element.signed && element.approvalStatus === 'pending'"
               mat-icon-button
               color="accent"
               (click)="uploadSignedDocument(element.sessionId)"
-              [disabled]="
-                element.signed || element.approvalStatus !== 'pending'
-              "
               matTooltip="Subir firmado"
             >
               <mat-icon>upload</mat-icon>
             </button>
+
+            <!-- Icono de check si el elemento ya está firmado -->
+            <mat-icon
+              *ngIf="element.signed"
+              class="text-green-600 ml-2"
+              matTooltip="Solictud completada, por favor espera la revisión"
+            >
+              check_circle
+            </mat-icon>
+
+            <!-- Icono de cancel para estados no pendientes y no firmados -->
+            <mat-icon
+              *ngIf="!element.signed && element.approvalStatus !== 'pending'"
+              class="text-red-600 ml-2"
+              matTooltip="No se puede modificar"
+            >
+              cancel
+            </mat-icon>
           </td>
         </ng-container>
 

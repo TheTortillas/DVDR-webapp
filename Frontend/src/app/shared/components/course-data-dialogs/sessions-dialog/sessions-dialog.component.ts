@@ -81,6 +81,34 @@ export class SessionsDialogComponent {
       .toUpperCase(); // Para que AM/PM aparezca en mayúsculas
   }
 
+  // Método para formatear el estado similar al de MyCoursesComponent
+  getStatusLabel(status: string): string {
+    switch (status) {
+      case 'pending':
+        return 'En revisión';
+      case 'opened':
+        return 'Aperturado';
+      case 'completed':
+        return 'Completado';
+      default:
+        return 'Estado desconocido';
+    }
+  }
+
+  // Método para determinar la clase CSS según el estado
+  getStatusClass(status: string): string {
+    switch (status) {
+      case 'pending':
+        return 'status-pending';
+      case 'opened':
+        return 'status-opened';
+      case 'completed':
+        return 'status-completed';
+      default:
+        return '';
+    }
+  }
+
   expandedElement: CourseSession | null = null;
   constructor(
     @Inject(MAT_DIALOG_DATA)

@@ -249,7 +249,7 @@ CREATE TABLE course_sessions (
         ON DELETE CASCADE
         ON UPDATE CASCADE
 );
-
+select * from course_sessions;
 CREATE TABLE session_certificates_request_documentation (
 	id INT PRIMARY KEY AUTO_INCREMENT,
     session_id INT NOT NULL, -- Relación con cursos
@@ -973,7 +973,7 @@ BEGIN
         p_num_participants, 
         p_num_certificates,
         p_cost,
-        'opened',
+        'pending',
         'pending',
         p_documentation_folder
     );
@@ -1245,17 +1245,17 @@ CREATE PROCEDURE sp_get_courses_with_sessions(
     IN p_username VARCHAR(50)
 )
 BEGIN
-    DECLARE v_user_id INT;
+    DECLARE v_center_id INT;
 
-    -- Obtener el ID del usuario
-    SELECT id INTO v_user_id FROM users WHERE username = p_username LIMIT 1;
+    -- Obtener el ID del centro al que pertenece el usuario
+    SELECT center_id INTO v_center_id FROM users WHERE username = p_username LIMIT 1;
 
-    IF v_user_id IS NULL THEN
+    IF v_center_id IS NULL THEN
         SIGNAL SQLSTATE '45000' 
-            SET MESSAGE_TEXT = 'Error: Usuario no encontrado.';
+            SET MESSAGE_TEXT = 'Error: Usuario no encontrado o el usuario no tiene centro asignado.';
     END IF;
 
-    -- Obtener todos los cursos (incluyendo renovaciones) del usuario
+    -- Obtener todos los cursos (incluyendo renovaciones) del centro
     SELECT 
         c.id AS course_id,
         c.course_name AS title,
@@ -1265,7 +1265,8 @@ BEGIN
         c.status AS course_status,  -- Añadir esta línea
         c.approval_status AS approval_status  -- Añadir esta línea
     FROM courses c
-    WHERE c.user_id = v_user_id
+    INNER JOIN users u ON c.user_id = u.id
+    WHERE u.center_id = v_center_id
     ORDER BY c.course_name, c.renewal_count;
 
     -- Obtener las sesiones de cada curso y sus renovaciones
@@ -1276,11 +1277,13 @@ BEGIN
         cs.number_of_participants AS participantes,
         cs.number_of_certificates AS constancias,
         cs.status AS estatus,
+        cs.approval_status AS estatus_de_aprobacion,
         cs.certificates_requested AS certificates_requested,
         cs.certificates_delivered AS certificates_delivered
     FROM course_sessions cs
     JOIN courses c ON cs.course_id = c.id
-    WHERE c.user_id = v_user_id
+    INNER JOIN users u ON c.user_id = u.id
+    WHERE u.center_id = v_center_id
     ORDER BY c.course_name, cs.period;
     
 END $$
@@ -2029,6 +2032,20 @@ DELIMITER ;
 DELIMITER $$
 CREATE PROCEDURE sp_get_completed_diplomas(IN p_username VARCHAR(50))
 BEGIN
+    DECLARE v_center_id INT;
+
+    -- Obtener el ID del centro al que pertenece el usuario
+    SELECT center_id INTO v_center_id 
+    FROM users 
+    WHERE username = p_username 
+    LIMIT 1;
+
+    IF v_center_id IS NULL THEN
+        SIGNAL SQLSTATE '45000' 
+            SET MESSAGE_TEXT = 'Error: Usuario no encontrado o el usuario no tiene centro asignado.';
+    END IF;
+
+    -- Obtener los diplomados del centro correspondiente
     SELECT 
         d.id AS diplomaId,
         d.name AS title,
@@ -2041,7 +2058,7 @@ BEGIN
         d.official_letter_path
     FROM diplomas d
     JOIN users u ON d.user_id = u.id
-    WHERE u.username = p_username
+    WHERE u.center_id = v_center_id
     AND d.status = 'finished'
     AND d.approval_status = 'approved'
     ORDER BY d.end_date DESC;
@@ -2225,7 +2242,7 @@ BEGIN
     
     -- Actualizar los participantes con el número de certificados y marcar como entregados
     UPDATE diplomas
-    SET participants = p_number_of_certificates,  -- Usar el campo participants para almacenar el número de certificados entregados
+    SET number_of_certificates = p_number_of_certificates,  -- Usar el campo participants para almacenar el número de certificados entregados
         certificates_delivered = 1                -- Marcar como entregados
     WHERE id = p_diploma_id;
     
@@ -2831,6 +2848,50 @@ END$$
 DELIMITER ;
 
 DELIMITER $$
+CREATE PROCEDURE sp_delete_instructor_all(
+    IN p_actor_id INT,
+    OUT p_status_code INT,
+    OUT p_message VARCHAR(255)
+)
+BEGIN
+    -- Manejo de errores
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION 
+    BEGIN
+        ROLLBACK;
+        SET p_status_code = -1;
+        SET p_message = 'Error: No se pudo eliminar todo el proceso.';
+    END;
+
+    START TRANSACTION;
+
+    -- Verificar si el actor existe
+    IF NOT EXISTS (SELECT 1 FROM actors_general_information WHERE id = p_actor_id) THEN
+        ROLLBACK;
+        SET p_status_code = -2;
+        SET p_message = 'Error: El instructor especificado no existe.';
+    END IF;
+
+    -- Eliminar historial académico
+    DELETE FROM academic_history
+    WHERE actor_id = p_actor_id;
+
+    -- Eliminar experiencia profesional
+    DELETE FROM professional_experience
+    WHERE actor_id = p_actor_id;
+
+    -- Eliminar información general del actor
+    DELETE FROM actors_general_information
+    WHERE id = p_actor_id;
+
+    -- Confirmar transacción
+    COMMIT;
+
+    SET p_status_code = 1;
+    SET p_message = 'Instructor, historial académico y experiencia eliminados exitosamente.';
+END$$
+DELIMITER ;
+
+DELIMITER $$
 CREATE PROCEDURE sp_update_diploma_status()
 BEGIN
     -- Actualizar el estado de los diplomados basado en la fecha de fin
@@ -2856,7 +2917,7 @@ BEGIN
     SET SQL_SAFE_UPDATES = 1;
 END$$
 DELIMITER ;
-
+call sp_update_course_sessions_status();
 DELIMITER $$
 CREATE EVENT event_update_diploma_status
 ON SCHEDULE EVERY 1 DAY
@@ -3236,13 +3297,13 @@ ORDER BY u.username, c.created_at;
 UPDATE courses
 SET approval_status = 'approved'
 WHERE id = 1;
-select * from courses;
+
 UPDATE courses
 SET status = 'submitted'
 WHERE id = 3;
 */
--- truncate table session_certificate_official_letter;
--- UPDATE course_sessions SET certificates_delivered = 0 WHERE id = 1;
+
+-- UPDATE course_sessions SET certificates_delivered = 0 WHERE id = 3;
 
 /*
 UPDATE courses 
@@ -3253,7 +3314,7 @@ WHERE id = 5;*/
 UPDATE courses 
 SET approval_status = 'pending' 
 WHERE id = 1;
-select * from diplomas;
+
 UPDATE courses 
 SET verification_status = 'approved' 
 WHERE id = 1;
@@ -3277,14 +3338,14 @@ select *from diploma_actor_roles;
 /*
 UPDATE diplomas 
 SET status = 'finished' 
-WHERE id = 1;
+WHERE id = 2;
 select *from diploma_actor_roles;
 */
-
+select * from diplomas;
 /*
 UPDATE diplomas 
-SET certificates_requested = 1
-WHERE id = 1;
+SET certificates_delivered = 0
+WHERE id = 2;
 select *from diploma_actor_roles;
 */
 -- update course_sessions set status = 'opened' where id = 4;

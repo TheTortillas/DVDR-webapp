@@ -44,6 +44,12 @@ export class TemplatesComponent implements OnInit {
   loading = true;
   error = false;
 
+  modalidadesMap: { [key: string]: string } = {
+    schooled: 'Escolarizada',
+    'non-schooled': 'No escolarizada',
+    mixed: 'Mixta',
+  };
+
   constructor(
     private templatesService: TemplatesService,
     private dialog: MatDialog,

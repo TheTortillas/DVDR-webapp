@@ -38,6 +38,11 @@ import { MatIconModule } from '@angular/material/icon';
 export class TemplateManageDialogComponent implements OnInit {
   form: FormGroup;
   modalidades = ['schooled', 'non-schooled', 'mixed'];
+  modalidadesMap: { [key: string]: string } = {
+    schooled: 'Escolarizada',
+    'non-schooled': 'No escolarizada',
+    mixed: 'Mixta',
+  };
   selectedFile: File | null = null;
   isUrlType = false;
 

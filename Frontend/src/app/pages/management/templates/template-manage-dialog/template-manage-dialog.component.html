@@ -40,13 +40,12 @@
     </ng-container>
 
     <mat-checkbox formControlName="required">Requerido</mat-checkbox>
-
     <ng-container *ngIf="data.type === 'course'">
       <mat-form-field>
         <mat-label>Modalidades</mat-label>
         <mat-select formControlName="modalities" multiple>
           <mat-option *ngFor="let modalidad of modalidades" [value]="modalidad">
-            {{ modalidad }}
+            {{ modalidadesMap[modalidad] }}
           </mat-option>
         </mat-select>
       </mat-form-field>

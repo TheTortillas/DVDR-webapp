@@ -592,20 +592,23 @@ namespace DVDR_courses
             using (var con = new MySqlConnection(_config.GetConnectionString("default")))
             {
                 var cmd = new MySqlCommand(@"
-                   SELECT 
-                        c.id, 
-                        c.course_name AS Title, 
-                        c.course_key AS Clave,
-                        c.status AS Status,
-                        c.approval_status AS ApprovalStatus,
-                        c.verification_status AS VerificationStatus,
-                        c.total_duration AS TotalDuration,
-                        c.expiration_date AS ExpirationDate,
-                        c.is_renewed AS IsRenewed
-                    FROM courses c
-                    INNER JOIN users u ON c.user_id = u.id
-                    WHERE u.username = @username", con);
+            SELECT 
+                c.id, 
+                c.course_name AS Title, 
+                c.course_key AS Clave,
+                c.status AS Status,
+                c.approval_status AS ApprovalStatus,
+                c.verification_status AS VerificationStatus,
+                c.total_duration AS TotalDuration,
+                c.expiration_date AS ExpirationDate,
+                c.is_renewed AS IsRenewed
+            FROM courses c
+            INNER JOIN users u ON c.user_id = u.id
+            INNER JOIN centers ct ON u.center_id = ct.id
+            WHERE u.center_id = (SELECT center_id FROM users WHERE username = @username LIMIT 1)
+        ", con);
 
+                // Usamos el parámetro para asegurarnos de filtrar por el nombre de usuario
                 cmd.Parameters.AddWithValue("@username", username);
 
                 con.Open();
@@ -630,6 +633,8 @@ namespace DVDR_courses
                 return courses;
             }
         }
+
+
 
         public CourseResponse? GetCourseById(int courseId)
         {
@@ -1364,7 +1369,8 @@ namespace DVDR_courses
                                         Periodo = reader.GetString("periodo"),
                                         Participantes = reader.GetInt32("participantes"),
                                         Constancias = reader.GetInt32("constancias"),
-                                        Estatus = reader.GetString("estatus"),
+                                        SessionStatus = reader.GetString("estatus"),
+                                        SessionApprovalStatus = reader.GetString("estatus_de_aprobacion"),
                                         CertificatesRequested = reader.GetBoolean("certificates_requested"),
                                         CertificatesDelivered = reader.GetBoolean("certificates_delivered")
                                     });
@@ -1701,13 +1707,10 @@ namespace DVDR_courses
                             ";
                         }
                         else
-                        {
-                            // Si el administrador aprueba, también actualizar el estado de verificación a "approved"
-                            // Este es el cambio clave para que ambos estados se actualicen
+                        {                      
                             sqlApprove = @"
                                 UPDATE courses
-                                SET approval_status = @approvalStatus,
-                                    verification_status = 'approved',
+                                SET approval_status = @approvalStatus,                             
                                     admin_notes = @adminNotes
                                 WHERE id = @courseId;
                             ";

@@ -15,20 +15,17 @@ export const AuthInterceptor: HttpInterceptorFn = (req, next) => {
     token = localStorage.getItem('token');
   }
 
-  // Mostrar pantalla de carga
-  loadingService.showLoading();
+  let authReq = req;
 
-  const authReq = token
-    ? req.clone({
-        setHeaders: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
-    : req;
+  if (token) {
+    loadingService.showLoading();
+    authReq = req.clone({
+      setHeaders: { Authorization: `Bearer ${token}` },
+    });
+  }
 
   return next(authReq).pipe(
     finalize(() => {
-      // Ocultar pantalla de carga
       loadingService.hideLoading();
     })
   );
